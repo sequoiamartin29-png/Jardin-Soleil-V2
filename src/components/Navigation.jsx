@@ -8,6 +8,8 @@ const menu = [
   { icon: "📸", label: "Gallery" },
   { icon: "🌤", label: "Weather" },
   { icon: "📦", label: "Inventory" }
+  { icon: "🎓", label: "Learning" },
+{ icon: "🎮", label: "Word Search" },
 ];
 
 export default function Navigation({ activePage, setPage }) {
