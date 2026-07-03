@@ -82,7 +82,12 @@ case "Word Search":
   );
 
 case "Plant Profile":
-  return <PlantProfile plant={selectedPlant} />;
+  return (
+    <PlantProfile
+      plant={selectedPlant}
+      journalEntries={journalEntries}
+    />
+  );
         case "New Journal Entry":
   return (
     <JournalEntry
