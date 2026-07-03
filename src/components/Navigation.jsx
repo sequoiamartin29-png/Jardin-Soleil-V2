@@ -9,6 +9,7 @@ const menu = [
   { icon: "➕", label: "New Journal Entry" },
   { icon: "📅", label: "Journal Timeline" },
   { icon: "📸", label: "Gallery" },
+  { icon: "📷", label: "Photo Manager" },
   { icon: "🌤", label: "Weather" },
   { icon: "📦", label: "Inventory" },
   { icon: "🎓", label: "Learning" },
