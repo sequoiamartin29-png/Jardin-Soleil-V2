@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 
 import Navigation from "./components/Navigation";
 import Dashboard from "./components/Dashboard";
@@ -12,12 +12,24 @@ import Learning from "./components/Learning";
 import WordSearch from "./components/WordSearch";
 import PlantDirectory from "./components/PlantDirectory";
 import PlantProfile from "./components/PlantProfile";
+import JournalEntry from "./components/JournalEntry";
 import "./styles/app.css";
 
 export default function App() {
 
   const [page, setPage] = useState("Dashboard");
 const [selectedPlant, setSelectedPlant] = useState(null);
+  const [journalEntries, setJournalEntries] = useState([]);
+  const addJournalEntry = (entry) => {
+  setJournalEntries((current) => [
+    {
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+      ...entry,
+    },
+    ...current,
+  ]);
+};
   const renderPage = () => {
 
     switch (page) {
@@ -59,6 +71,12 @@ case "Word Search":
 
 case "Plant Profile":
   return <PlantProfile plant={selectedPlant} />;
+        case "New Journal Entry":
+  return (
+    <JournalEntry
+      onSaveEntry={addJournalEntry}
+    />
+  );
       default:
         return <Dashboard />;
     }
