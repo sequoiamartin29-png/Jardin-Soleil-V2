@@ -1,9 +1,10 @@
 import React from "react";
 
 const menu = [
-  { icon: "🏠", label: "Dashboard" },
-  { icon: "🌳", label: "Orchard" },
-  { icon: "🌿", label: "Garden" },
+ { icon: "🏠", label: "Dashboard" },
+{ icon: "🌳", label: "Orchard" },
+{ icon: "🌿", label: "Plant Directory" },
+{ icon: "🌱", label: "Garden" },
   { icon: "📖", label: "Logbook" },
   { icon: "📸", label: "Gallery" },
   { icon: "🌤", label: "Weather" },
