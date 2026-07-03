@@ -1,18 +1,18 @@
 import React from "react";
 
 const menu = [
- { icon: "🏠", label: "Dashboard" },
-{ icon: "🌳", label: "Orchard" },
-{ icon: "🌿", label: "Plant Directory" },
-{ icon: "🌱", label: "Garden" },
+  { icon: "🏠", label: "Dashboard" },
+  { icon: "🌳", label: "Orchard" },
+  { icon: "🌿", label: "Plant Directory" },
+  { icon: "🌱", label: "Garden" },
   { icon: "📖", label: "Logbook" },
- { icon: "➕", label: "New Journal Entry" },
- { icon: "📅", label: "Journal Timeline" },
+  { icon: "➕", label: "New Journal Entry" },
+  { icon: "📅", label: "Journal Timeline" },
   { icon: "📸", label: "Gallery" },
   { icon: "🌤", label: "Weather" },
-  { icon: "📦", label: "Inventory" }
+  { icon: "📦", label: "Inventory" },
   { icon: "🎓", label: "Learning" },
-{ icon: "🎮", label: "Word Search" },
+  { icon: "🎮", label: "Word Search" }
 ];
 
 export default function Navigation({ activePage, setPage }) {
@@ -20,59 +20,62 @@ export default function Navigation({ activePage, setPage }) {
     <nav
       style={{
         background: "#FFFDF9",
-        borderRadius: "24px",
+        borderRadius: "28px",
         padding: "24px",
-        marginBottom: "35px",
-        border: "1px solid #EFE5D8",
+        marginBottom: "30px",
+        border: "1px solid #ECE4D8",
         boxShadow: "0 10px 25px rgba(0,0,0,.08)"
       }}
     >
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
+          gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))",
           gap: "14px"
         }}
       >
-                {menu.map((item) => {
-          const isActive = activePage === item.label;
+        {menu.map((item) => {
+          const active = activePage === item.label;
 
           return (
             <button
               key={item.label}
               onClick={() => setPage(item.label)}
               style={{
-                padding: "18px",
+                background: active ? "#B8C8A0" : "#F8F3EC",
+                color: active ? "#FFF" : "#44503A",
+                border: active
+                  ? "2px solid #8FA06A"
+                  : "1px solid #ECE4D8",
                 borderRadius: "18px",
-                border: isActive ? "2px solid #8FA06A" : "1px solid #EFE5D8",
-                background: isActive ? "#DDE8C8" : "#F8F3EC",
-                color: "#3D4A34",
+                padding: "18px",
                 cursor: "pointer",
-                fontSize: "16px",
-                fontWeight: 700,
-                boxShadow: isActive
-                  ? "0 8px 18px rgba(93,107,70,.22)"
-                  : "none"
+                transition: ".2s",
+                fontWeight: 700
               }}
             >
-              <div style={{ fontSize: "30px" }}>{item.icon}</div>
-
-              <div style={{ marginTop: "8px" }}>
-                {item.label}
+              <div
+                style={{
+                  fontSize: "30px",
+                  marginBottom: "8px"
+                }}
+              >
+                {item.icon}
               </div>
+
+              {item.label}
             </button>
           );
         })}
-              </div>
+      </div>
 
       <div
         style={{
-          marginTop: "25px",
+          marginTop: "24px",
           paddingTop: "20px",
           borderTop: "1px solid #ECE4D8",
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
           flexWrap: "wrap",
           gap: "15px"
         }}
@@ -93,17 +96,18 @@ export default function Navigation({ activePage, setPage }) {
         </div>
 
         <button
+          onClick={() => setPage("New Journal Entry")}
           style={{
-            padding: "14px 22px",
-            borderRadius: "16px",
-            border: "none",
-            background: "#B8C8A0",
+            background: "#8FA06A",
             color: "white",
-            fontWeight: "bold",
-            cursor: "pointer"
+            border: "none",
+            borderRadius: "18px",
+            padding: "14px 24px",
+            cursor: "pointer",
+            fontWeight: "bold"
           }}
         >
-          ➕ Quick Log
+          ➕ Quick Journal Entry
         </button>
       </div>
     </nav>
