@@ -8,7 +8,8 @@ import Logbook from "./components/Logbook";
 import Gallery from "./components/Gallery";
 import Inventory from "./components/Inventory";
 import Weather from "./components/Weather";
-
+import Learning from "./components/Learning";
+import WordSearch from "./components/WordSearch";
 import "./styles/app.css";
 
 export default function App() {
@@ -39,7 +40,11 @@ export default function App() {
 
       case "Weather":
         return <Weather />;
+case "Learning":
+  return <Learning />;
 
+case "Word Search":
+  return <WordSearch />;
       default:
         return <Dashboard />;
     }
