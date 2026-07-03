@@ -10,12 +10,14 @@ import Inventory from "./components/Inventory";
 import Weather from "./components/Weather";
 import Learning from "./components/Learning";
 import WordSearch from "./components/WordSearch";
+import PlantDirectory from "./components/PlantDirectory";
+import PlantProfile from "./components/PlantProfile";
 import "./styles/app.css";
 
 export default function App() {
 
   const [page, setPage] = useState("Dashboard");
-
+const [selectedPlant, setSelectedPlant] = useState(null);
   const renderPage = () => {
 
     switch (page) {
@@ -45,6 +47,18 @@ case "Learning":
 
 case "Word Search":
   return <WordSearch />;
+        case "Plant Directory":
+  return (
+    <PlantDirectory
+      onSelectPlant={(plant) => {
+        setSelectedPlant(plant);
+        setPage("Plant Profile");
+      }}
+    />
+  );
+
+case "Plant Profile":
+  return <PlantProfile plant={selectedPlant} />;
       default:
         return <Dashboard />;
     }
