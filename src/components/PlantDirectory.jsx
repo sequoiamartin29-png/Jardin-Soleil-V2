@@ -1,150 +1,175 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { plants } from "../data/plants";
 
+const filters = [
+  "All",
+  "Orchard",
+  "Citrus",
+  "Vegetables",
+  "Herbs",
+  "Flowers"
+];
+
+const getIcon = (type = "") => {
+  if (type.includes("Apple")) return "🍎";
+  if (type.includes("Pear")) return "🍐";
+  if (type.includes("Lemon")) return "🍋";
+  if (type.includes("Mandarin")) return "🍊";
+  if (
+    type.includes("Peach") ||
+    type.includes("Apricot") ||
+    type.includes("Nectarine")
+  )
+    return "🍑";
+  if (type.includes("Cherry")) return "🍒";
+  if (type.includes("Plum")) return "🟣";
+  return "🌿";
+};
+
 export default function PlantDirectory({ onSelectPlant }) {
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("All");
 
-return (
+  const filteredPlants = useMemo(() => {
+    return plants.filter((plant) => {
+      const matchesSearch =
+        plant.name.toLowerCase().includes(search.toLowerCase()) ||
+        plant.type.toLowerCase().includes(search.toLowerCase());
 
-<section
-style={{
-marginTop:"50px"
-}}
->
+      const matchesFilter =
+        filter === "All" || plant.category === filter;
 
-<h2
-style={{
-fontSize:"42px",
-color:"#5D6B46"
-}}
->
-🌿 Plant Directory
-</h2>
+      return matchesSearch && matchesFilter;
+    });
+  }, [search, filter]);
 
-<p
-style={{
-color:"#777",
-fontSize:"18px",
-marginBottom:"30px"
-}}
->
-Browse every plant currently growing in Jardin Soleil.
-</p>
+  return (
+    <section style={{ marginTop: "40px" }}>
+      <h1
+        style={{
+          color: "#5D6B46",
+          fontSize: "46px",
+          marginBottom: "8px"
+        }}
+      >
+        🌿 Plant Directory
+      </h1>
 
-<div
-style={{
-display:"grid",
-gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",
-gap:"24px"
-}}
->
+      <p
+        style={{
+          color: "#777",
+          marginBottom: "28px"
+        }}
+      >
+        Browse every plant growing in Jardin Soleil.
+      </p>
 
-{plants.map((plant)=>(
+      <input
+        placeholder="Search plants..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{
+          width: "100%",
+          padding: "16px",
+          borderRadius: "16px",
+          border: "1px solid #DDD",
+          marginBottom: "20px"
+        }}
+      />
 
-<div
-key={plant.id}
-style={{
-background:"#FFFDF9",
-borderRadius:"24px",
-padding:"24px",
-border:"1px solid #EFE5D8",
-boxShadow:"0 10px 25px rgba(0,0,0,.08)"
-}}
->
-  <div
-  style={{
-    display: "flex",
-    justifyContent: "space-between",
-    gap: "12px",
-    alignItems: "flex-start"
-  }}
->
-  <div>
-    <h3
-      style={{
-        margin: "0 0 8px",
-        color: "#53633F",
-        fontSize: "25px"
-      }}
-    >
-      {plant.name}
-    </h3>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "10px",
+          marginBottom: "30px"
+        }}
+      >
+        {filters.map((item) => (
+          <button
+            key={item}
+            onClick={() => setFilter(item)}
+            style={{
+              background:
+                filter === item ? "#8FA06A" : "#F8F3EC",
+              color:
+                filter === item ? "white" : "#53633F",
+              border: "none",
+              borderRadius: "16px",
+              padding: "10px 18px",
+              cursor: "pointer",
+              fontWeight: "bold"
+            }}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
 
-    <p style={{ margin: 0, color: "#777" }}>
-      {plant.type}
-    </p>
-  </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit,minmax(320px,1fr))",
+          gap: "20px"
+        }}
+      >
+        {filteredPlants.map((plant) => (
+          <article
+            key={plant.id}
+            style={{
+              background: "#FFFDF9",
+              borderRadius: "24px",
+              padding: "22px",
+              border: "1px solid #ECE4D8",
+              boxShadow:
+                "0 10px 24px rgba(0,0,0,.08)"
+            }}
+          >
+            <div
+              style={{
+                fontSize: "56px"
+              }}
+            >
+              {getIcon(plant.type)}
+            </div>
 
-  <span
-    style={{
-      background: "#B8C8A0",
-      color: "white",
-      padding: "7px 12px",
-      borderRadius: "999px",
-      fontSize: "13px",
-      whiteSpace: "nowrap"
-    }}
-  >
-    {plant.status}
-  </span>
-</div>
+            <h2
+              style={{
+                marginBottom: "6px",
+                color: "#53633F"
+              }}
+            >
+              {plant.name}
+            </h2>
 
-<div
-  style={{
-    marginTop: "20px",
-    display: "grid",
-    gridTemplateColumns: "repeat(2,1fr)",
-    gap: "12px"
-  }}
->
-  <div className="card">
-    <strong>❤️ Health</strong>
-    <p>{plant.health}%</p>
-  </div>
+            <p style={{ color: "#777" }}>
+              {plant.type}
+            </p>
 
-  <div className="card">
-    <strong>📍 Location</strong>
-    <p>{plant.location}</p>
-  </div>
-</div>
-  <div
-  style={{
-    marginTop: "20px",
-    display: "grid",
-    gridTemplateColumns: "repeat(2,1fr)",
-    gap: "10px"
-  }}
->
-  <button onClick={() => onSelectPlant(plant)}>
-    🌿 Open Profile
-  </button>
+            <p>
+              ❤️ {plant.health}% • 📍 {plant.location}
+            </p>
 
-  <button>
-    📸 Gallery
-  </button>
-</div>
-
-<div
-  style={{
-    marginTop: "18px",
-    paddingTop: "16px",
-    borderTop: "1px solid #ECE4D8",
-    display: "flex",
-    justifyContent: "space-between",
-    color: "#777",
-    fontSize: "14px"
-  }}
->
-  <span>☀️ {plant.sun}</span>
-  <span>💧 {plant.water}</span>
-</div>
-  </div>
-
-))}
-
-</div>
-
-</section>
-
-);
-
+            <button
+              onClick={() => onSelectPlant(plant)}
+              style={{
+                width: "100%",
+                marginTop: "18px",
+                padding: "14px",
+                borderRadius: "16px",
+                border: "none",
+                background: "#8FA06A",
+                color: "white",
+                cursor: "pointer",
+                fontWeight: "bold"
+              }}
+            >
+              🌿 Open Profile
+            </button>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
 }
