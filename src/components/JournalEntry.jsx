@@ -14,7 +14,7 @@ const entryTypes = [
   "📝 Note"
 ];
 
-export default function JournalEntry() {
+export default function JournalEntry({ onSaveEntry }) {
 
 const [selectedPlant,setSelectedPlant]=useState(plants[0]?.id || "");
 
@@ -158,7 +158,20 @@ gap:"24px"
     gap: "14px"
   }}
 >
-  <button>💾 Save Entry</button>
+ <button
+  onClick={() => {
+    onSaveEntry?.({
+      plantId: selectedPlant,
+      type: entryType,
+      health: Number(health),
+      notes,
+    });
+
+    alert("🌿 Journal entry saved!");
+  }}
+>
+  💾 Save Entry
+</button>
   <button>📸 Add Photo</button>
   <button>📖 View Journal</button>
 </div>
