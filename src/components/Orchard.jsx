@@ -1,204 +1,182 @@
 import React from "react";
 import { plants } from "../data/plants";
 
-const orchardPlants = plants.filter(
-  (plant) =>
-    plant.category === "Orchard" ||
-    plant.category === "Citrus"
-);
-
-const statusColors = {
-  Healthy: "#8FBF8F",
-  Growing: "#A7C97A",
-  Producing: "#F4C26B",
-  Fruiting: "#F4C26B",
-  Monitoring: "#D7B36A",
-  Recovery: "#D99999",
-  Recovering: "#D99999",
-  "New Arrival": "#8FC8C7"
+const badgeColors = {
+  Healthy: "#6BA368",
+  Growing: "#8FA06A",
+  Producing: "#D9A441",
+  Fruiting: "#D9A441",
+  Monitoring: "#C98F48",
+  Recovering: "#C46C6C",
+  "New Arrival": "#6C9EC4"
 };
 
-export default function Orchard() {
+const getIcon = (type = "") => {
+  if (type.includes("Apple")) return "🍎";
+  if (type.includes("Pear")) return "🍐";
+  if (type.includes("Lemon")) return "🍋";
+  if (type.includes("Mandarin")) return "🍊";
+  if (
+    type.includes("Peach") ||
+    type.includes("Apricot") ||
+    type.includes("Nectarine")
+  )
+    return "🍑";
+  if (type.includes("Cherry")) return "🍒";
+  if (type.includes("Plum")) return "🟣";
+  return "🌳";
+};
+
+export default function Orchard({ onSelectPlant }) {
+  const orchardPlants = plants.filter(
+    (plant) =>
+      plant.category === "Orchard" ||
+      plant.category === "Citrus"
+  );
+
   return (
-    <section
-      style={{
-        marginTop: "40px"
-      }}
-    >
-      <div
+    <section style={{ marginTop: "40px" }}>
+      <h1
         style={{
-          background:
-            "linear-gradient(135deg,#FFF9F3,#F8F3EC)",
-          borderRadius: "30px",
-          padding: "35px",
-          border: "1px solid #EFE5D8",
-          boxShadow: "0 12px 30px rgba(0,0,0,.08)"
+          color: "#5D6B46",
+          fontSize: "46px",
+          marginBottom: "10px"
         }}
       >
-        <h2
-          style={{
-            color: "#5D6B46",
-            fontSize: "42px"
-          }}
-        >
-          🌳 Jardin Soleil Orchard
-        </h2>
+        🌳 Jardin Soleil Orchard
+      </h1>
 
-        <p
-          style={{
-            color: "#777",
-            fontSize: "18px",
-            marginBottom: "35px"
-          }}
-        >
-          Living database of every fruit tree and citrus in Jardin Soleil.
-        </p>
+      <p
+        style={{
+          color: "#777",
+          marginBottom: "35px",
+          fontSize: "18px"
+        }}
+      >
+        Every fruit tree and citrus currently growing in Jardin Soleil.
+      </p>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit,minmax(330px,1fr))",
-            gap: "24px"
-          }}
-        >
-                    {orchardPlants.map((plant) => {
-            const badgeColor =
-              statusColors[plant.status] || "#B8C8A0";
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(340px,1fr))",
+          gap: "22px"
+        }}
+      >
+        {orchardPlants.map((plant) => (
+          <article
+            key={plant.id}
+            style={{
+              background: "#FFFDF9",
+              borderRadius: "28px",
+              overflow: "hidden",
+              border: "1px solid #ECE4D8",
+              boxShadow: "0 10px 24px rgba(0,0,0,.08)"
+            }}
+          >
+            <div
+              style={{
+                height: "170px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "72px",
+                background:
+                  "linear-gradient(135deg,#F9E6EB,#EEF3E3)"
+              }}
+            >
+              {getIcon(plant.type)}
+            </div>
 
-            const icon =
-              plant.type.includes("Apple")
-                ? "🍎"
-                : plant.type.includes("Pear")
-                ? "🍐"
-                : plant.type.includes("Lemon")
-                ? "🍋"
-                : plant.type.includes("Mandarin")
-                ? "🍊"
-                : plant.type.includes("Peach") ||
-                  plant.type.includes("Nectarine") ||
-                  plant.type.includes("Apricot")
-                ? "🍑"
-                : plant.type.includes("Cherry")
-                ? "🍒"
-                : plant.type.includes("Plum")
-                ? "🟣"
-                : "🌳";
-
-            return (
-              <article
-                key={plant.id}
+            <div style={{ padding: "24px" }}>
+              <div
                 style={{
-                  background: "#FFFDF9",
-                  borderRadius: "28px",
-                  overflow: "hidden",
-                  border: "1px solid #EFE5D8",
-                  boxShadow: "0 12px 28px rgba(0,0,0,.08)"
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "10px"
                 }}
               >
-                <div
+                <div>
+                  <h2
+                    style={{
+                      margin: 0,
+                      color: "#53633F"
+                    }}
+                  >
+                    {plant.name}
+                  </h2>
+
+                  <p
+                    style={{
+                      marginTop: "6px",
+                      color: "#777"
+                    }}
+                  >
+                    {plant.type}
+                  </p>
+                </div>
+
+                <span
                   style={{
-                    height: "155px",
                     background:
-                      "linear-gradient(135deg,#F7DDE5,#EEF2DD)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "68px"
+                      badgeColors[plant.status] ||
+                      "#8FA06A",
+                    color: "white",
+                    padding: "8px 12px",
+                    borderRadius: "999px",
+                    fontSize: "13px",
+                    height: "fit-content"
                   }}
                 >
-                  {icon}
+                  {plant.status}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2,1fr)",
+                  gap: "12px",
+                  marginTop: "20px"
+                }}
+              >
+                <div className="card">
+                  ❤️ {plant.health}%
                 </div>
-                                <div style={{ padding: "24px" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: "14px",
-                      alignItems: "flex-start"
-                    }}
-                  >
-                    <div>
-                      <h3
-                        style={{
-                          margin: "0 0 8px",
-                          color: "#53633F",
-                          fontSize: "25px"
-                        }}
-                      >
-                        {plant.name}
-                      </h3>
 
-                      <p style={{ margin: 0, color: "#777" }}>
-                        {plant.type}
-                      </p>
-                    </div>
-
-                    <span
-                      style={{
-                        background: badgeColor,
-                        color: "white",
-                        padding: "7px 12px",
-                        borderRadius: "999px",
-                        fontSize: "13px",
-                        whiteSpace: "nowrap"
-                      }}
-                    >
-                      {plant.status}
-                    </span>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: "20px",
-                      display: "grid",
-                      gridTemplateColumns: "repeat(2,1fr)",
-                      gap: "12px"
-                    }}
-                  >
-                    <div className="card">
-                      <strong>❤️ Health</strong>
-                      <p>{plant.health}%</p>
-                    </div>
-
-                    <div className="card">
-                      <strong>📍 Location</strong>
-                      <p>{plant.location}</p>
-                    </div>
-                  </div>
-                                                    <div
-                    style={{
-                      marginTop: "22px",
-                      display: "grid",
-                      gridTemplateColumns: "repeat(3,1fr)",
-                      gap: "10px"
-                    }}
-                  >
-                    <button>🌿 Profile</button>
-                    <button>📸 Gallery</button>
-                    <button>📖 Journal</button>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: "20px",
-                      paddingTop: "16px",
-                      borderTop: "1px solid #ECE4D8",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      color: "#777",
-                      fontSize: "14px"
-                    }}
-                  >
-                    <span>☀️ {plant.sun}</span>
-                    <span>💧 {plant.water}</span>
-                  </div>
+                <div className="card">
+                  📍 {plant.location}
                 </div>
-              </article>
-            );
-          })}
-        </div>
+
+                <div className="card">
+                  ☀️ {plant.sun}
+                </div>
+
+                <div className="card">
+                  💧 {plant.water}
+                </div>
+              </div>
+
+              <button
+                onClick={() => onSelectPlant(plant)}
+                style={{
+                  marginTop: "22px",
+                  width: "100%",
+                  padding: "14px",
+                  borderRadius: "16px",
+                  border: "none",
+                  background: "#8FA06A",
+                  color: "white",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                🌿 Open Plant Profile
+              </button>
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );
 }
-                                  
