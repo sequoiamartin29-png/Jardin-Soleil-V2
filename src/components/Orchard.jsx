@@ -1,5 +1,11 @@
 import React from "react";
-import { orchardPlants } from "../data/jardinData";
+import { plants } from "../data/plants";
+
+const orchardPlants = plants.filter(
+  (plant) =>
+    plant.category === "Orchard" ||
+    plant.category === "Citrus"
+);
 
 const statusColors = {
   Healthy: "#8FBF8F",
@@ -9,8 +15,7 @@ const statusColors = {
   Monitoring: "#D7B36A",
   Recovery: "#D99999",
   Recovering: "#D99999",
-  "New Arrival": "#8FC8C7",
-  "Mixed Recovery": "#D99999"
+  "New Arrival": "#8FC8C7"
 };
 
 export default function Orchard() {
@@ -23,18 +28,17 @@ export default function Orchard() {
       <div
         style={{
           background:
-            "linear-gradient(135deg,#FFF9F3 0%,#F8F3EC 100%)",
-          borderRadius: "28px",
-          padding: "40px",
+            "linear-gradient(135deg,#FFF9F3,#F8F3EC)",
+          borderRadius: "30px",
+          padding: "35px",
           border: "1px solid #EFE5D8",
-          boxShadow: "0 15px 35px rgba(0,0,0,.08)"
+          boxShadow: "0 12px 30px rgba(0,0,0,.08)"
         }}
       >
         <h2
           style={{
-            fontSize: "42px",
-            marginBottom: "10px",
-            color: "#5D6B46"
+            color: "#5D6B46",
+            fontSize: "42px"
           }}
         >
           🌳 Jardin Soleil Orchard
@@ -42,94 +46,47 @@ export default function Orchard() {
 
         <p
           style={{
+            color: "#777",
             fontSize: "18px",
-            color: "#6D6D6D",
-            maxWidth: "700px",
-            lineHeight: "1.8"
+            marginBottom: "35px"
           }}
         >
-          Every tree in Jardin Soleil has its own living profile.
-          Track growth, health, harvests, photos and journal
-          entries as your orchard matures season after season.
+          Living database of every fruit tree and citrus in Jardin Soleil.
         </p>
 
         <div
           style={{
-            display: "flex",
-            gap: "18px",
-            flexWrap: "wrap",
-            marginTop: "35px",
-            marginBottom: "40px"
-          }}
-        >
-          <div className="card">
-            <h3>🌳 Trees</h3>
-
-            <h1
-              style={{
-                margin: 0,
-                color: "#5D6B46"
-              }}
-            >
-              {orchardPlants.length}
-            </h1>
-          </div>
-
-          <div className="card">
-            <h3>🍎 Apples</h3>
-
-            <h1
-              style={{
-                margin: 0,
-                color: "#5D6B46"
-              }}
-            >
-              7
-            </h1>
-          </div>
-
-          <div className="card">
-            <h3>🍋 Citrus</h3>
-
-            <h1
-              style={{
-                margin: 0,
-                color: "#5D6B46"
-              }}
-            >
-              3
-            </h1>
-          </div>
-
-          <div className="card">
-            <h3>🍑 Stone Fruit</h3>
-
-            <h1
-              style={{
-                margin: 0,
-                color: "#5D6B46"
-              }}
-            >
-              7
-            </h1>
-          </div>
-        </div>
-
-        <div
-          style={{
             display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit,minmax(330px,1fr))",
-            gap: "25px"
+            gridTemplateColumns: "repeat(auto-fit,minmax(330px,1fr))",
+            gap: "24px"
           }}
         >
-                    {orchardPlants.map((tree) => {
+                    {orchardPlants.map((plant) => {
             const badgeColor =
-              statusColors[tree.status] || "#B8C8A0";
+              statusColors[plant.status] || "#B8C8A0";
+
+            const icon =
+              plant.type.includes("Apple")
+                ? "🍎"
+                : plant.type.includes("Pear")
+                ? "🍐"
+                : plant.type.includes("Lemon")
+                ? "🍋"
+                : plant.type.includes("Mandarin")
+                ? "🍊"
+                : plant.type.includes("Peach") ||
+                  plant.type.includes("Nectarine") ||
+                  plant.type.includes("Apricot")
+                ? "🍑"
+                : plant.type.includes("Cherry")
+                ? "🍒"
+                : plant.type.includes("Plum")
+                ? "🟣"
+                : "🌳";
 
             return (
               <article
-                key={tree.id}
+                key={plant.id}
                 style={{
                   background: "#FFFDF9",
                   borderRadius: "28px",
@@ -140,35 +97,18 @@ export default function Orchard() {
               >
                 <div
                   style={{
-                    height: "150px",
+                    height: "155px",
                     background:
                       "linear-gradient(135deg,#F7DDE5,#EEF2DD)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "64px"
+                    fontSize: "68px"
                   }}
                 >
-                  {tree.type.includes("Apple")
-                    ? "🍎"
-                    : tree.type.includes("Pear")
-                    ? "🍐"
-                    : tree.type.includes("Lemon")
-                    ? "🍋"
-                    : tree.type.includes("Mandarin")
-                    ? "🍊"
-                    : tree.type.includes("Peach") ||
-                      tree.type.includes("Nectarine") ||
-                      tree.type.includes("Apricot")
-                    ? "🍑"
-                    : tree.type.includes("Cherry")
-                    ? "🍒"
-                    : tree.type.includes("Plum")
-                    ? "🟣"
-                    : "🌳"}
+                  {icon}
                 </div>
-
-                <div style={{ padding: "24px" }}>
+                                <div style={{ padding: "24px" }}>
                   <div
                     style={{
                       display: "flex",
@@ -181,20 +121,15 @@ export default function Orchard() {
                       <h3
                         style={{
                           margin: "0 0 8px",
-                          fontSize: "24px",
-                          color: "#53633F"
+                          color: "#53633F",
+                          fontSize: "25px"
                         }}
                       >
-                        {tree.name}
+                        {plant.name}
                       </h3>
 
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "#7B746B"
-                        }}
-                      >
-                        {tree.type}
+                      <p style={{ margin: 0, color: "#777" }}>
+                        {plant.type}
                       </p>
                     </div>
 
@@ -208,67 +143,54 @@ export default function Orchard() {
                         whiteSpace: "nowrap"
                       }}
                     >
-                      {tree.status}
+                      {plant.status}
                     </span>
                   </div>
 
                   <div
                     style={{
                       marginTop: "20px",
-                      padding: "14px",
-                      borderRadius: "18px",
-                      background: "#F8F3EC"
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2,1fr)",
+                      gap: "12px"
                     }}
                   >
-                    <strong>Location</strong>
-                    <p style={{ margin: "6px 0 0" }}>
-                      {tree.location}
-                    </p>
-                  </div>
+                    <div className="card">
+                      <strong>❤️ Health</strong>
+                      <p>{plant.health}%</p>
+                    </div>
 
-                  <p
+                    <div className="card">
+                      <strong>📍 Location</strong>
+                      <p>{plant.location}</p>
+                    </div>
+                  </div>
+                                                    <div
                     style={{
-                      lineHeight: "1.7",
-                      color: "#5E5E5E",
-                      minHeight: "90px"
-                    }}
-                  >
-                    {tree.notes}
-                  </p>
-                                    <div
-                    style={{
+                      marginTop: "22px",
                       display: "grid",
                       gridTemplateColumns: "repeat(3,1fr)",
-                      gap: "10px",
-                      marginTop: "20px"
+                      gap: "10px"
                     }}
                   >
-                    <button>
-                      🌿 Profile
-                    </button>
-
-                    <button>
-                      📖 Journal
-                    </button>
-
-                    <button>
-                      📸 Gallery
-                    </button>
+                    <button>🌿 Profile</button>
+                    <button>📸 Gallery</button>
+                    <button>📖 Journal</button>
                   </div>
 
                   <div
                     style={{
-                      marginTop: "22px",
+                      marginTop: "20px",
+                      paddingTop: "16px",
                       borderTop: "1px solid #ECE4D8",
-                      paddingTop: "18px",
                       display: "flex",
                       justifyContent: "space-between",
                       color: "#777",
                       fontSize: "14px"
                     }}
                   >
-                    <span>💧 Water Log</span>
-                    <span>🌱 Care History</span>
+                    <span>☀️ {plant.sun}</span>
+                    <span>💧 {plant.water}</span>
                   </div>
                 </div>
               </article>
@@ -279,3 +201,4 @@ export default function Orchard() {
     </section>
   );
 }
+                                  
