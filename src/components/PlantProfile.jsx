@@ -1,183 +1,162 @@
 import React, { useMemo } from "react";
 
-export default function PlantProfile({
+const cardStyle = {
+  background: "#FFFDF9",
+  borderRadius: "24px",
+  padding: "22px",
+  border: "1px solid #EFE5D8",
+  boxShadow: "0 10px 24px rgba(0,0,0,.07)"
+};
 
-  plant,
+export default function PlantProfile({ plant, journalEntries = [] }) {
+  const history = useMemo(() => {
+    if (!plant) return [];
+    return journalEntries.filter((entry) => entry.plantId === plant.id);
+  }, [journalEntries, plant]);
 
-  journalEntries = []
-}) {
-const plantHistory = useMemo(() => {
-
-  if (!plant) return [];
-
-  return journalEntries.filter(
-    (entry) => entry.plantId === plant.id
-  );
-
-}, [journalEntries, plant]);
-
-const latestEntry = plantHistory[0];
-
-const wateringCount = plantHistory.filter(
-  (entry) => entry.type.includes("Water")
-).length;
-
-const fertilizerCount = plantHistory.filter(
-  (entry) => entry.type.includes("Fertilizer")
-).length;
-
-const harvestCount = plantHistory.filter(
-  (entry) => entry.type.includes("Harvest")
-).length;
-
-const pestCount = plantHistory.filter(
-  (entry) => entry.type.includes("Pest")
-).length;
-
-  plant = {
-    name: "Mr. Pear",
-    variety: "4-in-1 Pear",
-    location: "Left Orchard",
-    health: 98,
-    sun: "Full Sun",
-    moisture: "Moist",
-    fertilizer: "Garden-Tone",
-    height: "7 ft",
-    bloom: "Spring",
-    harvest: "Late Summer"
+  if (!plant) {
+    return (
+      <section style={{ marginTop: "40px" }} className="card">
+        <h2>🌿 No Plant Selected</h2>
+        <p>Go to the Plant Directory and choose a plant profile.</p>
+      </section>
+    );
   }
 
-}) {
+  const latestEntry = history[0];
 
-return (
+  const countType = (keyword) =>
+    history.filter((entry) => entry.type.includes(keyword)).length;
+    const health =
+    latestEntry?.health ??
+    plant.health ??
+    100;
 
-<div
-style={{
-background:"#FFFDF9",
-borderRadius:"30px",
-padding:"35px",
-marginTop:"40px",
-boxShadow:"0 12px 30px rgba(0,0,0,.08)"
-}}
->
+  return (
+    <section style={{ marginTop: "40px" }}>
+      <div
+        style={{
+          background: "linear-gradient(135deg,#FFF9F3,#F8F3EC)",
+          borderRadius: "32px",
+          padding: "34px",
+          border: "1px solid #EFE5D8",
+          boxShadow: "0 12px 30px rgba(0,0,0,.08)"
+        }}
+      >
+        <h1 style={{ margin: 0, color: "#5D6B46", fontSize: "44px" }}>
+          🌿 {plant.name}
+        </h1>
 
-<h1 style={{margin:0,color:"#5D6B46"}}>
-🌳 {plant.name}
-</h1>
+        <p style={{ color: "#777", fontSize: "20px" }}>
+          {plant.type} • {plant.location}
+        </p>
 
-<p style={{
-fontSize:"20px",
-color:"#777"
-}}>
-{plant.variety}
-</p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+            gap: "18px",
+            marginTop: "30px"
+          }}
+        >
+          <div style={cardStyle}>
+            <h3>❤️ Health</h3>
+            <h2>{health}%</h2>
+          </div>
 
-<div
-style={{
-display:"grid",
-gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",
-gap:"18px",
-marginTop:"35px"
-}}
->
-  <div className="card">
-  <h3>❤️ Health Score</h3>
-  <h1 style={{ margin: 0, color: "#5D6B46" }}>
-    {plant.health}%
-  </h1>
-</div>
+          <div style={cardStyle}>
+            <h3>📝 Journal Entries</h3>
+            <h2>{history.length}</h2>
+          </div>
 
-<div className="card">
-  <h3>📍 Location</h3>
-  <p>{plant.location}</p>
-</div>
+          <div style={cardStyle}>
+            <h3>💧 Waterings</h3>
+            <h2>{countType("Water")}</h2>
+          </div>
 
-<div className="card">
-  <h3>☀️ Sun</h3>
-  <p>{plant.sun}</p>
-</div>
+          <div style={cardStyle}>
+            <h3>🌱 Fertilizer</h3>
+            <h2>{countType("Fertilizer")}</h2>
+          </div>
+                    <div style={cardStyle}>
+            <h3>🍎 Harvests</h3>
+            <h2>{countType("Harvest")}</h2>
+          </div>
 
-<div className="card">
-  <h3>💧 Moisture</h3>
-  <p>{plant.moisture}</p>
-</div>
+          <div style={cardStyle}>
+            <h3>🐛 Pest Reports</h3>
+            <h2>{countType("Pest")}</h2>
+          </div>
 
-<div className="card">
-  <h3>🌱 Fertilizer</h3>
-  <p>{plant.fertilizer}</p>
-</div>
+          <div style={cardStyle}>
+            <h3>☀️ Sun</h3>
+            <p>{plant.sun}</p>
+          </div>
 
-<div className="card">
-  <h3>📏 Height</h3>
-  <p>{plant.height}</p>
-</div>
-  <div className="card">
-  <h3>❤️ Health Score</h3>
-  <h1 style={{ margin: 0, color: "#5D6B46" }}>
-    {plant.health}%
-  </h1>
-</div>
+          <div style={cardStyle}>
+            <h3>💧 Water Needs</h3>
+            <p>{plant.water}</p>
+          </div>
+        </div>
 
-<div className="card">
-  <h3>📍 Location</h3>
-  <p>{plant.location}</p>
-</div>
+        <div
+          style={{
+            marginTop: "32px",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
+            gap: "20px"
+          }}
+        >
+          <div style={cardStyle}>
+            <h3>🌸 Bloom Window</h3>
+            <p>{plant.bloom}</p>
+          </div>
 
-<div className="card">
-  <h3>☀️ Sun</h3>
-  <p>{plant.sun}</p>
-</div>
+          <div style={cardStyle}>
+            <h3>🍽 Harvest Window</h3>
+            <p>{plant.harvest}</p>
+          </div>
 
-<div className="card">
-  <h3>💧 Moisture</h3>
-  <p>{plant.moisture}</p>
-</div>
+          <div style={cardStyle}>
+            <h3>📸 Photos</h3>
+            <p>{plant.photos?.length || 0} saved photos</p>
+          </div>
+                    <div style={cardStyle}>
+            <h3>🌱 Fertilizer</h3>
+            <p>{plant.fertilizer}</p>
+          </div>
+        </div>
 
-<div className="card">
-  <h3>🌱 Fertilizer</h3>
-  <p>{plant.fertilizer}</p>
-</div>
+        <div
+          style={{
+            marginTop: "32px",
+            ...cardStyle
+          }}
+        >
+          <h3>📅 Recent Activity</h3>
 
-<div className="card">
-  <h3>📏 Height</h3>
-  <p>{plant.height}</p>
-</div>
-  <div
-  style={{
-    marginTop: "35px",
-    paddingTop: "25px",
-    borderTop: "1px solid #ECE4D8"
-  }}
->
-  <h2 style={{ color: "#5D6B46" }}>
-    📝 Garden Journal
-  </h2>
-
-  <p style={{ color: "#666", lineHeight: "1.8" }}>
-    Record pruning, fertilizing, blooms, fruit set, pest sightings,
-    disease treatments, weather events, and personal observations for
-    this plant. This timeline will become the complete history of each
-    specimen in Jardin Soleil.
-  </p>
-
-  <button
-    style={{
-      marginTop: "20px",
-      padding: "14px 26px",
-      borderRadius: "16px",
-      border: "none",
-      background: "#B8C8A0",
-      color: "#fff",
-      fontWeight: "bold",
-      cursor: "pointer"
-    }}
-  >
-    ➕ Add Journal Entry
-  </button>
-</div>
-
-</div>
-
-);
-
+          {history.length === 0 ? (
+            <p>No journal entries yet for this plant.</p>
+          ) : (
+            <div style={{ display: "grid", gap: "14px" }}>
+              {history.slice(0, 5).map((entry) => (
+                <div
+                  key={entry.id}
+                  style={{
+                    padding: "16px",
+                    borderRadius: "18px",
+                    background: "#F8F3EC"
+                  }}
+                >
+                  <strong>{entry.type}</strong>
+                  <p>{new Date(entry.createdAt).toLocaleString()}</p>
+                  <p>{entry.notes || "No notes added."}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
 }
