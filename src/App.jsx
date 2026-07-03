@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+
 import Navigation from "./components/Navigation";
 import Dashboard from "./components/Dashboard";
 import Orchard from "./components/Orchard";
@@ -13,44 +14,61 @@ import PlantDirectory from "./components/PlantDirectory";
 import PlantProfile from "./components/PlantProfile";
 import JournalEntry from "./components/JournalEntry";
 import JournalTimeline from "./components/JournalTimeline";
+
 import "./styles/app.css";
 
 export default function App() {
-
   const [page, setPage] = useState("Dashboard");
-const [selectedPlant, setSelectedPlant] = useState(null);
- const [journalEntries, setJournalEntries] = useState(() => {
-  const savedEntries = localStorage.getItem("jardinSoleilJournalEntries");
-  return savedEntries ? JSON.parse(savedEntries) : [];
-});
+  const [selectedPlant, setSelectedPlant] = useState(null);
+
+  const [journalEntries, setJournalEntries] = useState(() => {
+    const saved = localStorage.getItem("jardinSoleilJournalEntries");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem(
+      "jardinSoleilJournalEntries",
+      JSON.stringify(journalEntries)
+    );
+  }, [journalEntries]);
+
+  const openPlantProfile = (plant) => {
+    setSelectedPlant(plant);
+    setPage("Plant Profile");
+  };
+
   const addJournalEntry = (entry) => {
-  setJournalEntries((current) => [
-    {
-      id: Date.now(),
-      createdAt: new Date().toISOString(),
-      ...entry,
-    },
-    ...current,
-  ]);
-};
+    setJournalEntries((current) => [
+      {
+        id: Date.now(),
+        createdAt: new Date().toISOString(),
+        ...entry,
+      },
+      ...current,
+    ]);
 
-useEffect(() => {
-  localStorage.setItem(
-    "jardinSoleilJournalEntries",
-    JSON.stringify(journalEntries)
-  );
-}, [journalEntries]);
+    setPage("Journal Timeline");
+  };
 
-const renderPage = () => {
   const renderPage = () => {
-
     switch (page) {
-
       case "Dashboard":
-        return <Dashboard />;
+        return <Dashboard journalEntries={journalEntries} />;
 
       case "Orchard":
-        return <Orchard />;
+        return <Orchard onSelectPlant={openPlantProfile} />;
+
+      case "Plant Directory":
+        return <PlantDirectory onSelectPlant={openPlantProfile} />;
+
+      case "Plant Profile":
+        return (
+          <PlantProfile
+            plant={selectedPlant}
+            journalEntries={journalEntries}
+          />
+        );
 
       case "Garden":
         return <Garden />;
@@ -58,99 +76,48 @@ const renderPage = () => {
       case "Logbook":
         return <Logbook />;
 
+      case "New Journal Entry":
+        return <JournalEntry onSaveEntry={addJournalEntry} />;
+
+      case "Journal Timeline":
+        return <JournalTimeline entries={journalEntries} />;
+
       case "Gallery":
         return <Gallery />;
+
+      case "Weather":
+        return <Weather />;
 
       case "Inventory":
         return <Inventory />;
 
-      case "Weather":
-        return <Weather />;
-case "Learning":
-  return <Learning />;
+      case "Learning":
+        return <Learning />;
 
-case "Word Search":
-  return <WordSearch />;
-        case "Plant Directory":
-  return (
-    <PlantDirectory
-      onSelectPlant={(plant) => {
-        setSelectedPlant(plant);
-        setPage("Plant Profile");
-      }}
-    />
-  );
+      case "Word Search":
+        return <WordSearch />;
 
-case "Plant Profile":
-  return (
-    <PlantProfile
-      plant={selectedPlant}
-      journalEntries={journalEntries}
-    />
-  );
-        case "New Journal Entry":
-  return (
-    <JournalEntry
-      onSaveEntry={addJournalEntry}
-    />
-  );
-        case "Journal Timeline":
-  return (
-    <JournalTimeline
-      entries={journalEntries}
-    />
-  );
       default:
-        return <Dashboard />;
+        return <Dashboard journalEntries={journalEntries} />;
     }
-
   };
 
   return (
-
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#F8F2EB",
-        padding: "30px",
-        fontFamily: "Georgia, serif"
-      }}
-    >
-            <header
-        style={{
-          background: "#FFFDF9",
-          borderRadius: "28px",
-          padding: "28px",
-          marginBottom: "28px",
-          border: "1px solid #EFE5D8",
-          boxShadow: "0 12px 28px rgba(0,0,0,.08)"
-        }}
-      >
-        <h1
-          style={{
-            margin: 0,
-            color: "#5D6B46",
-            fontSize: "46px"
-          }}
-        >
-          🌿 Jardin Soleil
-        </h1>
-
-        <p
-          style={{
-            margin: "10px 0 0",
-            color: "#777",
-            fontSize: "18px"
-          }}
-        >
-          French Chalet Garden Command Center
-        </p>
+    <div className="app">
+      <header className="hero">
+        <div>
+          <p className="eyebrow">French Chalet Garden Command Center</p>
+          <h1>🌿 Jardin Soleil</h1>
+          <p>
+            Official records begin July 1, 2026. Built for your orchard,
+            herbs, vegetables, flowers, photos, notes, and garden history.
+          </p>
+        </div>
       </header>
 
       <Navigation activePage={page} setPage={setPage} />
-            <main>
-        {renderPage()}
-      </main>
+
+      <main>{renderPage()}</main>
     </div>
   );
 }
