@@ -6,6 +6,7 @@ const menu = [
 { icon: "🌿", label: "Plant Directory" },
 { icon: "🌱", label: "Garden" },
   { icon: "📖", label: "Logbook" },
+ { icon: "➕", label: "New Journal Entry" },
   { icon: "📸", label: "Gallery" },
   { icon: "🌤", label: "Weather" },
   { icon: "📦", label: "Inventory" }
