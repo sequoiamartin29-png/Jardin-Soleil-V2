@@ -1,26 +1,8 @@
 import React from "react";
-import { plants } from "../data/plants";
+import { useGarden } from "../context/GardenContext";
 
-export default function Dashboard({ journalEntries = [] }) {
-  const totalPlants = plants.length;
-
-  const averageHealth =
-    plants.length > 0
-      ? Math.round(
-          plants.reduce((sum, plant) => sum + (plant.health || 100), 0) /
-            plants.length
-        )
-      : 0;
-
-  const orchardTrees = plants.filter(
-    (plant) => plant.category === "Orchard"
-  ).length;
-
-  const citrusTrees = plants.filter(
-    (plant) => plant.category === "Citrus"
-  ).length;
-
-  const recentEntries = journalEntries.slice(0, 5);
+export default function Dashboard() {
+  const { stats } = useGarden();
 
   const cardStyle = {
     background: "#FFFDF9",
@@ -32,24 +14,12 @@ export default function Dashboard({ journalEntries = [] }) {
 
   return (
     <section style={{ marginTop: "40px" }}>
-      <h1
-        style={{
-          color: "#5D6B46",
-          fontSize: "46px",
-          marginBottom: "8px"
-        }}
-      >
-        🌿 Jardin Soleil Command Center
+      <h1 style={{ color: "#5D6B46", fontSize: "46px" }}>
+        🌞 Good Morning, Sequoia
       </h1>
 
-      <p
-        style={{
-          color: "#777",
-          fontSize: "18px",
-          marginBottom: "35px"
-        }}
-      >
-        Welcome back. Here's the current status of your garden.
+      <p style={{ color: "#777", fontSize: "18px", marginBottom: "35px" }}>
+        Welcome back to Jardin Soleil. Here is today’s garden brief.
       </p>
 
       <div
@@ -60,54 +30,57 @@ export default function Dashboard({ journalEntries = [] }) {
         }}
       >
         <div style={cardStyle}>
-          <h3>🌳 Total Plants</h3>
-          <h1>{totalPlants}</h1>
+          <h3>🌿 Total Plants</h3>
+          <h1>{stats.totalPlants}</h1>
         </div>
 
         <div style={cardStyle}>
-          <h3>❤️ Average Health</h3>
-          <h1>{averageHealth}%</h1>
+          <h3>❤️ Garden Health</h3>
+          <h1>{stats.averageHealth}%</h1>
         </div>
 
         <div style={cardStyle}>
-          <h3>🌳 Orchard Trees</h3>
-          <h1>{orchardTrees}</h1>
+          <h3>🌳 Orchard</h3>
+          <h1>{stats.orchardCount}</h1>
         </div>
 
         <div style={cardStyle}>
-          <h3>🍋 Citrus Trees</h3>
-          <h1>{citrusTrees}</h1>
+          <h3>🍋 Citrus</h3>
+          <h1>{stats.citrusCount}</h1>
         </div>
 
         <div style={cardStyle}>
           <h3>📝 Journal Entries</h3>
-          <h1>{journalEntries.length}</h1>
+          <h1>{stats.journalCount}</h1>
         </div>
 
         <div style={cardStyle}>
-          <h3>📅 Last Update</h3>
-          <p>
-            {journalEntries.length
-              ? new Date(journalEntries[0].createdAt).toLocaleString()
-              : "No entries yet"}
-          </p>
+          <h3>📸 Photos</h3>
+          <h1>{stats.photoCount}</h1>
         </div>
       </div>
 
-      <div
-        style={{
-          marginTop: "35px",
-          ...cardStyle
-        }}
-      >
-        <h2 style={{ color: "#5D6B46" }}>
-          🌿 Recent Garden Activity
-        </h2>
+      <div style={{ marginTop: "35px", ...cardStyle }}>
+        <h2 style={{ color: "#5D6B46" }}>🌿 Morning Garden Brief</h2>
 
-        {recentEntries.length === 0 ? (
-          <p>No journal entries yet.</p>
+        <ul style={{ lineHeight: "2" }}>
+          <li>Garden health is currently {stats.averageHealth}%.</li>
+          <li>{stats.totalPlants} plants are being tracked.</li>
+          <li>{stats.journalCount} journal entries saved.</li>
+          <li>{stats.photoCount} photos saved.</li>
+          <li>
+            {stats.plantsNeedingAttention.length} plants need extra attention.
+          </li>
+        </ul>
+      </div>
+
+      <div style={{ marginTop: "35px", ...cardStyle }}>
+        <h2 style={{ color: "#5D6B46" }}>📅 Recent Activity</h2>
+
+        {stats.recentEntries.length === 0 ? (
+          <p>No recent entries yet.</p>
         ) : (
-          recentEntries.map((entry) => (
+          stats.recentEntries.map((entry) => (
             <div
               key={entry.id}
               style={{
@@ -116,14 +89,8 @@ export default function Dashboard({ journalEntries = [] }) {
               }}
             >
               <strong>{entry.type}</strong>
-
-              <p style={{ margin: "6px 0" }}>
-                {entry.notes || "No notes"}
-              </p>
-
-              <small>
-                {new Date(entry.createdAt).toLocaleString()}
-              </small>
+              <p>{entry.notes || "No notes added."}</p>
+              <small>{new Date(entry.createdAt).toLocaleString()}</small>
             </div>
           ))
         )}
