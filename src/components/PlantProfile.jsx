@@ -1,6 +1,38 @@
-import React from "react";
+import React, { useMemo } from "react";
 
 export default function PlantProfile({
+
+  plant,
+
+  journalEntries = []
+}) {
+const plantHistory = useMemo(() => {
+
+  if (!plant) return [];
+
+  return journalEntries.filter(
+    (entry) => entry.plantId === plant.id
+  );
+
+}, [journalEntries, plant]);
+
+const latestEntry = plantHistory[0];
+
+const wateringCount = plantHistory.filter(
+  (entry) => entry.type.includes("Water")
+).length;
+
+const fertilizerCount = plantHistory.filter(
+  (entry) => entry.type.includes("Fertilizer")
+).length;
+
+const harvestCount = plantHistory.filter(
+  (entry) => entry.type.includes("Harvest")
+).length;
+
+const pestCount = plantHistory.filter(
+  (entry) => entry.type.includes("Pest")
+).length;
 
   plant = {
     name: "Mr. Pear",
