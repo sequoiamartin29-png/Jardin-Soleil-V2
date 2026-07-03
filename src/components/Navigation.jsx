@@ -7,13 +7,10 @@ const menu = [
   { icon: "📖", label: "Logbook" },
   { icon: "📸", label: "Gallery" },
   { icon: "🌤", label: "Weather" },
-  { icon: "📦", label: "Inventory" },
-  { icon: "🎓", label: "Learning" },
-  { icon: "🤖", label: "Plant AI" },
-  { icon: "⚙️", label: "Settings" }
+  { icon: "📦", label: "Inventory" }
 ];
 
-export default function Navigation() {
+export default function Navigation({ activePage, setPage }) {
   return (
     <nav
       style={{
@@ -25,121 +22,83 @@ export default function Navigation() {
         boxShadow: "0 10px 25px rgba(0,0,0,.08)"
       }}
     >
-      <h2
-        style={{
-          marginTop: 0,
-          color: "#5D6B46"
-        }}
-      >
-        🌿 Jardin Soleil
-      </h2>
-
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))",
-          gap: "15px",
-          marginTop: "20px"
+          gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
+          gap: "14px"
         }}
       >
-        {menu.map((item) => (
-          <button
-            key={item.label}
-            style={{
-              padding: "18px",
-              borderRadius: "18px",
-              border: "none",
-              background: "#F8F3EC",
-              cursor: "pointer",
-              fontSize: "16px",
-              fontWeight: 600,
-              transition: ".2s"
-            }}
-          >
-            <div style={{ fontSize: "30px" }}>
-              {item.icon}
-            </div>
+                {menu.map((item) => {
+          const isActive = activePage === item.label;
 
-            <div
+          return (
+            <button
+              key={item.label}
+              onClick={() => setPage(item.label)}
               style={{
-                marginTop: "10px"
+                padding: "18px",
+                borderRadius: "18px",
+                border: isActive ? "2px solid #8FA06A" : "1px solid #EFE5D8",
+                background: isActive ? "#DDE8C8" : "#F8F3EC",
+                color: "#3D4A34",
+                cursor: "pointer",
+                fontSize: "16px",
+                fontWeight: 700,
+                boxShadow: isActive
+                  ? "0 8px 18px rgba(93,107,70,.22)"
+                  : "none"
               }}
             >
-              {item.label}
-            </div>
-          </button>
-        ))}
-      </div>
-            <div
+              <div style={{ fontSize: "30px" }}>{item.icon}</div>
+
+              <div style={{ marginTop: "8px" }}>
+                {item.label}
+              </div>
+            </button>
+          );
+        })}
+              </div>
+
+      <div
         style={{
-          marginTop: "28px",
+          marginTop: "25px",
           paddingTop: "20px",
-          borderTop: "1px solid #ECE4D8"
-        }}
-      >
-        <h3
-          style={{
-            color: "#5D6B46",
-            marginBottom: "15px"
-          }}
-        >
-          🌞 Today's Snapshot
-        </h3>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
-            gap: "15px"
-          }}
-        >
-          <div className="card">
-            <strong>🌡 Weather</strong>
-            <p>Loading...</p>
-          </div>
-
-          <div className="card">
-            <strong>💧 Last Watering</strong>
-            <p>Not Logged</p>
-          </div>
-
-          <div className="card">
-            <strong>🍅 Harvest</strong>
-            <p>None Today</p>
-          </div>
-
-          <div className="card">
-            <strong>📸 Photos</strong>
-            <p>0 Added</p>
-          </div>
-        </div>
-      </div>
-            <div
-        style={{
-          marginTop: "30px",
+          borderTop: "1px solid #ECE4D8",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: "15px",
-          paddingTop: "20px",
-          borderTop: "1px solid #ECE4D8"
+          gap: "15px"
         }}
       >
         <div>
-          <strong>🌸 Jardin Soleil</strong>
+          <strong style={{ color: "#5D6B46" }}>
+            Current Page
+          </strong>
+
           <p
             style={{
               margin: "6px 0 0",
               color: "#777"
             }}
           >
-            Garden Command Center
+            {activePage}
           </p>
         </div>
 
-        <button>
-          ➕ Quick Garden Log
+        <button
+          style={{
+            padding: "14px 22px",
+            borderRadius: "16px",
+            border: "none",
+            background: "#B8C8A0",
+            color: "white",
+            fontWeight: "bold",
+            cursor: "pointer"
+          }}
+        >
+          ➕ Quick Log
         </button>
       </div>
     </nav>
