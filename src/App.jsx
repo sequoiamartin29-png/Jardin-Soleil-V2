@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import Navigation from "./components/Navigation";
 import Dashboard from "./components/Dashboard";
@@ -7,32 +7,90 @@ import Garden from "./components/Garden";
 import Logbook from "./components/Logbook";
 import Gallery from "./components/Gallery";
 import Inventory from "./components/Inventory";
+import Weather from "./components/Weather";
 
 import "./styles/app.css";
 
 export default function App() {
+
+  const [page, setPage] = useState("Dashboard");
+
+  const renderPage = () => {
+
+    switch (page) {
+
+      case "Dashboard":
+        return <Dashboard />;
+
+      case "Orchard":
+        return <Orchard />;
+
+      case "Garden":
+        return <Garden />;
+
+      case "Logbook":
+        return <Logbook />;
+
+      case "Gallery":
+        return <Gallery />;
+
+      case "Inventory":
+        return <Inventory />;
+
+      case "Weather":
+        return <Weather />;
+
+      default:
+        return <Dashboard />;
+    }
+
+  };
+
   return (
+
     <div
       style={{
-        background: "#F8F2EB",
         minHeight: "100vh",
+        background: "#F8F2EB",
         padding: "30px",
         fontFamily: "Georgia, serif"
       }}
     >
-      <Navigation />
+            <header
+        style={{
+          background: "#FFFDF9",
+          borderRadius: "28px",
+          padding: "28px",
+          marginBottom: "28px",
+          border: "1px solid #EFE5D8",
+          boxShadow: "0 12px 28px rgba(0,0,0,.08)"
+        }}
+      >
+        <h1
+          style={{
+            margin: 0,
+            color: "#5D6B46",
+            fontSize: "46px"
+          }}
+        >
+          🌿 Jardin Soleil
+        </h1>
 
-      <Dashboard />
+        <p
+          style={{
+            margin: "10px 0 0",
+            color: "#777",
+            fontSize: "18px"
+          }}
+        >
+          French Chalet Garden Command Center
+        </p>
+      </header>
 
-      <Orchard />
-
-      <Garden />
-
-      <Logbook />
-
-      <Gallery />
-
-      <Inventory />
-          </div>
+      <Navigation activePage={page} setPage={setPage} />
+            <main>
+        {renderPage()}
+      </main>
+    </div>
   );
 }
