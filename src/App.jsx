@@ -12,6 +12,7 @@ import WordSearch from "./components/WordSearch";
 import PlantDirectory from "./components/PlantDirectory";
 import PlantProfile from "./components/PlantProfile";
 import JournalEntry from "./components/JournalEntry";
+import JournalTimeline from "./components/JournalTimeline";
 import "./styles/app.css";
 
 export default function App() {
@@ -86,6 +87,12 @@ case "Plant Profile":
   return (
     <JournalEntry
       onSaveEntry={addJournalEntry}
+    />
+  );
+        case "Journal Timeline":
+  return (
+    <JournalTimeline
+      entries={journalEntries}
     />
   );
       default:
