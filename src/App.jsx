@@ -1,5 +1,4 @@
-import React, { useState, useMemo } from "react";
-
+import React, { useEffect, useState } from "react";
 import Navigation from "./components/Navigation";
 import Dashboard from "./components/Dashboard";
 import Orchard from "./components/Orchard";
@@ -19,7 +18,10 @@ export default function App() {
 
   const [page, setPage] = useState("Dashboard");
 const [selectedPlant, setSelectedPlant] = useState(null);
-  const [journalEntries, setJournalEntries] = useState([]);
+ const [journalEntries, setJournalEntries] = useState(() => {
+  const savedEntries = localStorage.getItem("jardinSoleilJournalEntries");
+  return savedEntries ? JSON.parse(savedEntries) : [];
+});
   const addJournalEntry = (entry) => {
   setJournalEntries((current) => [
     {
@@ -30,6 +32,15 @@ const [selectedPlant, setSelectedPlant] = useState(null);
     ...current,
   ]);
 };
+
+useEffect(() => {
+  localStorage.setItem(
+    "jardinSoleilJournalEntries",
+    JSON.stringify(journalEntries)
+  );
+}, [journalEntries]);
+
+const renderPage = () => {
   const renderPage = () => {
 
     switch (page) {
