@@ -7,6 +7,7 @@ const menu = [
 { icon: "🌱", label: "Garden" },
   { icon: "📖", label: "Logbook" },
  { icon: "➕", label: "New Journal Entry" },
+ { icon: "📅", label: "Journal Timeline" },
   { icon: "📸", label: "Gallery" },
   { icon: "🌤", label: "Weather" },
   { icon: "📦", label: "Inventory" }
