@@ -1,5 +1,5 @@
 import React from "react";
-import { plants } from "../data/plants";
+import { useGarden } from "../context/GardenContext";
 
 const badgeColors = {
   Healthy: "#6BA368",
@@ -28,6 +28,7 @@ const getIcon = (type = "") => {
 };
 
 export default function Orchard({ onSelectPlant }) {
+  const { plants } = useGarden();
   const orchardPlants = plants.filter(
     (plant) =>
       plant.category === "Orchard" ||
@@ -105,6 +106,12 @@ export default function Orchard({ onSelectPlant }) {
                   >
                     {plant.name}
                   </h2>
+
+                  {plant.nickname && (
+                    <p style={{ color: "#8A6F45", margin: "6px 0 0" }}>
+                      {plant.nickname}
+                    </p>
+                  )}
 
                   <p
                     style={{

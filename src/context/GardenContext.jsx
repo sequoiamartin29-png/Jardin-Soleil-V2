@@ -3,6 +3,24 @@ import { plants as starterPlants } from "../data/plants";
 
 const GardenContext = createContext(null);
 
+const citrangequatStarter = starterPlants.find(
+  (plant) => plant.id === "thomasville-citrangequat"
+);
+
+const normalizePlantIdentity = (plant) =>
+  `${plant.id || ""} ${plant.name || ""} ${plant.nickname || ""} ${plant.type || ""} ${plant.variety || ""}`
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+const isThomasvilleCitrangequat = (plant) => {
+  const identity = normalizePlantIdentity(plant);
+  return (
+    identity.includes("thomasvillecitrangequat") ||
+    identity.includes("citrangequat") ||
+    identity.includes("msquatt")
+  );
+};
+
 const load = (key, fallback) => {
   try {
     const saved = localStorage.getItem(key);
@@ -12,10 +30,31 @@ const load = (key, fallback) => {
   }
 };
 
-export function GardenProvider({ children }) {
-  const [plants, setPlants] = useState(() =>
-    load("jardinSoleilPlants", starterPlants)
+const loadPlants = () => {
+  const savedPlants = load("jardinSoleilPlants", starterPlants);
+  const existingPlant = savedPlants.find(isThomasvilleCitrangequat);
+
+  if (!existingPlant) {
+    return [...savedPlants, citrangequatStarter];
+  }
+
+  return savedPlants.map((plant) =>
+    plant === existingPlant
+      ? {
+          ...citrangequatStarter,
+          ...plant,
+          name: "Thomasville Citrangequat",
+          nickname: "Ms. Quatt",
+          type: "Fruit Tree",
+          variety: "Thomasville Citrangequat",
+          category: "Citrus",
+        }
+      : plant
   );
+};
+
+export function GardenProvider({ children }) {
+  const [plants, setPlants] = useState(loadPlants);
 
   const [selectedPlant, setSelectedPlant] = useState(null);
 
@@ -92,8 +131,12 @@ export function GardenProvider({ children }) {
       averageHealth,
       journalCount: journalEntries.length,
       photoCount: photos.length,
-      orchardCount: plants.filter((p) => p.category === "Orchard").length,
-      citrusCount: plants.filter((p) => p.category === "Citrus").length,
+      orchardCount: plants.filter((p) =>
+        ["orchard", "citrus"].includes((p.category || "").toLocaleLowerCase())
+      ).length,
+      citrusCount: plants.filter(
+        (p) => (p.category || "").toLocaleLowerCase() === "citrus"
+      ).length,
       plantsNeedingAttention: plants.filter((p) => (p.health || 100) < 85),
       recentEntries: journalEntries.slice(0, 5),
     };

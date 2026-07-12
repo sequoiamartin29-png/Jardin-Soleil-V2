@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { plants } from "../data/plants";
+import { useGarden } from "../context/GardenContext";
 
 const filters = [
   "All",
@@ -27,6 +27,7 @@ const getIcon = (type = "") => {
 };
 
 export default function PlantDirectory({ onSelectPlant }) {
+  const { plants } = useGarden();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
 
@@ -34,7 +35,9 @@ export default function PlantDirectory({ onSelectPlant }) {
     return plants.filter((plant) => {
       const matchesSearch =
         plant.name.toLowerCase().includes(search.toLowerCase()) ||
-        plant.type.toLowerCase().includes(search.toLowerCase());
+        plant.type.toLowerCase().includes(search.toLowerCase()) ||
+        (plant.nickname || "").toLowerCase().includes(search.toLowerCase()) ||
+        (plant.variety || "").toLowerCase().includes(search.toLowerCase());
 
       const matchesFilter =
         filter === "All" || plant.category === filter;
@@ -142,6 +145,12 @@ export default function PlantDirectory({ onSelectPlant }) {
             >
               {plant.name}
             </h2>
+
+            {plant.nickname && (
+              <p style={{ color: "#8A6F45", margin: "0 0 6px" }}>
+                {plant.nickname}
+              </p>
+            )}
 
             <p style={{ color: "#777" }}>
               {plant.type}

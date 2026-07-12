@@ -303,6 +303,26 @@ bloom:"Spring",
 harvest:"Ornamental",
 photos:[],
 journal:[]
+},
+
+{
+id:"thomasville-citrangequat",
+name:"Thomasville Citrangequat",
+nickname:"Ms. Quatt",
+type:"Fruit Tree",
+variety:"Thomasville Citrangequat",
+category:"Citrus",
+status:"Growing",
+health:100,
+location:"Citrus Collection",
+sun:"Full Sun",
+water:"Moderate",
+fertilizer:"Citrus Fertilizer",
+height:"Young Tree",
+bloom:"Spring",
+harvest:"Late Fall / Winter",
+photos:[],
+journal:[]
 }
 
 ];

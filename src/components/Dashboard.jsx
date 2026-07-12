@@ -31,68 +31,9 @@ const dashboardHotspots = [
   { label: "Harvest", page: "Logbook", area: [77.7, 96.2, 20.4, 2.7] },
 ];
 
-const isFruitTree = (plant) => {
-  if (plant.isFruitTree === true || plant.plantType === "fruit-tree") return true;
-
-  const searchable = [
-    plant.category,
-    plant.type,
-    plant.name,
-    plant.variety,
-    plant.location,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLocaleLowerCase();
-
-  return (
-    /\borchards?\b|\bcitrus(?:es)?\b|fruit[\s-]*trees?/.test(searchable) ||
-    /\b(apple|pear|plum|cherr(?:y|ies)|peach|nectarine|apricot|lemon|lime|mandarin|orange|grapefruit|kumquat|fig|pomegranate|persimmon|pawpaw|mulberr(?:y|ies)|quince|olive)s?\b/.test(searchable)
-  );
-};
-
 export default function Dashboard({ onNavigate }) {
-  const { stats, plants, journalEntries } = useGarden();
+  const { stats } = useGarden();
   const navigate = (page) => onNavigate?.(page);
-
-  const mintCount = plants.filter((plant) =>
-    `${plant.name || ""} ${plant.type || ""}`.toLowerCase().includes("mint")
-  ).length;
-  const edibleHerbCount = plants.filter((plant) =>
-    /orchard|citrus|edible|herb|vegetable|berry|tea/i.test(
-      `${plant.category || ""} ${plant.type || ""}`
-    )
-  ).length;
-  const gardenBedCount = new Set(
-    plants
-      .filter((plant) => !/orchard/i.test(plant.location || ""))
-      .map((plant) => plant.location)
-      .filter(Boolean)
-  ).size;
-  const newestEntry = [...journalEntries].sort(
-    (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-  )[0];
-  const spotlightPlant = [...stats.plantsNeedingAttention].sort(
-    (a, b) => (a.health ?? 100) - (b.health ?? 100)
-  )[0];
-  const activeCarePlants = plants
-    .filter((plant) =>
-      (plant.health ?? 100) < 85 || /recovering|monitoring|care|stress/i.test(plant.status || "")
-    )
-    .sort((a, b) => (a.health ?? 100) - (b.health ?? 100))
-    .slice(0, 5);
-  const gardenHealth = plants.length
-    ? Math.round(plants.reduce((total, plant) => total + (plant.health ?? 100), 0) / plants.length)
-    : 0;
-  const fruitTreeCount = plants.filter(isFruitTree).length;
-
-  const liveStats = [
-    { label: "Fruit Trees", value: fruitTreeCount || "None" },
-    { label: "Mint Varieties", value: mintCount || "None" },
-    { label: "Edibles & Herbs", value: edibleHerbCount || "None" },
-    { label: "Garden Beds", value: gardenBedCount || "None" },
-    { label: "Photos Logged", value: stats.photoCount || "None" },
-  ];
 
   return (
     <section className="js-dashboard-artwork" aria-label="Jardin Soleil dashboard">
@@ -107,73 +48,6 @@ export default function Dashboard({ onNavigate }) {
           src={dashboardArtwork}
           alt="Illustrated Jardin Soleil French botanical estate dashboard with chalet, formal gardens, fountain, garden panels, and navigation"
         />
-
-        <div className="js-dashboard-artwork__fountain" aria-hidden="true">
-          <span className="js-dashboard-artwork__water" />
-          <span className="js-dashboard-artwork__ripple js-dashboard-artwork__ripple--one" />
-          <span className="js-dashboard-artwork__ripple js-dashboard-artwork__ripple--two" />
-          <span className="js-dashboard-artwork__jet" />
-          <span className="js-dashboard-artwork__sparkle js-dashboard-artwork__sparkle--one" />
-          <span className="js-dashboard-artwork__sparkle js-dashboard-artwork__sparkle--two" />
-          <span className="js-dashboard-artwork__sparkle js-dashboard-artwork__sparkle--three" />
-        </div>
-
-        <div className="js-dashboard-artwork__live-data">
-          <div className="js-dashboard-artwork__stats" aria-label="Live garden statistics">
-            {liveStats.map(({ label, value }) => (
-              <div className="js-dashboard-artwork__stat" key={label}>
-                <strong>{value}</strong>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-
-          <section className="js-dashboard-artwork__tasks" aria-label="Today's active care tasks">
-            {activeCarePlants.length ? (
-              <ul>
-                {activeCarePlants.map((plant) => (
-                  <li key={plant.id}>Check {plant.name}</li>
-                ))}
-              </ul>
-            ) : (
-              <p>No active care tasks</p>
-            )}
-          </section>
-
-          <section className="js-dashboard-artwork__recent" aria-label="Recent log entry">
-            <h2>Recent Log Entry</h2>
-            {newestEntry ? (
-              <>
-                <strong>{newestEntry.type || "Garden note"}</strong>
-                <p>{newestEntry.notes || "No notes were added."}</p>
-                <small>{new Date(newestEntry.createdAt).toLocaleDateString()}</small>
-              </>
-            ) : (
-              <p>No journal entries yet</p>
-            )}
-          </section>
-
-          <section className="js-dashboard-artwork__spotlight" aria-label="Plant spotlight">
-            <h2>Plant Spotlight</h2>
-            {spotlightPlant ? (
-              <>
-                <strong>{spotlightPlant.name}</strong>
-                <p>{spotlightPlant.status || "Needs attention"}</p>
-                <small>{spotlightPlant.health ?? 100}% health</small>
-              </>
-            ) : (
-              <p>All plants are thriving</p>
-            )}
-          </section>
-
-          <section className="js-dashboard-artwork__health" aria-label={`${gardenHealth}% garden health`}>
-            <strong>{gardenHealth}%</strong>
-            <span>{plants.length ? "Overall Health" : "No plants tracked"}</span>
-            <span className="js-dashboard-artwork__health-progress" aria-hidden="true">
-              <i style={{ width: `${gardenHealth}%` }} />
-            </span>
-          </section>
-        </div>
 
         <nav className="js-dashboard-artwork__hotspots" aria-label="Interactive Jardin Soleil estate map">
           {dashboardHotspots.map(({ label, page, area: [left, top, width, height] }) => (
