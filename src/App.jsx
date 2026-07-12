@@ -38,7 +38,7 @@ function GardenApp() {
   const renderPage = () => {
     switch (page) {
       case "Dashboard":
-        return <Dashboard journalEntries={journalEntries} />;
+        return <Dashboard journalEntries={journalEntries} onNavigate={setPage} />;
 
       case "Orchard":
         return <Orchard onSelectPlant={openPlant} />;
@@ -93,24 +93,33 @@ function GardenApp() {
         return <WordSearch />;
 
       default:
-        return <Dashboard journalEntries={journalEntries} />;
+        return <Dashboard journalEntries={journalEntries} onNavigate={setPage} />;
     }
   };
 
+  const isDashboard = page === "Dashboard";
+
   return (
-    <div className="app">
-      <header className="hero">
-        <h1>🌿 Jardin Soleil</h1>
+    <div
+      className="app"
+      style={isDashboard ? { maxWidth: "1024px", padding: 0 } : undefined}
+    >
+      {!isDashboard && (
+        <>
+          <header className="hero">
+            <h1>🌿 Jardin Soleil</h1>
 
-        <p>
-          French Chalet Garden Command Center
-        </p>
-      </header>
+            <p>
+              French Chalet Garden Command Center
+            </p>
+          </header>
 
-      <Navigation
-        activePage={page}
-        setPage={setPage}
-      />
+          <Navigation
+            activePage={page}
+            setPage={setPage}
+          />
+        </>
+      )}
 
       <main>{renderPage()}</main>
     </div>

@@ -1,222 +1,194 @@
 import React from "react";
-import {
-  CalendarDays,
-  Camera,
-  CloudSun,
-  Droplets,
-  Flower2,
-  Leaf,
-  NotebookPen,
-  Plus,
-  Sprout,
-  Trees,
-} from "lucide-react";
 import { useGarden } from "../context/GardenContext";
+import dashboardArtwork from "../assets/jardin-soleil-dashboard.jpeg";
 import "./Dashboard.css";
 
-const gardenAreas = [
-  { name: "Orchard", detail: "Apples · Pears · Stone fruit", icon: Trees, tone: "sage" },
-  { name: "Tea Garden", detail: "Herbs · Camellia · Mint", icon: Leaf, tone: "blue" },
-  { name: "Kitchen Garden", detail: "Vegetables · Summer beds", icon: Sprout, tone: "blush" },
-  { name: "Citrus Court", detail: "Lemon · Kishu mandarin", icon: Flower2, tone: "gold" },
+const dashboardHotspots = [
+  { label: "Dashboard", page: "Dashboard", area: [1.2, 19.1, 14.1, 4.4] },
+  { label: "My Garden", page: "Garden", area: [1.2, 23.6, 14.1, 3.8] },
+  { label: "Orchard", page: "Orchard", area: [1.2, 27.5, 14.1, 3.8] },
+  { label: "Daily Logs", page: "Logbook", area: [1.2, 31.4, 14.1, 3.9] },
+  { label: "Tasks", page: "Garden", area: [1.2, 35.4, 14.1, 3.8] },
+  { label: "Calendar", page: "Journal Timeline", area: [1.2, 39.3, 14.1, 3.8] },
+  { label: "Plant Finder", page: "Plant Directory", area: [1.2, 43.2, 14.1, 3.8] },
+  { label: "Nursery", page: "Inventory", area: [1.2, 47.1, 14.1, 3.7] },
+  { label: "Photo Gallery", page: "Gallery", area: [1.2, 50.9, 14.1, 3.8] },
+  { label: "Botanical Word Search", page: "Word Search", area: [1.2, 54.8, 14.1, 4.2] },
+  { label: "AI Assistant", page: "Learning", area: [1.2, 59.1, 14.1, 3.6] },
+  { label: "Resources", page: "Learning", area: [1.2, 62.8, 14.1, 3.7] },
+  { label: "Settings", page: "Dashboard", area: [1.2, 70.5, 14.1, 3.7] },
+  { label: "Orchard Gate", page: "Orchard", area: [38.2, 36.1, 18.1, 4.2] },
+  { label: "Orchard garden area", page: "Orchard", area: [23.5, 40.3, 17.4, 5.2] },
+  { label: "Flower and Perennials", page: "Garden", area: [56.7, 40.1, 16.1, 5.7] },
+  { label: "Tea and Herb Corridor", page: "Garden", area: [17.2, 49.2, 16.3, 5.8] },
+  { label: "Vegetable Garden", page: "Garden", area: [61.5, 49.8, 16.7, 5.5] },
+  { label: "Berry Zone", page: "Garden", area: [20.5, 60.6, 16.8, 5.5] },
+  { label: "Container Collection", page: "Garden", area: [59.1, 60.7, 17.2, 5.4] },
+  { label: "Nursery Shed", page: "Inventory", area: [39.1, 67.1, 18.8, 4.7] },
+  { label: "Water", page: "Garden", area: [1.8, 96.2, 19.3, 2.7] },
+  { label: "Feed", page: "Inventory", area: [21.2, 96.2, 19.2, 2.7] },
+  { label: "Care", page: "New Journal Entry", area: [59.5, 96.2, 18.1, 2.7] },
+  { label: "Harvest", page: "Logbook", area: [77.7, 96.2, 20.4, 2.7] },
 ];
 
-export default function Dashboard({ onNavigate }) {
-  const { stats } = useGarden();
+const isFruitTree = (plant) => {
+  if (plant.isFruitTree === true || plant.plantType === "fruit-tree") return true;
 
-  const navigate = (page) => onNavigate?.(page);
-  const attentionCount = stats.plantsNeedingAttention.length;
-  const recentEntry = stats.recentEntries[0];
+  const searchable = [
+    plant.category,
+    plant.type,
+    plant.name,
+    plant.variety,
+    plant.location,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLocaleLowerCase();
 
   return (
-    <section className="js-dashboard" aria-labelledby="dashboard-title">
-      <header className="js-dashboard__welcome">
-        <div className="js-dashboard__welcome-flourish" aria-hidden="true">
-          <i /><i /><i /><i /><i />
+    /\borchards?\b|\bcitrus(?:es)?\b|fruit[\s-]*trees?/.test(searchable) ||
+    /\b(apple|pear|plum|cherr(?:y|ies)|peach|nectarine|apricot|lemon|lime|mandarin|orange|grapefruit|kumquat|fig|pomegranate|persimmon|pawpaw|mulberr(?:y|ies)|quince|olive)s?\b/.test(searchable)
+  );
+};
+
+export default function Dashboard({ onNavigate }) {
+  const { stats, plants, journalEntries } = useGarden();
+  const navigate = (page) => onNavigate?.(page);
+
+  const mintCount = plants.filter((plant) =>
+    `${plant.name || ""} ${plant.type || ""}`.toLowerCase().includes("mint")
+  ).length;
+  const edibleHerbCount = plants.filter((plant) =>
+    /orchard|citrus|edible|herb|vegetable|berry|tea/i.test(
+      `${plant.category || ""} ${plant.type || ""}`
+    )
+  ).length;
+  const gardenBedCount = new Set(
+    plants
+      .filter((plant) => !/orchard/i.test(plant.location || ""))
+      .map((plant) => plant.location)
+      .filter(Boolean)
+  ).size;
+  const newestEntry = [...journalEntries].sort(
+    (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+  )[0];
+  const spotlightPlant = [...stats.plantsNeedingAttention].sort(
+    (a, b) => (a.health ?? 100) - (b.health ?? 100)
+  )[0];
+  const activeCarePlants = plants
+    .filter((plant) =>
+      (plant.health ?? 100) < 85 || /recovering|monitoring|care|stress/i.test(plant.status || "")
+    )
+    .sort((a, b) => (a.health ?? 100) - (b.health ?? 100))
+    .slice(0, 5);
+  const gardenHealth = plants.length
+    ? Math.round(plants.reduce((total, plant) => total + (plant.health ?? 100), 0) / plants.length)
+    : 0;
+  const fruitTreeCount = plants.filter(isFruitTree).length;
+
+  const liveStats = [
+    { label: "Fruit Trees", value: fruitTreeCount || "None" },
+    { label: "Mint Varieties", value: mintCount || "None" },
+    { label: "Edibles & Herbs", value: edibleHerbCount || "None" },
+    { label: "Garden Beds", value: gardenBedCount || "None" },
+    { label: "Photos Logged", value: stats.photoCount || "None" },
+  ];
+
+  return (
+    <section className="js-dashboard-artwork" aria-label="Jardin Soleil dashboard">
+      <p className="js-dashboard-artwork__summary" id="dashboard-garden-summary">
+        Jardin Soleil currently tracks {stats.totalPlants} plants, {stats.orchardCount} orchard trees,
+        {stats.journalCount} garden notes, and {stats.photoCount} photos.
+      </p>
+
+      <div className="js-dashboard-artwork__canvas" aria-describedby="dashboard-garden-summary">
+        <img
+          className="js-dashboard-artwork__image"
+          src={dashboardArtwork}
+          alt="Illustrated Jardin Soleil French botanical estate dashboard with chalet, formal gardens, fountain, garden panels, and navigation"
+        />
+
+        <div className="js-dashboard-artwork__fountain" aria-hidden="true">
+          <span className="js-dashboard-artwork__water" />
+          <span className="js-dashboard-artwork__ripple js-dashboard-artwork__ripple--one" />
+          <span className="js-dashboard-artwork__ripple js-dashboard-artwork__ripple--two" />
+          <span className="js-dashboard-artwork__jet" />
+          <span className="js-dashboard-artwork__sparkle js-dashboard-artwork__sparkle--one" />
+          <span className="js-dashboard-artwork__sparkle js-dashboard-artwork__sparkle--two" />
+          <span className="js-dashboard-artwork__sparkle js-dashboard-artwork__sparkle--three" />
         </div>
-        <div>
-          <p className="js-dashboard__eyebrow">Jardin Soleil · Garden Estate</p>
-          <h1 id="dashboard-title">Bonjour, welcome to your garden</h1>
-          <p className="js-dashboard__intro">
-            A quiet view of everything growing, blooming, and waiting for your care.
-          </p>
+
+        <div className="js-dashboard-artwork__live-data">
+          <div className="js-dashboard-artwork__stats" aria-label="Live garden statistics">
+            {liveStats.map(({ label, value }) => (
+              <div className="js-dashboard-artwork__stat" key={label}>
+                <strong>{value}</strong>
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          <section className="js-dashboard-artwork__tasks" aria-label="Today's active care tasks">
+            {activeCarePlants.length ? (
+              <ul>
+                {activeCarePlants.map((plant) => (
+                  <li key={plant.id}>Check {plant.name}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No active care tasks</p>
+            )}
+          </section>
+
+          <section className="js-dashboard-artwork__recent" aria-label="Recent log entry">
+            <h2>Recent Log Entry</h2>
+            {newestEntry ? (
+              <>
+                <strong>{newestEntry.type || "Garden note"}</strong>
+                <p>{newestEntry.notes || "No notes were added."}</p>
+                <small>{new Date(newestEntry.createdAt).toLocaleDateString()}</small>
+              </>
+            ) : (
+              <p>No journal entries yet</p>
+            )}
+          </section>
+
+          <section className="js-dashboard-artwork__spotlight" aria-label="Plant spotlight">
+            <h2>Plant Spotlight</h2>
+            {spotlightPlant ? (
+              <>
+                <strong>{spotlightPlant.name}</strong>
+                <p>{spotlightPlant.status || "Needs attention"}</p>
+                <small>{spotlightPlant.health ?? 100}% health</small>
+              </>
+            ) : (
+              <p>All plants are thriving</p>
+            )}
+          </section>
+
+          <section className="js-dashboard-artwork__health" aria-label={`${gardenHealth}% garden health`}>
+            <strong>{gardenHealth}%</strong>
+            <span>{plants.length ? "Overall Health" : "No plants tracked"}</span>
+            <span className="js-dashboard-artwork__health-progress" aria-hidden="true">
+              <i style={{ width: `${gardenHealth}%` }} />
+            </span>
+          </section>
         </div>
 
-        <div className="js-crest" aria-label="Jardin Soleil floral crest">
-          <span className="js-crest__leaf js-crest__leaf--one" />
-          <span className="js-crest__leaf js-crest__leaf--two" />
-          <span className="js-crest__leaf js-crest__leaf--three" />
-          <span className="js-crest__leaf js-crest__leaf--four" />
-          <span className="js-crest__flower">✦</span>
-          <strong>JS</strong>
-        </div>
-      </header>
-
-      <div className="js-dashboard__stat-ribbon" aria-label="Garden summary">
-        <div><Trees aria-hidden="true" /><strong>{stats.orchardCount}</strong><span>Orchard Trees</span></div>
-        <div><Leaf aria-hidden="true" /><strong>{stats.totalPlants}</strong><span>Plants Tracked</span></div>
-        <div><Sprout aria-hidden="true" /><strong>{stats.citrusCount}</strong><span>Citrus Trees</span></div>
-        <div><NotebookPen aria-hidden="true" /><strong>{stats.journalCount}</strong><span>Garden Notes</span></div>
-        <div><Camera aria-hidden="true" /><strong>{stats.photoCount}</strong><span>Photos Logged</span></div>
-      </div>
-
-      <div className="js-dashboard__layout">
-        <aside className="js-dashboard__rail" aria-label="Dashboard shortcuts">
-          <p className="js-dashboard__rail-title">Explore</p>
-          <button type="button" onClick={() => navigate("Orchard")}>
-            <Trees aria-hidden="true" />
-            <span>Orchard</span>
-          </button>
-          <button type="button" onClick={() => navigate("Garden")}>
-            <Sprout aria-hidden="true" />
-            <span>Garden</span>
-          </button>
-          <button type="button" onClick={() => navigate("Journal Timeline")}>
-            <NotebookPen aria-hidden="true" />
-            <span>Journal</span>
-          </button>
-          <button type="button" onClick={() => navigate("Gallery")}>
-            <Camera aria-hidden="true" />
-            <span>Gallery</span>
-          </button>
-
-          <div className="js-dashboard__rail-note">
-            <Flower2 aria-hidden="true" />
-            <span>{stats.totalPlants} plants lovingly tracked</span>
-          </div>
-        </aside>
-
-        <div className="js-garden-map" aria-label="Jardin Soleil garden overview">
-          <div className="js-garden-map__watercolor" aria-hidden="true">
-            <i className="js-garden-map__bed js-garden-map__bed--one" />
-            <i className="js-garden-map__bed js-garden-map__bed--two" />
-            <i className="js-garden-map__bed js-garden-map__bed--three" />
-            <i className="js-garden-map__bed js-garden-map__bed--four" />
-            <i className="js-garden-map__bed js-garden-map__bed--five" />
-            <i className="js-garden-map__bed js-garden-map__bed--six" />
-            <i className="js-garden-map__path js-garden-map__path--horizontal" />
-            <i className="js-garden-map__path js-garden-map__path--vertical" />
-          </div>
-          <div className="js-garden-map__compass" aria-hidden="true">
-            <span className="is-north">N</span>
-            <span className="is-east">E</span>
-            <span className="is-south">S</span>
-            <span className="is-west">W</span>
-          </div>
-          <div className="js-garden-map__rings" aria-hidden="true" />
-          <div className="js-garden-map__center">
-            <i aria-hidden="true">✦</i>
-            <span>Jardin</span>
-            <strong>Soleil</strong>
-            <small>Est. 2026</small>
-          </div>
-
-          {gardenAreas.map(({ name, detail, icon: Icon, tone }, index) => (
+        <nav className="js-dashboard-artwork__hotspots" aria-label="Interactive Jardin Soleil estate map">
+          {dashboardHotspots.map(({ label, page, area: [left, top, width, height] }) => (
             <button
               type="button"
-              className={`js-garden-map__plot js-garden-map__plot--${index + 1} is-${tone}`}
-              key={name}
-              onClick={() => navigate(name === "Kitchen Garden" || name === "Tea Garden" ? "Garden" : "Orchard")}
-            >
-              <Icon aria-hidden="true" />
-              <span>{name}</span>
-              <small>{detail}</small>
-            </button>
+              className="js-dashboard-artwork__hotspot"
+              key={label}
+              aria-label={label}
+              title={label}
+              onClick={() => navigate(page)}
+              style={{ left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` }}
+            />
           ))}
-        </div>
-
-        <aside className="js-dashboard__panels" aria-label="Garden information">
-          <article className="js-info-card js-info-card--weather">
-            <div className="js-info-card__heading">
-              <span className="js-info-card__icon"><CloudSun aria-hidden="true" /></span>
-              <div>
-                <p>Garden outlook</p>
-                <h2>A beautiful day to tend</h2>
-              </div>
-            </div>
-            <div className="js-weather-row">
-              <span><Droplets aria-hidden="true" /> Check soil moisture</span>
-              <button type="button" onClick={() => navigate("Weather")}>View weather</button>
-            </div>
-          </article>
-
-          <article className="js-info-card">
-            <div className="js-info-card__heading">
-              <span className="js-info-card__icon"><Leaf aria-hidden="true" /></span>
-              <div>
-                <p>Estate health</p>
-                <h2>{stats.averageHealth}% thriving</h2>
-              </div>
-            </div>
-            <div className="js-health-meter" aria-label={`${stats.averageHealth}% garden health`}>
-              <span style={{ width: `${stats.averageHealth}%` }} />
-            </div>
-            <p className="js-info-card__copy">
-              {attentionCount === 0
-                ? "Everything in the garden is looking wonderfully settled."
-                : `${attentionCount} ${attentionCount === 1 ? "plant needs" : "plants need"} a little extra attention.`}
-            </p>
-          </article>
-
-          <article className="js-info-card">
-            <div className="js-info-card__heading">
-              <span className="js-info-card__icon"><CalendarDays aria-hidden="true" /></span>
-              <div>
-                <p>Latest journal note</p>
-                <h2>{recentEntry?.type || "Your journal awaits"}</h2>
-              </div>
-            </div>
-            <p className="js-info-card__copy">
-              {recentEntry?.notes || "Capture a bloom, harvest, watering, or quiet garden observation."}
-            </p>
-          </article>
-        </aside>
+        </nav>
       </div>
-
-      <div className="js-dashboard__lower-grid">
-        <article className="js-lower-card">
-          <p>Recent log entry</p>
-          <h2>{recentEntry?.type || "A fresh page is waiting"}</h2>
-          <span>{recentEntry?.notes || "Begin your garden story with today’s first observation."}</span>
-          <button type="button" onClick={() => navigate("Journal Timeline")}>View all logs</button>
-        </article>
-        <article className="js-lower-card js-lower-card--blush">
-          <p>Garden spotlight</p>
-          <h2>{attentionCount ? "A little extra care" : "Everything is flourishing"}</h2>
-          <span>{attentionCount ? `${attentionCount} plants are ready for a closer look.` : "Your tracked plants are settled and thriving."}</span>
-          <button type="button" onClick={() => navigate("Plant Directory")}>View plant directory</button>
-        </article>
-        <article className="js-lower-card js-lower-card--health">
-          <p>Garden health</p>
-          <div className="js-lower-card__score">{stats.averageHealth}%</div>
-          <span>Overall estate vitality</span>
-          <button type="button" onClick={() => navigate("Plant Directory")}>View details</button>
-        </article>
-      </div>
-
-      <footer className="js-dashboard__actions" aria-label="Garden actions">
-        <div className="js-dashboard__action-intro">
-          <span><Flower2 aria-hidden="true" /></span>
-          <div>
-            <p>Today at Jardin Soleil</p>
-            <strong>{stats.journalCount} journal notes · {stats.photoCount} garden photos</strong>
-          </div>
-        </div>
-        <div className="js-dashboard__action-buttons">
-          <button type="button" className="is-secondary" onClick={() => navigate("Garden")}>
-            <Droplets aria-hidden="true" /> Water
-          </button>
-          <button type="button" className="is-secondary" onClick={() => navigate("Inventory")}>
-            <Leaf aria-hidden="true" /> Feed
-          </button>
-          <button type="button" className="is-secondary" onClick={() => navigate("Photo Manager")}>
-            <Camera aria-hidden="true" /> Photo
-          </button>
-          <button type="button" className="is-primary" onClick={() => navigate("New Journal Entry")}>
-            <Plus aria-hidden="true" /> Care note
-          </button>
-        </div>
-      </footer>
     </section>
   );
 }
