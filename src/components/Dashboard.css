@@ -24,10 +24,71 @@
   width: 100%;
 }
 
+.js-dashboard-artwork__photo-stat {
+  align-items: center;
+  background: rgb(243, 231, 216);
+  border: 0;
+  box-shadow: none;
+  color: #27251f;
+  display: flex;
+  flex-direction: column;
+  height: 4.65%;
+  justify-content: center;
+  left: 73.15%;
+  line-height: 1;
+  pointer-events: none;
+  position: absolute;
+  top: 27.45%;
+  width: 10.7%;
+  z-index: 2;
+}
+.js-dashboard-artwork__photo-stat strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(.72rem, 2.65vw, 1.8rem);
+  font-weight: 400;
+}
+.js-dashboard-artwork__photo-stat span {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(.28rem, .9vw, .61rem);
+  margin-top: 12%;
+  white-space: nowrap;
+}
+
+.js-dashboard-artwork__fruit-stat {
+  align-items: center;
+  background: rgb(243, 231, 216);
+  border: 0;
+  box-shadow: none;
+  color: #27251f;
+  display: flex;
+  flex-direction: column;
+  height: 4.65%;
+  justify-content: center;
+  left: 20.2%;
+  line-height: 1;
+  pointer-events: none;
+  position: absolute;
+  top: 27.45%;
+  width: 10.65%;
+  z-index: 2;
+}
+.js-dashboard-artwork__fruit-stat strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(.72rem, 2.65vw, 1.8rem);
+  font-weight: 400;
+}
+.js-dashboard-artwork__fruit-stat span {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(.28rem, .9vw, .61rem);
+  margin-top: 12%;
+  white-space: nowrap;
+}
+
 .js-dashboard-artwork__hotspots {
   inset: 0;
   pointer-events: none;
   position: absolute;
+  z-index: 3;
 }
 
 .js-dashboard-artwork__hotspot {

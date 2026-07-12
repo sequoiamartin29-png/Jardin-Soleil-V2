@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { plants as starterPlants } from "../data/plants";
+import { isOrchardFruitTree } from "../utils/plantClassification";
 
 const GardenContext = createContext(null);
 
@@ -11,6 +12,9 @@ const fruitCocktailThreeStarter = starterPlants.find(
 );
 const fruitSnacksPeachStarter = starterPlants.find(
   (plant) => plant.id === "fruit-snacks-sensational-peach"
+);
+const chicagoHardyFigStarter = starterPlants.find(
+  (plant) => plant.id === "chicago-hardy-fig"
 );
 
 const normalizePlantIdentity = (plant) =>
@@ -39,6 +43,11 @@ const isFruitCocktailThree = (plant) => {
 const isFruitSnacksPeach = (plant) => {
   const identity = normalizePlantIdentity(plant);
   return identity.includes("fruitsnackssensationalpeach") || identity.includes("sensationalpeach");
+};
+
+const isChicagoHardyFig = (plant) => {
+  const identity = normalizePlantIdentity(plant);
+  return identity.includes("chicagohardyfig") || identity.includes("hardyfig");
 };
 
 const load = (key, fallback) => {
@@ -73,7 +82,17 @@ const loadPlants = () => {
   if (existingFruitCocktailThree) {
     migratedPlants = migratedPlants.map((plant) =>
       plant === existingFruitCocktailThree
-        ? { ...fruitCocktailThreeStarter, ...plant, icon: fruitCocktailThreeStarter.icon }
+        ? {
+            ...fruitCocktailThreeStarter,
+            ...plant,
+            icon: fruitCocktailThreeStarter.icon,
+            name: fruitCocktailThreeStarter.name,
+            nickname: fruitCocktailThreeStarter.nickname,
+            type: fruitCocktailThreeStarter.type,
+            category: fruitCocktailThreeStarter.category,
+            variety: fruitCocktailThreeStarter.variety,
+            group: fruitCocktailThreeStarter.group,
+          }
         : plant
     );
   } else {
@@ -84,11 +103,39 @@ const loadPlants = () => {
   if (existingFruitSnacksPeach) {
     migratedPlants = migratedPlants.map((plant) =>
       plant === existingFruitSnacksPeach
-        ? { ...fruitSnacksPeachStarter, ...plant, icon: fruitSnacksPeachStarter.icon }
+        ? {
+            ...fruitSnacksPeachStarter,
+            ...plant,
+            icon: fruitSnacksPeachStarter.icon,
+            name: fruitSnacksPeachStarter.name,
+            type: fruitSnacksPeachStarter.type,
+            category: fruitSnacksPeachStarter.category,
+            variety: fruitSnacksPeachStarter.variety,
+            group: fruitSnacksPeachStarter.group,
+          }
         : plant
     );
   } else {
     migratedPlants = [...migratedPlants, fruitSnacksPeachStarter];
+  }
+
+  const existingChicagoHardyFig = migratedPlants.find(isChicagoHardyFig);
+  if (existingChicagoHardyFig) {
+    migratedPlants = migratedPlants.map((plant) =>
+      plant === existingChicagoHardyFig
+        ? {
+            ...chicagoHardyFigStarter,
+            ...plant,
+            name: chicagoHardyFigStarter.name,
+            type: chicagoHardyFigStarter.type,
+            category: chicagoHardyFigStarter.category,
+            variety: chicagoHardyFigStarter.variety,
+            group: chicagoHardyFigStarter.group,
+          }
+        : plant
+    );
+  } else {
+    migratedPlants = [...migratedPlants, chicagoHardyFigStarter];
   }
 
   return migratedPlants;
@@ -160,6 +207,10 @@ export function GardenProvider({ children }) {
     setPhotos((current) => [...newPhotos, ...current]);
   };
 
+  const deletePhoto = (photoId) => {
+    setPhotos((current) => current.filter((photo) => photo.id !== photoId));
+  };
+
   const updatePlant = (plantId, updates) => {
     setPlants((current) =>
       current.map((plant) =>
@@ -196,9 +247,8 @@ export function GardenProvider({ children }) {
       averageHealth,
       journalCount: journalEntries.length,
       photoCount: photos.length,
-      orchardCount: plants.filter((p) =>
-        ["orchard", "citrus", "fruit tree"].includes((p.category || "").toLocaleLowerCase())
-      ).length,
+      orchardCount: plants.filter(isOrchardFruitTree).length,
+      fruitTreeCount: plants.filter(isOrchardFruitTree).length,
       citrusCount: plants.filter(
         (p) => (p.category || "").toLocaleLowerCase() === "citrus"
       ).length,
@@ -218,6 +268,7 @@ export function GardenProvider({ children }) {
     deleteJournalEntry,
     photos,
     addPhotos,
+    deletePhoto,
     updatePlant,
     getPlantById,
     getEntriesForPlant,

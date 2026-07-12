@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useGarden } from "../context/GardenContext";
 import BotanicalIcon from "./icons/BotanicalIcon";
+import { isOrchardFruitTree, normalizePlantText } from "../utils/plantClassification";
 
 const filters = [
   "All",
@@ -64,15 +65,24 @@ export default function PlantDirectory({ onSelectPlant }) {
   const [filter, setFilter] = useState("All");
 
   const filteredPlants = useMemo(() => {
+    const normalizedSearch = normalizePlantText(search);
+
     return plants.filter((plant) => {
-      const matchesSearch =
-        plant.name.toLowerCase().includes(search.toLowerCase()) ||
-        plant.type.toLowerCase().includes(search.toLowerCase()) ||
-        (plant.nickname || "").toLowerCase().includes(search.toLowerCase()) ||
-        (plant.variety || "").toLowerCase().includes(search.toLowerCase());
+      const searchablePlant = normalizePlantText([
+        plant.name,
+        plant.nickname,
+        plant.commonName,
+        plant.botanicalName,
+        plant.variety,
+        plant.type,
+        plant.category,
+        plant.group,
+        plant.location
+      ].filter(Boolean).join(" "));
+      const matchesSearch = !normalizedSearch || searchablePlant.includes(normalizedSearch);
 
       const matchesFilter =
-        filter === "All" || plant.category === filter;
+        normalizedSearch || filter === "All" || plant.category === filter;
 
       return matchesSearch && matchesFilter;
     });
@@ -119,7 +129,10 @@ export default function PlantDirectory({ onSelectPlant }) {
       <input
         placeholder="Search plants..."
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          if (e.target.value) setFilter("All");
+        }}
         style={{
           width: "100%",
           padding: "16px",
@@ -157,6 +170,11 @@ export default function PlantDirectory({ onSelectPlant }) {
           </button>
         ))}
       </div>
+
+      <p aria-live="polite" style={{ color: "#6E745F", margin: "-12px 0 28px" }}>
+        Showing <strong>{filteredPlants.length}</strong> {filteredPlants.length === 1 ? "plant" : "plants"}
+        {search.trim() ? ` for “${search.trim()}”` : ""} · {plants.filter(isOrchardFruitTree).length} orchard fruit trees
+      </p>
 
       {groupedPlants.map(({ group, plants: grouped }) => {
         const headingId = `plant-group-${group.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;

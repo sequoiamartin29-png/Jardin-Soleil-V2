@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { useGarden } from "../context/GardenContext";
 import BotanicalIcon from "./icons/BotanicalIcon";
+import { isOrchardFruitTree } from "../utils/plantClassification";
 
 const orchardGroups = [
   "Apples",
@@ -8,7 +9,7 @@ const orchardGroups = [
   "Plums",
   "Cherries",
   "Citrus",
-  "Stone Fruit",
+  "Peach / Stone Fruit",
   "Figs",
   "Pomegranates",
   "Persimmons",
@@ -16,7 +17,7 @@ const orchardGroups = [
 ];
 
 const getOrchardGroup = (plant) => {
-  const identity = [plant.category, plant.type, plant.variety, plant.name]
+  const identity = [plant.category, plant.type, plant.variety, plant.group, plant.name]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
@@ -26,7 +27,7 @@ const getOrchardGroup = (plant) => {
   if (/\bpears?\b/.test(identity)) return "Pears";
   if (/\bplums?\b/.test(identity)) return "Plums";
   if (/cherr(?:y|ies)/.test(identity)) return "Cherries";
-  if (/peach|nectarine|apricot|stone fruit|multi[ -]?graft/.test(identity)) return "Stone Fruit";
+  if (/peach|nectarine|apricot|stone fruit|multi[ -]?graft/.test(identity)) return "Peach / Stone Fruit";
   if (/\bfigs?\b/.test(identity)) return "Figs";
   if (/pomegranate/.test(identity)) return "Pomegranates";
   if (/persimmon/.test(identity)) return "Persimmons";
@@ -45,12 +46,7 @@ const badgeColors = {
 
 export default function Orchard({ onSelectPlant }) {
   const { plants } = useGarden();
-  const orchardPlants = plants.filter(
-    (plant) =>
-      plant.category === "Orchard" ||
-      plant.category === "Citrus" ||
-      plant.category === "Fruit Tree"
-  );
+  const orchardPlants = plants.filter(isOrchardFruitTree);
   const groupedPlants = useMemo(() => {
     const groups = Object.fromEntries(orchardGroups.map((group) => [group, []]));
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { useGarden } from "../context/GardenContext";
 
 const albums = [
   {
@@ -34,6 +35,8 @@ const albums = [
 ];
 
 export default function Gallery() {
+  const { photos } = useGarden();
+
   return (
     <section style={{ marginTop: "50px" }}>
       <h2
@@ -54,6 +57,10 @@ export default function Gallery() {
       >
         Organize every photo by garden collection and watch Jardin Soleil
         transform season after season.
+      </p>
+
+      <p style={{ color: "#53633F", fontFamily: "Georgia, serif", fontSize: "20px" }}>
+        <strong>{photos.length}</strong> saved {photos.length === 1 ? "photo" : "photos"}
       </p>
 
       <div

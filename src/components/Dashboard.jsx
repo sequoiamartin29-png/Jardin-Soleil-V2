@@ -32,7 +32,7 @@ const dashboardHotspots = [
 ];
 
 export default function Dashboard({ onNavigate }) {
-  const { stats } = useGarden();
+  const { stats, photos } = useGarden();
   const navigate = (page) => onNavigate?.(page);
 
   return (
@@ -48,6 +48,16 @@ export default function Dashboard({ onNavigate }) {
           src={dashboardArtwork}
           alt="Illustrated Jardin Soleil French botanical estate dashboard with chalet, formal gardens, fountain, garden panels, and navigation"
         />
+
+        <div className="js-dashboard-artwork__photo-stat" aria-live="polite" aria-label={`${photos.length} photos logged`}>
+          <strong>{photos.length}</strong>
+          <span>Photos Logged</span>
+        </div>
+
+        <div className="js-dashboard-artwork__fruit-stat" aria-live="polite" aria-label={`${stats.orchardCount} fruit trees`}>
+          <strong>{stats.orchardCount}</strong>
+          <span>Fruit Trees</span>
+        </div>
 
         <nav className="js-dashboard-artwork__hotspots" aria-label="Interactive Jardin Soleil estate map">
           {dashboardHotspots.map(({ label, page, area: [left, top, width, height] }) => (

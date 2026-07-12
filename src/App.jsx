@@ -12,6 +12,8 @@ import Inventory from "./components/Inventory";
 import Weather from "./components/Weather";
 import Learning from "./components/Learning";
 import WordSearch from "./components/WordSearch";
+import TeaApothecary from "./components/TeaApothecary";
+import GardenChallenges from "./components/GardenChallenges";
 import PlantDirectory from "./components/PlantDirectory";
 import PlantProfile from "./components/PlantProfile";
 import JournalEntry from "./components/JournalEntry";
@@ -87,7 +89,13 @@ function GardenApp() {
         return <Weather />;
 
       case "Learning":
-        return <Learning />;
+        return <Learning onNavigate={setPage} />;
+
+      case "Tea Apothecary":
+        return <TeaApothecary onNavigate={setPage} />;
+
+      case "Garden Challenges":
+        return <GardenChallenges onNavigate={setPage} />;
 
       case "Word Search":
         return <WordSearch />;

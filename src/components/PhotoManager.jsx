@@ -1,27 +1,31 @@
 import React, { useMemo, useState } from "react";
-import { plants } from "../data/plants";
+import { useGarden } from "../context/GardenContext";
 
 export default function PhotoManager() {
+  const { plants, photos, addPhotos, deletePhoto } = useGarden();
   const [selectedPlant, setSelectedPlant] = useState("All");
-  const [photos, setPhotos] = useState([]);
 
   const filteredPhotos = useMemo(() => {
     if (selectedPlant === "All") return photos;
     return photos.filter((photo) => photo.plantId === selectedPlant);
   }, [photos, selectedPlant]);
 
-  const handleUpload = (event) => {
+  const handleUpload = async (event) => {
     const files = Array.from(event.target.files || []);
+    const newPhotos = await Promise.all(files.map((file, index) => new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({
+        id: `${Date.now()}-${index}`,
+        plantId: selectedPlant === "All" ? null : selectedPlant,
+        name: file.name,
+        date: new Date().toISOString(),
+        url: reader.result
+      });
+      reader.readAsDataURL(file);
+    })));
 
-    const newPhotos = files.map((file) => ({
-      id: Date.now() + Math.random(),
-      plantId: selectedPlant === "All" ? null : selectedPlant,
-      name: file.name,
-      date: new Date().toISOString(),
-      url: URL.createObjectURL(file)
-    }));
-
-    setPhotos((current) => [...newPhotos, ...current]);
+    addPhotos(newPhotos);
+    event.target.value = "";
   };
 
   return (
@@ -132,6 +136,10 @@ export default function PhotoManager() {
                 >
                   {new Date(photo.date).toLocaleString()}
                 </p>
+
+                <button type="button" onClick={() => deletePhoto(photo.id)}>
+                  Delete photo
+                </button>
               </div>
             </article>
           ))}
