@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useGarden } from "../context/GardenContext";
 import dashboardArtwork from "../assets/jardin-soleil-dashboard.jpeg";
 import "./Dashboard.css";
@@ -34,6 +34,22 @@ const dashboardHotspots = [
 export default function Dashboard({ onNavigate }) {
   const { stats, photos } = useGarden();
   const navigate = (page) => onNavigate?.(page);
+  const [localNow, setLocalNow] = useState(() => new Date());
+  const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local time";
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setLocalNow(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const localHour = localNow.getHours();
+  const gardenLight = localHour >= 5 && localHour < 12
+    ? { icon: "☀️", label: "Morning garden light" }
+    : localHour >= 12 && localHour < 18
+      ? { icon: "🌤️", label: "Afternoon garden light" }
+      : localHour >= 18 && localHour < 21
+        ? { icon: "🌅", label: "Evening garden light" }
+        : { icon: "🌙", label: "Night garden" };
 
   return (
     <section className="js-dashboard-artwork" aria-label="Jardin Soleil dashboard">
@@ -58,6 +74,14 @@ export default function Dashboard({ onNavigate }) {
           <strong>{stats.orchardCount}</strong>
           <span>Fruit Trees</span>
         </div>
+
+        <section className="js-dashboard-artwork__clock" aria-label={`Local date and time in ${localTimeZone}`}>
+          <span className="js-dashboard-artwork__weekday">{localNow.toLocaleDateString(undefined, { weekday:"long" })}</span>
+          <span className="js-dashboard-artwork__date">{localNow.toLocaleDateString(undefined, { month:"long", day:"numeric", year:"numeric" })}</span>
+          <time dateTime={localNow.toISOString()}>{localNow.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" })}</time>
+          <span className="js-dashboard-artwork__zone">{localTimeZone.replace(/_/g, " ")}</span>
+          <span className="js-dashboard-artwork__local-weather"><b aria-hidden="true">{gardenLight.icon}</b>{gardenLight.label}</span>
+        </section>
 
         <nav className="js-dashboard-artwork__hotspots" aria-label="Interactive Jardin Soleil estate map">
           {dashboardHotspots.map(({ label, page, area: [left, top, width, height] }) => (

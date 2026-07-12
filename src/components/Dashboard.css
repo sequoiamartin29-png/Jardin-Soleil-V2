@@ -84,6 +84,34 @@
   white-space: nowrap;
 }
 
+.js-dashboard-artwork__clock {
+  align-items:center;
+  background:rgb(245,233,218);
+  border:0;
+  box-shadow:none;
+  color:#28251f;
+  display:flex;
+  flex-direction:column;
+  font-family:Georgia,"Times New Roman",serif;
+  height:12.8%;
+  justify-content:flex-start;
+  left:83.05%;
+  line-height:1.15;
+  padding-top:1.05%;
+  pointer-events:none;
+  position:absolute;
+  text-align:center;
+  top:2.75%;
+  width:14.35%;
+  z-index:2;
+}
+.js-dashboard-artwork__weekday { font-size:clamp(.34rem,1.17vw,.8rem); }
+.js-dashboard-artwork__date { font-size:clamp(.31rem,1.04vw,.71rem); margin-top:4%; }
+.js-dashboard-artwork__clock time { color:#c25062; font-size:clamp(.72rem,2.75vw,1.86rem); line-height:1; margin-top:10%; }
+.js-dashboard-artwork__zone { border-bottom:1px solid rgba(177,138,71,.4); color:#786b58; font-size:clamp(.2rem,.58vw,.4rem); margin-top:7%; overflow:hidden; padding-bottom:7%; text-overflow:ellipsis; white-space:nowrap; width:82%; }
+.js-dashboard-artwork__local-weather { align-items:center; display:flex; font-size:clamp(.23rem,.68vw,.46rem); gap:7%; justify-content:center; margin-top:8%; }
+.js-dashboard-artwork__local-weather b { font-size:clamp(.48rem,1.5vw,1.03rem); font-weight:400; }
+
 .js-dashboard-artwork__hotspots {
   inset: 0;
   pointer-events: none;
