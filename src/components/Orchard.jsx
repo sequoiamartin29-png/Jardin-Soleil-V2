@@ -42,7 +42,14 @@ const badgeColors = {
   "New Arrival": "#6C9EC4"
 };
 
-const getIcon = (type = "") => {
+const getIcon = (plant = {}) => {
+  const type = plant.type || "";
+  const identity = [plant.category, plant.name, plant.type, plant.variety]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  if (/citrus|citrangequat|lemon|lime|mandarin|orange|grapefruit|kumquat/.test(identity)) return "🍊";
   if (type.includes("Apple")) return "🍎";
   if (type.includes("Pear")) return "🍐";
   if (type.includes("Lemon")) return "🍋";
@@ -151,7 +158,7 @@ export default function Orchard({ onSelectPlant }) {
                   "linear-gradient(135deg,#F9E6EB,#EEF3E3)"
               }}
             >
-              {getIcon(plant.type)}
+              {getIcon(plant)}
             </div>
 
             <div style={{ padding: "24px" }}>
