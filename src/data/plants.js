@@ -329,6 +329,7 @@ journal:[]
 id:"fruit-cocktail-tree-3",
 name:"Fruit Cocktail Tree #3",
 nickname:"FC3",
+icon:"🟣",
 type:"Fruit Tree",
 variety:"Multi-Graft Stone Fruit",
 group:"Stone Fruit / Multi-Graft",
@@ -349,6 +350,7 @@ journal:[]
 {
 id:"fruit-snacks-sensational-peach",
 name:"Fruit Snacks Sensational Peach",
+icon:"🍑",
 type:"Fruit Tree",
 variety:"Sensational Peach",
 group:"Peach / Stone Fruit",

@@ -1,0 +1,8 @@
+.botanical-icon { display:inline-block; flex:0 0 auto; line-height:0; vertical-align:middle; }
+.botanical-icon svg { display:block; height:100%; overflow:visible; width:100%; }
+.botanical-icon--xs { height:20px; width:20px; }
+.botanical-icon--sm { height:28px; width:28px; }
+.botanical-icon--md { height:40px; width:40px; }
+.botanical-icon--lg { height:58px; width:58px; }
+.botanical-icon--xl { height:78px; width:78px; }
+.botanical-icon--watercolor svg { filter:drop-shadow(0 2px 2px rgba(62,70,49,.13)); }

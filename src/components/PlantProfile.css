@@ -2,6 +2,7 @@
 .js-profile * { box-sizing:border-box; }
 .js-profile__hero { background:linear-gradient(120deg,#f7e6e7,#fff8e9 52%,#dfe9e2); border:1px solid rgba(178,138,67,.5); border-radius:34px; box-shadow:0 18px 42px rgba(63,55,38,.12); overflow:hidden; padding:38px 42px; position:relative; }
 .js-profile__hero::after { border:1px solid rgba(178,138,67,.28); border-radius:50%; content:""; height:210px; position:absolute; right:-45px; top:-85px; width:210px; }
+.js-profile__plant-icon { height:76px; position:absolute; right:34px; top:50%; transform:translateY(-50%); width:76px; z-index:1; }
 .js-profile__hero p,.js-profile__section-heading p { color:var(--profile-gold); font-size:.68rem; font-weight:800; letter-spacing:.2em; margin:0 0 8px; text-transform:uppercase; }
 .js-profile__hero h1 { color:var(--profile-ink); font-family:Baskerville,"Palatino Linotype",Georgia,serif; font-size:clamp(2.4rem,5vw,4.8rem); font-weight:400; line-height:1; margin:0; }
 .js-profile__hero > strong { color:#89745a; display:block; font-family:Georgia,serif; font-size:1.1rem; font-style:italic; margin-top:10px; }

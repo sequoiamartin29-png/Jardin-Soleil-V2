@@ -69,10 +69,25 @@ const loadPlants = () => {
     )
     : [...savedPlants, citrangequatStarter];
 
-  if (!migratedPlants.some(isFruitCocktailThree)) {
+  const existingFruitCocktailThree = migratedPlants.find(isFruitCocktailThree);
+  if (existingFruitCocktailThree) {
+    migratedPlants = migratedPlants.map((plant) =>
+      plant === existingFruitCocktailThree
+        ? { ...fruitCocktailThreeStarter, ...plant, icon: fruitCocktailThreeStarter.icon }
+        : plant
+    );
+  } else {
     migratedPlants = [...migratedPlants, fruitCocktailThreeStarter];
   }
-  if (!migratedPlants.some(isFruitSnacksPeach)) {
+
+  const existingFruitSnacksPeach = migratedPlants.find(isFruitSnacksPeach);
+  if (existingFruitSnacksPeach) {
+    migratedPlants = migratedPlants.map((plant) =>
+      plant === existingFruitSnacksPeach
+        ? { ...fruitSnacksPeachStarter, ...plant, icon: fruitSnacksPeachStarter.icon }
+        : plant
+    );
+  } else {
     migratedPlants = [...migratedPlants, fruitSnacksPeachStarter];
   }
 

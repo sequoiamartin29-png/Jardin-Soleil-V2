@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { useGarden } from "../context/GardenContext";
+import BotanicalIcon from "./icons/BotanicalIcon";
 
 const orchardGroups = [
   "Apples",
@@ -40,29 +41,6 @@ const badgeColors = {
   Monitoring: "#C98F48",
   Recovering: "#C46C6C",
   "New Arrival": "#6C9EC4"
-};
-
-const getIcon = (plant = {}) => {
-  const type = plant.type || "";
-  const identity = [plant.category, plant.name, plant.type, plant.variety]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  if (/citrus|citrangequat|lemon|lime|mandarin|orange|grapefruit|kumquat/.test(identity)) return "🍊";
-  if (type.includes("Apple")) return "🍎";
-  if (type.includes("Pear")) return "🍐";
-  if (type.includes("Lemon")) return "🍋";
-  if (type.includes("Mandarin")) return "🍊";
-  if (
-    type.includes("Peach") ||
-    type.includes("Apricot") ||
-    type.includes("Nectarine")
-  )
-    return "🍑";
-  if (type.includes("Cherry")) return "🍒";
-  if (type.includes("Plum")) return "🟣";
-  return "🌳";
 };
 
 export default function Orchard({ onSelectPlant }) {
@@ -159,7 +137,7 @@ export default function Orchard({ onSelectPlant }) {
                   "linear-gradient(135deg,#F9E6EB,#EEF3E3)"
               }}
             >
-              {getIcon(plant)}
+              <BotanicalIcon plant={plant} size="xl" decorative />
             </div>
 
             <div style={{ padding: "24px" }}>

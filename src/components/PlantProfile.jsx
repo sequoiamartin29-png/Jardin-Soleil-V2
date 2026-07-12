@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useGarden } from "../context/GardenContext";
+import BotanicalIcon from "./icons/BotanicalIcon";
 import "./PlantProfile.css";
 
 const careActions = [
@@ -201,6 +202,7 @@ export default function PlantProfile() {
   return (
     <section className="js-profile" aria-labelledby="plant-profile-title">
       <header className="js-profile__hero">
+        <BotanicalIcon plant={plant} size="xl" decorative className="js-profile__plant-icon" />
         <p>Jardin Soleil · Individual Estate Record</p>
         <h1 id="plant-profile-title">{plant.name}</h1>
         <strong>{plant.nickname || "A cherished garden resident"}</strong>
@@ -269,7 +271,7 @@ export default function PlantProfile() {
           )}
 
           <label className="js-profile__care-filter">Filter care history<select value={careFilter} onChange={(event) => setCareFilter(event.target.value)}><option>All</option>{careTypes.map((type) => <option key={type}>{type}</option>)}</select></label>
-          <CareTimeline entries={filteredCareHistory} onEdit={editCareEvent} onDelete={removeCareEvent} />
+          <CareTimeline plant={plant} entries={filteredCareHistory} onEdit={editCareEvent} onDelete={removeCareEvent} />
         </article>
 
         <article className="js-profile__card">
@@ -314,19 +316,16 @@ function Timeline({ entries, empty }) {
   return <div className="js-profile__timeline">{entries.map((entry) => <div key={entry.id}><time>{formatDate(entry.createdAt)}</time><strong>{cleanType(entry.type) || "Garden note"}</strong><p>{entry.notes || "No notes added."}</p></div>)}</div>;
 }
 
-function CareTimeline({ entries, onEdit, onDelete }) {
+function CareTimeline({ plant, entries, onEdit, onDelete }) {
   if (!entries.length) {
     return <p className="js-profile__empty-state">No care history exists for this plant yet.</p>;
   }
-
-  const iconFor = (type) =>
-    careActions.find(({ type: careType }) => careType === cleanType(type))?.icon || "🌿";
 
   return (
     <div className="js-profile__care-history">
       {entries.map((entry) => (
         <article key={entry.id}>
-          <span className="js-profile__care-icon" aria-hidden="true">{iconFor(entry.type)}</span>
+          <span className="js-profile__care-icon"><BotanicalIcon plant={plant} size="sm" decorative /></span>
           <div>
             <time>{formatDate(entry.createdAt)}{entry.careTime ? ` · ${entry.careTime}` : ""}</time>
             <h3>{cleanType(entry.type)}</h3>

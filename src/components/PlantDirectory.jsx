@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useGarden } from "../context/GardenContext";
+import BotanicalIcon from "./icons/BotanicalIcon";
 
 const filters = [
   "All",
@@ -55,22 +56,6 @@ const getPlantGroup = (plant) => {
     return "Houseplants and Container Plants";
   }
   return "Other / Uncategorized";
-};
-
-const getIcon = (type = "") => {
-  if (type.includes("Apple")) return "🍎";
-  if (type.includes("Pear")) return "🍐";
-  if (type.includes("Lemon")) return "🍋";
-  if (type.includes("Mandarin")) return "🍊";
-  if (
-    type.includes("Peach") ||
-    type.includes("Apricot") ||
-    type.includes("Nectarine")
-  )
-    return "🍑";
-  if (type.includes("Cherry")) return "🍒";
-  if (type.includes("Plum")) return "🟣";
-  return "🌿";
 };
 
 export default function PlantDirectory({ onSelectPlant }) {
@@ -217,7 +202,7 @@ export default function PlantDirectory({ onSelectPlant }) {
                 fontSize: "56px"
               }}
             >
-              {getIcon(plant.type)}
+              <BotanicalIcon plant={plant} size="xl" decorative />
             </div>
 
             <h2
