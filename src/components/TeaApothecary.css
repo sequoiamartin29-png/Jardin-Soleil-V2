@@ -1,13 +1,40 @@
-.js-apothecary { display:grid; gap:22px; margin-top:40px; }
-.js-apothecary__hero { align-items:center; background:linear-gradient(120deg,#e5ecd9,#fff8e9 58%,#e7deea); border:1px solid rgba(177,138,71,.42); border-radius:32px; box-shadow:0 17px 40px rgba(65,55,38,.1); display:flex; gap:24px; padding:38px 42px; }
-.js-apothecary__hero p { color:#b18a47; font-size:.68rem; font-weight:800; letter-spacing:.2em; margin:0 0 7px; text-transform:uppercase; }
-.js-apothecary__hero h1 { color:#43533c; font-family:Baskerville,"Palatino Linotype",Georgia,serif; font-size:clamp(2.4rem,5vw,4.5rem); font-weight:400; line-height:1; margin:0 0 11px; }
-.js-apothecary__hero span { color:#726d61; }
-.js-apothecary__back { background:transparent; border:0; color:#596d4d; cursor:pointer; font-weight:800; justify-self:start; padding:8px 2px; }
-.js-apothecary__grid { display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
-.js-apothecary__grid article { background:linear-gradient(145deg,#fffdf8,#f3e6d2); border:1px solid rgba(177,138,71,.32); border-radius:23px; box-shadow:0 12px 28px rgba(65,55,38,.08); padding:25px; }
-.js-apothecary__grid h2 { color:#4c5e43; font-family:Georgia,serif; font-weight:500; }
-.js-apothecary__grid p { color:#736e63; line-height:1.6; }
-.js-apothecary__grid span { color:#a08350; font-size:.7rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
-.js-apothecary button:focus-visible { outline:2px solid #b18a47; outline-offset:3px; }
-@media(max-width:600px){.js-apothecary__hero{align-items:flex-start;padding:28px 22px}.js-apothecary__hero>.botanical-icon{height:55px;width:55px}}
+.js-apothecary { --tea-ink:#43533c; --tea-gold:#ae8744; display:grid; gap:24px; margin-top:40px; }
+.js-apothecary * { box-sizing:border-box; }
+.js-apothecary__hero,.js-tea-profile__hero { align-items:center; background:linear-gradient(120deg,#e5ecd9,#fff8e9 58%,#e7deea); border:1px solid rgba(174,135,68,.44); border-radius:32px; box-shadow:0 17px 40px rgba(65,55,38,.1); display:flex; gap:24px; padding:38px 42px; }
+.js-apothecary__hero p,.js-tea-profile__hero p,.js-apothecary__section-heading p { color:var(--tea-gold); font-size:.68rem; font-weight:800; letter-spacing:.2em; margin:0 0 7px; text-transform:uppercase; }
+.js-apothecary__hero h1,.js-tea-profile__hero h1 { color:var(--tea-ink); font-family:Baskerville,"Palatino Linotype",Georgia,serif; font-size:clamp(2.4rem,5vw,4.5rem); font-weight:400; line-height:1; margin:0 0 11px; }
+.js-apothecary__hero span,.js-tea-profile__hero span { color:#726d61; }
+.js-apothecary__toolbar { align-items:center; display:flex; justify-content:space-between; }
+.js-apothecary__toolbar p { color:#786f60; margin:0; }
+.js-apothecary__back { background:transparent; border:0; color:#596d4d; cursor:pointer; font-weight:800; padding:8px 2px; }
+.js-apothecary__section-heading { margin-bottom:17px; }
+.js-apothecary__section-heading h2 { color:var(--tea-ink); font-family:Georgia,serif; font-size:1.8rem; font-weight:500; margin:0; }
+.js-apothecary__blend-grid { display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(310px,1fr)); }
+.js-tea-card { background:repeating-linear-gradient(10deg,rgba(90,62,28,.02) 0 1px,transparent 1px 4px),linear-gradient(145deg,#fffdf8,#f1e2c9); border:1px solid rgba(174,135,68,.38); border-radius:25px; box-shadow:0 14px 31px rgba(65,55,38,.09); display:flex; flex-direction:column; padding:25px; position:relative; }
+.js-tea-card::after { border:1px solid rgba(174,135,68,.2); border-radius:19px; content:""; inset:6px; pointer-events:none; position:absolute; }
+.js-tea-card__top { align-items:start; display:flex; justify-content:space-between; }
+.js-tea-card__top>span { border-radius:99px; font-size:.64rem; font-weight:800; padding:6px 9px; text-transform:uppercase; }
+.js-tea-card__top .is-ready { background:#dfe9d5; color:#586c4c; }
+.js-tea-card__top .is-waiting { background:#eee0cd; color:#927344; }
+.js-tea-card h3 { color:var(--tea-ink); font-family:Baskerville,Georgia,serif; font-size:1.55rem; font-weight:500; margin:13px 0 5px; }
+.js-tea-card__subtitle { color:#8b765d; font-style:italic; margin:0 0 17px; }
+.js-tea-card dl { margin:0 0 19px; }
+.js-tea-card dl>div { border-bottom:1px solid rgba(174,135,68,.14); display:grid; gap:8px; grid-template-columns:76px 1fr; padding:7px 0; }
+.js-tea-card dt,.js-tea-profile dt { color:#91794f; font-size:.65rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; }
+.js-tea-card dd,.js-tea-profile dd { color:#66675e; font-size:.79rem; line-height:1.4; margin:0; }
+.js-tea-card>button { background:#566b4a; border:1px solid #566b4a; border-radius:99px; color:white; cursor:pointer; font-weight:800; margin-top:auto; padding:11px 16px; position:relative; z-index:1; }
+.js-apothecary__empty { background:#fff9ec; border:1px solid #e7d7bc; border-radius:20px; color:#777064; padding:24px; }
+.js-tea-profile__hero { position:relative; }
+.js-tea-profile__hero>strong { background:rgba(255,255,255,.65); border:1px solid rgba(174,135,68,.3); border-radius:99px; color:#59694e; margin-left:auto; padding:10px 14px; white-space:nowrap; }
+.js-tea-profile__grid { display:grid; gap:19px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.js-tea-profile__grid article,.js-tea-profile__notes { background:linear-gradient(145deg,#fffdf8,#f3e6d2); border:1px solid rgba(174,135,68,.34); border-radius:23px; box-shadow:0 12px 28px rgba(65,55,38,.08); padding:25px; }
+.js-tea-profile h2 { color:var(--tea-ink); font-family:Baskerville,Georgia,serif; font-weight:500; margin:0 0 16px; }
+.js-tea-profile h3 { color:#657258; font-family:Georgia,serif; font-weight:500; margin:20px 0 8px; }
+.js-tea-profile li,.js-tea-profile p { color:#6e6b62; line-height:1.6; }
+.js-tea-profile__status { color:#7a8b60!important; font-weight:800; }
+.js-tea-profile__tags { display:flex; flex-wrap:wrap; gap:7px; }
+.js-tea-profile__tags span { background:#e8e1cb; border-radius:99px; color:#6d744f; font-size:.72rem; padding:7px 10px; }
+.js-tea-profile dl>div { border-bottom:1px solid #e8d9c1; display:grid; gap:12px; grid-template-columns:75px 1fr; padding:10px 0; }
+.js-apothecary button:focus-visible { outline:2px solid var(--tea-gold); outline-offset:3px; }
+@media(max-width:720px){.js-tea-profile__grid{grid-template-columns:1fr}.js-tea-profile__hero>strong{align-self:flex-start;margin-left:0}.js-tea-profile__hero{align-items:flex-start;flex-wrap:wrap}}
+@media(max-width:600px){.js-apothecary__hero,.js-tea-profile__hero{align-items:flex-start;padding:28px 22px}.js-apothecary__hero>.botanical-icon,.js-tea-profile__hero>.botanical-icon{height:55px;width:55px}.js-apothecary__toolbar{align-items:flex-start;flex-direction:column;gap:8px}.js-apothecary__blend-grid{grid-template-columns:1fr}.js-tea-card dl>div{grid-template-columns:1fr;gap:3px}}
