@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { plants as starterPlants } from "../data/plants";
+import { gardenPlants } from "../data/jardinData";
 import { isOrchardFruitTree } from "../utils/plantClassification";
 
 const GardenContext = createContext(null);
@@ -138,6 +139,23 @@ const loadPlants = () => {
     migratedPlants = [...migratedPlants, chicagoHardyFigStarter];
   }
 
+  gardenPlants.forEach((gardenPlant) => {
+    const exists = migratedPlants.some((plant) =>
+      plant.id === gardenPlant.id || normalizePlantIdentity(plant) === normalizePlantIdentity(gardenPlant)
+    );
+    if (!exists) {
+      migratedPlants.push({
+        ...gardenPlant,
+        health: gardenPlant.health ?? 100,
+        location: gardenPlant.location || `${gardenPlant.category} Garden`,
+        sun: gardenPlant.sun || "See plant notes",
+        water: gardenPlant.water || "As needed",
+        photos: gardenPlant.photos || [],
+        journal: gardenPlant.journal || [],
+      });
+    }
+  });
+
   return migratedPlants;
 };
 
@@ -154,6 +172,10 @@ export function GardenProvider({ children }) {
     load("jardinSoleilPhotos", [])
   );
 
+  const [teaWorkflows, setTeaWorkflows] = useState(() =>
+    load("jardinSoleilTeaWorkflows", [])
+  );
+
   useEffect(() => {
     localStorage.setItem("jardinSoleilPlants", JSON.stringify(plants));
   }, [plants]);
@@ -168,6 +190,10 @@ export function GardenProvider({ children }) {
   useEffect(() => {
     localStorage.setItem("jardinSoleilPhotos", JSON.stringify(photos));
   }, [photos]);
+
+  useEffect(() => {
+    localStorage.setItem("jardinSoleilTeaWorkflows", JSON.stringify(teaWorkflows));
+  }, [teaWorkflows]);
 
   const addJournalEntry = (entry) => {
     const newEntry = {
@@ -209,6 +235,29 @@ export function GardenProvider({ children }) {
 
   const deletePhoto = (photoId) => {
     setPhotos((current) => current.filter((photo) => photo.id !== photoId));
+  };
+
+  const addTeaWorkflow = (workflow) => {
+    const newWorkflow = {
+      id: `tea-workflow-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...workflow,
+    };
+    setTeaWorkflows((current) => [newWorkflow, ...current]);
+    return newWorkflow;
+  };
+
+  const updateTeaWorkflow = (workflowId, updates) => {
+    setTeaWorkflows((current) => current.map((workflow) =>
+      workflow.id === workflowId
+        ? { ...workflow, ...updates, updatedAt: new Date().toISOString() }
+        : workflow
+    ));
+  };
+
+  const deleteTeaWorkflow = (workflowId) => {
+    setTeaWorkflows((current) => current.filter((workflow) => workflow.id !== workflowId));
   };
 
   const updatePlant = (plantId, updates) => {
@@ -269,6 +318,10 @@ export function GardenProvider({ children }) {
     photos,
     addPhotos,
     deletePhoto,
+    teaWorkflows,
+    addTeaWorkflow,
+    updateTeaWorkflow,
+    deleteTeaWorkflow,
     updatePlant,
     getPlantById,
     getEntriesForPlant,

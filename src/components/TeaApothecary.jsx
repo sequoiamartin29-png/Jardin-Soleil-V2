@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import BotanicalIcon from "./icons/BotanicalIcon";
 import { teaBlends } from "../data/teaBlends";
+import TeaWorkflow from "./TeaWorkflow";
 import "./TeaApothecary.css";
 
 export default function TeaApothecary({ onNavigate }) {
@@ -30,6 +31,8 @@ export default function TeaApothecary({ onNavigate }) {
           </div>
         ) : <p className="js-apothecary__empty">No tea blends have been added to the apothecary yet.</p>}
       </section>
+
+      <TeaWorkflow blends={teaBlends} />
     </section>
   );
 }
