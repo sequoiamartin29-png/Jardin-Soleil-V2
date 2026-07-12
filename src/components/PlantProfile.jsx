@@ -2,7 +2,15 @@ import React, { useMemo, useState } from "react";
 import { useGarden } from "../context/GardenContext";
 import "./PlantProfile.css";
 
-const careTypes = ["Watering", "Fertilizer", "Pruning", "Treatment", "Repotting / Transplanting"];
+const careActions = [
+  { label: "Water", type: "Watering", icon: "💧" },
+  { label: "Feed", type: "Feeding", icon: "🌱" },
+  { label: "Prune", type: "Pruning", icon: "✂️" },
+  { label: "Treat", type: "Treatment", icon: "🩺" },
+  { label: "Repot / Transplant", type: "Repotting / Transplanting", icon: "🪴" },
+  { label: "General Care Note", type: "General Care Note", icon: "📝" },
+];
+const careTypes = careActions.map(({ type }) => type);
 
 const cleanType = (type = "") => type.replace(/^[^A-Za-z]+/, "").trim();
 const includesType = (entry, words) =>
@@ -16,6 +24,8 @@ export default function PlantProfile() {
     getEntriesForPlant,
     getPhotosForPlant,
     addJournalEntry,
+    updateJournalEntry,
+    deleteJournalEntry,
     addPhotos,
     updatePlant,
   } = useGarden();
@@ -25,6 +35,14 @@ export default function PlantProfile() {
   const [noteSearch, setNoteSearch] = useState("");
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editingNoteText, setEditingNoteText] = useState("");
+  const [selectedCareType, setSelectedCareType] = useState(null);
+  const [careDate, setCareDate] = useState(new Date().toISOString().slice(0, 10));
+  const [careTime, setCareTime] = useState("");
+  const [careNotes, setCareNotes] = useState("");
+  const [careProduct, setCareProduct] = useState("");
+  const [nextDueDate, setNextDueDate] = useState("");
+  const [editingCareId, setEditingCareId] = useState(null);
+  const [careFilter, setCareFilter] = useState("All");
 
   const plant = plants.find((item) => item.id === selectedPlant?.id) || selectedPlant;
   const history = plant ? getEntriesForPlant(plant.id) : [];
@@ -50,8 +68,14 @@ export default function PlantProfile() {
   const lastPruned = latest("prun");
   const lastPest = latest("pest", "disease", "treatment");
   const careHistory = sortedHistory.filter((entry) =>
-    includesType(entry, ["water", "fertiliz", "feed", "prun", "treatment", "pest", "disease", "repot", "transplant"])
+    entry.careEvent || includesType(entry, ["water", "fertiliz", "feed", "prun", "treatment", "pest", "disease", "repot", "transplant", "general care"])
   );
+  const filteredCareHistory = careFilter === "All"
+    ? careHistory
+    : careHistory.filter((entry) => cleanType(entry.type) === careFilter);
+  const nextScheduledCare = careHistory
+    .filter((entry) => entry.nextDueDate)
+    .sort((a, b) => new Date(a.nextDueDate) - new Date(b.nextDueDate))[0];
   const growthHistory = sortedHistory.filter((entry) =>
     includesType(entry, ["bloom", "fruit", "harvest", "growth", "season", "weather"])
   );
@@ -59,13 +83,64 @@ export default function PlantProfile() {
   const filteredNotes = notes.filter((note) =>
     note.text.toLowerCase().includes(noteSearch.toLowerCase())
   );
-  const nextCare = (plant.health ?? 100) < 85
+  const nextCare = nextScheduledCare
+    ? `${cleanType(nextScheduledCare.type)} due ${formatDate(nextScheduledCare.nextDueDate)}`
+    : (plant.health ?? 100) < 85
     ? "Inspect health concerns and record a treatment"
     : !lastWatered
       ? `Check soil moisture and follow ${plant.water || "the watering plan"}`
       : !lastFertilized
         ? `Review ${plant.fertilizer || "seasonal feeding"}`
         : "Continue routine observation and seasonal care";
+
+  const resetCareForm = () => {
+    setSelectedCareType(null);
+    setEditingCareId(null);
+    setCareDate(new Date().toISOString().slice(0, 10));
+    setCareTime("");
+    setCareNotes("");
+    setCareProduct("");
+    setNextDueDate("");
+  };
+
+  const openCareForm = (type) => {
+    resetCareForm();
+    setSelectedCareType(type);
+  };
+
+  const saveCareEvent = (event) => {
+    event.preventDefault();
+    const createdAt = new Date(`${careDate}T${careTime || "12:00"}`).toISOString();
+    const careEvent = {
+      plantId: plant.id,
+      type: selectedCareType,
+      careEvent: true,
+      careDate,
+      careTime,
+      createdAt,
+      notes: careNotes.trim(),
+      productAmount: careProduct.trim(),
+      nextDueDate,
+    };
+
+    if (editingCareId) updateJournalEntry(editingCareId, careEvent);
+    else addJournalEntry(careEvent);
+    resetCareForm();
+  };
+
+  const editCareEvent = (entry) => {
+    setEditingCareId(entry.id);
+    setSelectedCareType(cleanType(entry.type));
+    setCareDate(entry.careDate || new Date(entry.createdAt).toISOString().slice(0, 10));
+    setCareTime(entry.careTime || "");
+    setCareNotes(entry.notes || "");
+    setCareProduct(entry.productAmount || "");
+    setNextDueDate(entry.nextDueDate || "");
+  };
+
+  const removeCareEvent = (entryId) => {
+    if (window.confirm("Delete this care entry?")) deleteJournalEntry(entryId);
+  };
 
   const saveJournalEntry = (event) => {
     event.preventDefault();
@@ -152,9 +227,9 @@ export default function PlantProfile() {
           <dl>
             <div><dt>Health status</dt><dd>{plant.health ?? 100}% · {plant.status || "No status"}</dd></div>
             <div><dt>Last watered</dt><dd>{formatDate(lastWatered?.createdAt)}</dd></div>
-            <div><dt>Last fertilized</dt><dd>{formatDate(lastFertilized?.createdAt)}</dd></div>
-            <div><dt>Pruning status</dt><dd>{lastPruned ? `${formatDate(lastPruned.createdAt)} · ${lastPruned.notes}` : "Not recorded"}</dd></div>
-            <div><dt>Pest / disease</dt><dd>{lastPest?.notes || "No issue recorded"}</dd></div>
+            <div><dt>Last fed</dt><dd>{formatDate(lastFertilized?.createdAt)}</dd></div>
+            <div><dt>Last pruned</dt><dd>{formatDate(lastPruned?.createdAt)}</dd></div>
+            <div><dt>Last treated</dt><dd>{lastPest ? `${formatDate(lastPest.createdAt)} · ${lastPest.notes || "Treatment recorded"}` : "Not recorded"}</dd></div>
             <div><dt>Next care</dt><dd>{nextCare}</dd></div>
           </dl>
         </article>
@@ -174,9 +249,27 @@ export default function PlantProfile() {
 
       <div className="js-profile__grid">
         <article className="js-profile__card">
-          <h2>Care history</h2>
-          <div className="js-profile__chips">{careTypes.map((type) => <span key={type}>{type}</span>)}</div>
-          <Timeline entries={careHistory} empty="No care events recorded yet." />
+          <div className="js-profile__section-heading"><div><p>Garden care</p><h2>Care history</h2></div></div>
+          <div className="js-profile__care-actions" aria-label="Plant care actions">
+            {careActions.map(({ label, type, icon }) => <button type="button" key={type} onClick={() => openCareForm(type)}><span aria-hidden="true">{icon}</span>{label}</button>)}
+          </div>
+
+          {selectedCareType && (
+            <form className="js-profile__care-form" onSubmit={saveCareEvent}>
+              <h3>{editingCareId ? "Edit" : "Record"} {selectedCareType}</h3>
+              <label>Plant<input value={`${plant.name}${plant.nickname ? ` (${plant.nickname})` : ""}`} readOnly /></label>
+              <label>Care type<select value={selectedCareType} onChange={(event) => setSelectedCareType(event.target.value)}>{careTypes.map((type) => <option key={type}>{type}</option>)}</select></label>
+              <label>Date<input type="date" required value={careDate} onChange={(event) => setCareDate(event.target.value)} /></label>
+              <label>Time (optional)<input type="time" value={careTime} onChange={(event) => setCareTime(event.target.value)} /></label>
+              <label className="is-wide">Notes<textarea rows="3" value={careNotes} onChange={(event) => setCareNotes(event.target.value)} placeholder="What care was completed?" /></label>
+              <label>Amount or product (optional)<input value={careProduct} onChange={(event) => setCareProduct(event.target.value)} placeholder="e.g. 2 gallons or Citrus-Tone" /></label>
+              <label>Next due date (optional)<input type="date" value={nextDueDate} onChange={(event) => setNextDueDate(event.target.value)} /></label>
+              <div className="js-profile__care-form-actions"><button className="js-profile__button" type="submit">Save care event</button><button type="button" onClick={resetCareForm}>Cancel</button></div>
+            </form>
+          )}
+
+          <label className="js-profile__care-filter">Filter care history<select value={careFilter} onChange={(event) => setCareFilter(event.target.value)}><option>All</option>{careTypes.map((type) => <option key={type}>{type}</option>)}</select></label>
+          <CareTimeline entries={filteredCareHistory} onEdit={editCareEvent} onDelete={removeCareEvent} />
         </article>
 
         <article className="js-profile__card">
@@ -219,4 +312,34 @@ export default function PlantProfile() {
 function Timeline({ entries, empty }) {
   if (!entries.length) return <p className="js-profile__empty-state">{empty}</p>;
   return <div className="js-profile__timeline">{entries.map((entry) => <div key={entry.id}><time>{formatDate(entry.createdAt)}</time><strong>{cleanType(entry.type) || "Garden note"}</strong><p>{entry.notes || "No notes added."}</p></div>)}</div>;
+}
+
+function CareTimeline({ entries, onEdit, onDelete }) {
+  if (!entries.length) {
+    return <p className="js-profile__empty-state">No care history exists for this plant yet.</p>;
+  }
+
+  const iconFor = (type) =>
+    careActions.find(({ type: careType }) => careType === cleanType(type))?.icon || "🌿";
+
+  return (
+    <div className="js-profile__care-history">
+      {entries.map((entry) => (
+        <article key={entry.id}>
+          <span className="js-profile__care-icon" aria-hidden="true">{iconFor(entry.type)}</span>
+          <div>
+            <time>{formatDate(entry.createdAt)}{entry.careTime ? ` · ${entry.careTime}` : ""}</time>
+            <h3>{cleanType(entry.type)}</h3>
+            <p>{entry.notes || "No notes added."}</p>
+            {entry.productAmount && <p><strong>Amount / product:</strong> {entry.productAmount}</p>}
+            {entry.nextDueDate && <p><strong>Next due:</strong> {formatDate(entry.nextDueDate)}</p>}
+          </div>
+          <div className="js-profile__care-entry-actions">
+            <button type="button" onClick={() => onEdit(entry)}>Edit</button>
+            <button type="button" onClick={() => onDelete(entry.id)}>Delete</button>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
 }

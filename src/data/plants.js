@@ -323,6 +323,47 @@ bloom:"Spring",
 harvest:"Late Fall / Winter",
 photos:[],
 journal:[]
+},
+
+{
+id:"fruit-cocktail-tree-3",
+name:"Fruit Cocktail Tree #3",
+nickname:"FC3",
+type:"Fruit Tree",
+variety:"Multi-Graft Stone Fruit",
+group:"Stone Fruit / Multi-Graft",
+category:"Fruit Tree",
+status:"Growing",
+health:100,
+location:"Orchard",
+sun:"Full Sun",
+water:"Moderate",
+fertilizer:"Fruit Tree Fertilizer",
+height:"Young Tree",
+bloom:"Spring",
+harvest:"Summer",
+photos:[],
+journal:[]
+},
+
+{
+id:"fruit-snacks-sensational-peach",
+name:"Fruit Snacks Sensational Peach",
+type:"Fruit Tree",
+variety:"Sensational Peach",
+group:"Peach / Stone Fruit",
+category:"Fruit Tree",
+status:"Growing",
+health:100,
+location:"Orchard",
+sun:"Full Sun",
+water:"Moderate",
+fertilizer:"Fruit Tree Fertilizer",
+height:"Young Tree",
+bloom:"Spring",
+harvest:"Summer",
+photos:[],
+journal:[]
 }
 
 ];

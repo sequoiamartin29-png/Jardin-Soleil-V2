@@ -25,7 +25,7 @@ const getOrchardGroup = (plant) => {
   if (/\bpears?\b/.test(identity)) return "Pears";
   if (/\bplums?\b/.test(identity)) return "Plums";
   if (/cherr(?:y|ies)/.test(identity)) return "Cherries";
-  if (/peach|nectarine|apricot/.test(identity)) return "Stone Fruit";
+  if (/peach|nectarine|apricot|stone fruit|multi[ -]?graft/.test(identity)) return "Stone Fruit";
   if (/\bfigs?\b/.test(identity)) return "Figs";
   if (/pomegranate/.test(identity)) return "Pomegranates";
   if (/persimmon/.test(identity)) return "Persimmons";
@@ -70,7 +70,8 @@ export default function Orchard({ onSelectPlant }) {
   const orchardPlants = plants.filter(
     (plant) =>
       plant.category === "Orchard" ||
-      plant.category === "Citrus"
+      plant.category === "Citrus" ||
+      plant.category === "Fruit Tree"
   );
   const groupedPlants = useMemo(() => {
     const groups = Object.fromEntries(orchardGroups.map((group) => [group, []]));

@@ -6,6 +6,12 @@ const GardenContext = createContext(null);
 const citrangequatStarter = starterPlants.find(
   (plant) => plant.id === "thomasville-citrangequat"
 );
+const fruitCocktailThreeStarter = starterPlants.find(
+  (plant) => plant.id === "fruit-cocktail-tree-3"
+);
+const fruitSnacksPeachStarter = starterPlants.find(
+  (plant) => plant.id === "fruit-snacks-sensational-peach"
+);
 
 const normalizePlantIdentity = (plant) =>
   `${plant.id || ""} ${plant.name || ""} ${plant.nickname || ""} ${plant.type || ""} ${plant.variety || ""}`
@@ -21,6 +27,20 @@ const isThomasvilleCitrangequat = (plant) => {
   );
 };
 
+const isFruitCocktailThree = (plant) => {
+  const identity = normalizePlantIdentity(plant);
+  return (
+    identity.includes("fruitcocktailtree3") ||
+    identity.includes("fruitcocktail3") ||
+    /(^|[^a-z])fc3([^a-z]|$)/i.test(`${plant.id || ""} ${plant.nickname || ""} ${plant.name || ""}`)
+  );
+};
+
+const isFruitSnacksPeach = (plant) => {
+  const identity = normalizePlantIdentity(plant);
+  return identity.includes("fruitsnackssensationalpeach") || identity.includes("sensationalpeach");
+};
+
 const load = (key, fallback) => {
   try {
     const saved = localStorage.getItem(key);
@@ -34,12 +54,8 @@ const loadPlants = () => {
   const savedPlants = load("jardinSoleilPlants", starterPlants);
   const existingPlant = savedPlants.find(isThomasvilleCitrangequat);
 
-  if (!existingPlant) {
-    return [...savedPlants, citrangequatStarter];
-  }
-
-  return savedPlants.map((plant) =>
-    plant === existingPlant
+  let migratedPlants = existingPlant
+    ? savedPlants.map((plant) => plant === existingPlant
       ? {
           ...citrangequatStarter,
           ...plant,
@@ -50,7 +66,17 @@ const loadPlants = () => {
           category: "Citrus",
         }
       : plant
-  );
+    )
+    : [...savedPlants, citrangequatStarter];
+
+  if (!migratedPlants.some(isFruitCocktailThree)) {
+    migratedPlants = [...migratedPlants, fruitCocktailThreeStarter];
+  }
+  if (!migratedPlants.some(isFruitSnacksPeach)) {
+    migratedPlants = [...migratedPlants, fruitSnacksPeachStarter];
+  }
+
+  return migratedPlants;
 };
 
 export function GardenProvider({ children }) {
@@ -103,6 +129,18 @@ export function GardenProvider({ children }) {
     return newEntry;
   };
 
+  const updateJournalEntry = (entryId, updates) => {
+    setJournalEntries((current) =>
+      current.map((entry) =>
+        entry.id === entryId ? { ...entry, ...updates, updatedAt: new Date().toISOString() } : entry
+      )
+    );
+  };
+
+  const deleteJournalEntry = (entryId) => {
+    setJournalEntries((current) => current.filter((entry) => entry.id !== entryId));
+  };
+
   const addPhotos = (newPhotos) => {
     setPhotos((current) => [...newPhotos, ...current]);
   };
@@ -144,7 +182,7 @@ export function GardenProvider({ children }) {
       journalCount: journalEntries.length,
       photoCount: photos.length,
       orchardCount: plants.filter((p) =>
-        ["orchard", "citrus"].includes((p.category || "").toLocaleLowerCase())
+        ["orchard", "citrus", "fruit tree"].includes((p.category || "").toLocaleLowerCase())
       ).length,
       citrusCount: plants.filter(
         (p) => (p.category || "").toLocaleLowerCase() === "citrus"
@@ -161,6 +199,8 @@ export function GardenProvider({ children }) {
     setSelectedPlant,
     journalEntries,
     addJournalEntry,
+    updateJournalEntry,
+    deleteJournalEntry,
     photos,
     addPhotos,
     updatePlant,
