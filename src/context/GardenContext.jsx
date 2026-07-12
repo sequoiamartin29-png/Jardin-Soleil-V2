@@ -107,6 +107,18 @@ export function GardenProvider({ children }) {
     setPhotos((current) => [...newPhotos, ...current]);
   };
 
+  const updatePlant = (plantId, updates) => {
+    setPlants((current) =>
+      current.map((plant) =>
+        plant.id === plantId
+          ? typeof updates === "function"
+            ? updates(plant)
+            : { ...plant, ...updates }
+          : plant
+      )
+    );
+  };
+
   const getPlantById = (plantId) =>
     plants.find((plant) => plant.id === plantId);
 
@@ -151,6 +163,7 @@ export function GardenProvider({ children }) {
     addJournalEntry,
     photos,
     addPhotos,
+    updatePlant,
     getPlantById,
     getEntriesForPlant,
     getPhotosForPlant,

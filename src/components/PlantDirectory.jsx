@@ -10,6 +10,53 @@ const filters = [
   "Flowers"
 ];
 
+const plantGroups = [
+  "Citrus Trees",
+  "Other Fruit Trees",
+  "Berries and Vines",
+  "Herbs",
+  "Vegetables",
+  "Flowers and Perennials",
+  "Houseplants and Container Plants",
+  "Other / Uncategorized"
+];
+
+const getPlantGroup = (plant) => {
+  const identity = [
+    plant.category,
+    plant.type,
+    plant.variety,
+    plant.name,
+    plant.location
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  if (/\bcitrus\b|citrangequat|lemon|lime|mandarin|orange|grapefruit|kumquat/.test(identity)) {
+    return "Citrus Trees";
+  }
+  if (/berr(?:y|ies)|grape|vine|strawberry|raspberry|blackberry|blueberry|goji/.test(identity)) {
+    return "Berries and Vines";
+  }
+  if (/\borchard\b|fruit[ -]?tree|apple|pear|plum|cherry|peach|nectarine|apricot|fig|persimmon|pomegranate|quince/.test(identity)) {
+    return "Other Fruit Trees";
+  }
+  if (/\bherbs?\b|\btea\b|mint|thyme|sage|basil|rosemary|chamomile|stevia|balm|verbena/.test(identity)) {
+    return "Herbs";
+  }
+  if (/vegetable|tomato|pepper|eggplant|squash|zucchini|carrot|lettuce|cucurbit|melon/.test(identity)) {
+    return "Vegetables";
+  }
+  if (/flower|perennial|rose|lavender|camellia|hydrangea|eucalyptus/.test(identity)) {
+    return "Flowers and Perennials";
+  }
+  if (/houseplant|indoor|container|potted|patio plant/.test(identity)) {
+    return "Houseplants and Container Plants";
+  }
+  return "Other / Uncategorized";
+};
+
 const getIcon = (type = "") => {
   if (type.includes("Apple")) return "🍎";
   if (type.includes("Pear")) return "🍐";
@@ -45,6 +92,23 @@ export default function PlantDirectory({ onSelectPlant }) {
       return matchesSearch && matchesFilter;
     });
   }, [search, filter]);
+
+  const groupedPlants = useMemo(() => {
+    const groups = Object.fromEntries(plantGroups.map((group) => [group, []]));
+
+    filteredPlants.forEach((plant) => {
+      groups[getPlantGroup(plant)].push(plant);
+    });
+
+    return plantGroups
+      .map((group) => ({
+        group,
+        plants: groups[group].sort((a, b) =>
+          (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" })
+        )
+      }))
+      .filter(({ plants: grouped }) => grouped.length > 0);
+  }, [filteredPlants]);
 
   return (
     <section style={{ marginTop: "40px" }}>
@@ -109,17 +173,36 @@ export default function PlantDirectory({ onSelectPlant }) {
         ))}
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fit,minmax(320px,1fr))",
-          gap: "20px"
-        }}
-      >
-        {filteredPlants.map((plant) => (
-          <article
-            key={plant.id}
+      {groupedPlants.map(({ group, plants: grouped }) => {
+        const headingId = `plant-group-${group.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+        return (
+          <section key={group} aria-labelledby={headingId} style={{ marginBottom: "38px" }}>
+            <h2
+              id={headingId}
+              style={{
+                color: "#53633F",
+                fontFamily: 'Baskerville, "Palatino Linotype", Georgia, serif',
+                fontSize: "28px",
+                fontWeight: 500,
+                margin: "0 0 18px",
+                paddingBottom: "10px",
+                borderBottom: "1px solid rgba(200,169,91,.45)"
+              }}
+            >
+              {group}
+            </h2>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))",
+                gap: "20px"
+              }}
+            >
+              {grouped.map((plant) => (
+                <article
+                  key={plant.id}
             style={{
               background: "#FFFDF9",
               borderRadius: "24px",
@@ -176,9 +259,12 @@ export default function PlantDirectory({ onSelectPlant }) {
             >
               🌿 Open Profile
             </button>
-          </article>
-        ))}
-      </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </section>
   );
 }

@@ -1,5 +1,36 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useGarden } from "../context/GardenContext";
+
+const orchardGroups = [
+  "Apples",
+  "Pears",
+  "Plums",
+  "Cherries",
+  "Citrus",
+  "Stone Fruit",
+  "Figs",
+  "Pomegranates",
+  "Persimmons",
+  "Other Fruit Trees"
+];
+
+const getOrchardGroup = (plant) => {
+  const identity = [plant.category, plant.type, plant.variety, plant.name]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  if (/\bcitrus\b|citrangequat|lemon|lime|mandarin|orange|grapefruit|kumquat/.test(identity)) return "Citrus";
+  if (/\bapples?\b/.test(identity)) return "Apples";
+  if (/\bpears?\b/.test(identity)) return "Pears";
+  if (/\bplums?\b/.test(identity)) return "Plums";
+  if (/cherr(?:y|ies)/.test(identity)) return "Cherries";
+  if (/peach|nectarine|apricot/.test(identity)) return "Stone Fruit";
+  if (/\bfigs?\b/.test(identity)) return "Figs";
+  if (/pomegranate/.test(identity)) return "Pomegranates";
+  if (/persimmon/.test(identity)) return "Persimmons";
+  return "Other Fruit Trees";
+};
 
 const badgeColors = {
   Healthy: "#6BA368",
@@ -34,6 +65,20 @@ export default function Orchard({ onSelectPlant }) {
       plant.category === "Orchard" ||
       plant.category === "Citrus"
   );
+  const groupedPlants = useMemo(() => {
+    const groups = Object.fromEntries(orchardGroups.map((group) => [group, []]));
+
+    orchardPlants.forEach((plant) => groups[getOrchardGroup(plant)].push(plant));
+
+    return orchardGroups
+      .map((group) => ({
+        group,
+        plants: groups[group].sort((a, b) =>
+          (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" })
+        )
+      }))
+      .filter(({ plants: grouped }) => grouped.length > 0);
+  }, [orchardPlants]);
 
   return (
     <section style={{ marginTop: "40px" }}>
@@ -57,14 +102,34 @@ export default function Orchard({ onSelectPlant }) {
         Every fruit tree and citrus currently growing in Jardin Soleil.
       </p>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(340px,1fr))",
-          gap: "22px"
-        }}
-      >
-        {orchardPlants.map((plant) => (
+      {groupedPlants.map(({ group, plants: grouped }) => {
+        const headingId = `orchard-group-${group.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+        return (
+          <section key={group} aria-labelledby={headingId} style={{ marginBottom: "42px" }}>
+            <h2
+              id={headingId}
+              style={{
+                borderBottom: "1px solid rgba(200,169,91,.48)",
+                color: "#53633F",
+                fontFamily: 'Baskerville, "Palatino Linotype", Georgia, serif',
+                fontSize: "30px",
+                fontWeight: 500,
+                margin: "0 0 20px",
+                paddingBottom: "11px"
+              }}
+            >
+              {group}
+            </h2>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit,minmax(340px,1fr))",
+                gap: "22px"
+              }}
+            >
+              {grouped.map((plant) => (
           <article
             key={plant.id}
             style={{
@@ -181,9 +246,12 @@ export default function Orchard({ onSelectPlant }) {
                 🌿 Open Plant Profile
               </button>
             </div>
-          </article>
-        ))}
-      </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </section>
   );
 }
