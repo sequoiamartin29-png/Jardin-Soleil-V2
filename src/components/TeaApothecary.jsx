@@ -4,7 +4,7 @@ import { teaBlends } from "../data/teaBlends";
 import TeaWorkflow from "./TeaWorkflow";
 import "./TeaApothecary.css";
 
-export default function TeaApothecary({ onNavigate }) {
+export default function TeaApothecary({ onNavigate, onConsultHerbalist }) {
   const [selectedBlend, setSelectedBlend] = useState(null);
 
   if (selectedBlend) {
@@ -21,6 +21,7 @@ export default function TeaApothecary({ onNavigate }) {
       <div className="js-apothecary__toolbar">
         <button className="js-apothecary__back" type="button" onClick={() => onNavigate?.("Learning")}>← Back to Learning Center</button>
         <p><strong>{teaBlends.length}</strong> apothecary blends</p>
+        <button type="button" onClick={onConsultHerbalist}>Consult the Herbalist</button>
       </div>
 
       <section aria-labelledby="blend-library-title">

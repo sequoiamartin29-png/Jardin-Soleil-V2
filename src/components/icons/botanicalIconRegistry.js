@@ -47,6 +47,8 @@ export function resolveBotanicalIconType(plantOrType) {
   }
 
   const plant = typeof plantOrType === "object" && plantOrType ? plantOrType : {};
+  const explicitType = String(plant.iconType || "").toLocaleLowerCase().trim().replace(/[\s_]+/g, "-");
+  if (botanicalIconTypes.includes(explicitType)) return explicitType;
   const identity = [plant.name, plant.nickname, plant.variety, plant.botanicalName, plant.type, plant.group, plant.category, plant.location]
     .filter(Boolean)
     .join(" ")

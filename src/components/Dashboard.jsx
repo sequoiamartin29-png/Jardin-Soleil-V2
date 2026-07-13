@@ -1,22 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useGarden } from "../context/GardenContext";
 import dashboardArtwork from "../assets/jardin-soleil-dashboard.jpeg";
+import BuddyCompanion from "./dashboard/BuddyCompanion";
+import EstateEnvironment from "./dashboard/EstateEnvironment";
+import DashboardStatCard from "./dashboard/DashboardStatCard";
+import { useEstateEnvironment } from "../context/EstateEnvironmentContext";
 import "./Dashboard.css";
 
+const DEBUG_ANIMATIONS = false;
+
 const dashboardHotspots = [
-  { label: "Dashboard", page: "Dashboard", area: [1.2, 19.1, 14.1, 4.4] },
-  { label: "My Garden", page: "Garden", area: [1.2, 23.6, 14.1, 3.8] },
-  { label: "Orchard", page: "Orchard", area: [1.2, 27.5, 14.1, 3.8] },
-  { label: "Daily Logs", page: "Logbook", area: [1.2, 31.4, 14.1, 3.9] },
-  { label: "Tasks", page: "Garden", area: [1.2, 35.4, 14.1, 3.8] },
-  { label: "Calendar", page: "Journal Timeline", area: [1.2, 39.3, 14.1, 3.8] },
-  { label: "Plant Finder", page: "Plant Directory", area: [1.2, 43.2, 14.1, 3.8] },
-  { label: "Nursery", page: "Inventory", area: [1.2, 47.1, 14.1, 3.7] },
-  { label: "Photo Gallery", page: "Gallery", area: [1.2, 50.9, 14.1, 3.8] },
-  { label: "Botanical Word Search", page: "Word Search", area: [1.2, 54.8, 14.1, 4.2] },
-  { label: "AI Assistant", page: "Learning", area: [1.2, 59.1, 14.1, 3.6] },
-  { label: "Resources", page: "Learning", area: [1.2, 62.8, 14.1, 3.7] },
-  { label: "Settings", page: "Dashboard", area: [1.2, 70.5, 14.1, 3.7] },
   { label: "Orchard Gate", page: "Orchard", area: [38.2, 36.1, 18.1, 4.2] },
   { label: "Orchard garden area", page: "Orchard", area: [23.5, 40.3, 17.4, 5.2] },
   { label: "Flower and Perennials", page: "Garden", area: [56.7, 40.1, 16.1, 5.7] },
@@ -29,12 +22,15 @@ const dashboardHotspots = [
   { label: "Feed", page: "Inventory", area: [21.2, 96.2, 19.2, 2.7] },
   { label: "Care", page: "New Journal Entry", area: [59.5, 96.2, 18.1, 2.7] },
   { label: "Harvest", page: "Logbook", area: [77.7, 96.2, 20.4, 2.7] },
+  { label: "Add New Plant", page: "Add New Plant", area: [80.2, 84.0, 16.5, 2.8] },
 ];
 
-export default function Dashboard({ onNavigate }) {
-  const { stats, photos } = useGarden();
+export default function Dashboard({ onNavigate, menuOpen, onToggleMenu, menuTriggerRef }) {
+  const { stats } = useGarden();
+  const environment = useEstateEnvironment();
   const navigate = (page) => onNavigate?.(page);
   const [localNow, setLocalNow] = useState(() => new Date());
+  const [animationsPaused, setAnimationsPaused] = useState(() => document.hidden);
   const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local time";
 
   useEffect(() => {
@@ -42,7 +38,14 @@ export default function Dashboard({ onNavigate }) {
     return () => window.clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const updateVisibility = () => setAnimationsPaused(document.hidden);
+    document.addEventListener("visibilitychange", updateVisibility);
+    return () => document.removeEventListener("visibilitychange", updateVisibility);
+  }, []);
+
   const localHour = localNow.getHours();
+  const isDayGarden = localHour >= 6 && localHour < 18;
   const gardenLight = localHour >= 5 && localHour < 12
     ? { icon: "☀️", label: "Morning garden light" }
     : localHour >= 12 && localHour < 18
@@ -58,22 +61,64 @@ export default function Dashboard({ onNavigate }) {
         {stats.journalCount} garden notes, and {stats.photoCount} photos.
       </p>
 
+      <div className="js-dashboard-artwork__viewport">
+        <button ref={menuTriggerRef} className="js-dashboard-artwork__menu" type="button" aria-expanded={menuOpen} aria-controls="estate-navigation-drawer" onClick={onToggleMenu}><span aria-hidden="true">☰</span><strong>Menu</strong></button>
       <div className="js-dashboard-artwork__canvas" aria-describedby="dashboard-garden-summary">
-        <img
-          className="js-dashboard-artwork__image"
-          src={dashboardArtwork}
-          alt="Illustrated Jardin Soleil French botanical estate dashboard with chalet, formal gardens, fountain, garden panels, and navigation"
-        />
-
-        <div className="js-dashboard-artwork__photo-stat" aria-live="polite" aria-label={`${photos.length} photos logged`}>
-          <strong>{photos.length}</strong>
-          <span>Photos Logged</span>
+        <div className="js-dashboard-artwork__pieces">
+          <div className="js-dashboard-artwork__upper">
+            <img src={dashboardArtwork} alt="Illustrated Jardin Soleil French botanical estate dashboard with chalet, formal gardens, fountain, garden panels, and navigation" />
+          </div>
+          <div className="js-dashboard-artwork__stat-strip">
+            <div className="js-dashboard-artwork__strip-side js-dashboard-artwork__strip-side--left" aria-hidden="true"><img src={dashboardArtwork} alt="" /></div>
+            <div className="js-dashboard-stat-row">
+              <DashboardStatCard icon="fruitTree" value={stats.orchardCount} label="Fruit Trees" />
+              <DashboardStatCard icon="mint" value={stats.mintVarietyCount} label="Mint Varieties" subtext={`${stats.mintVarietyCount} Current`} />
+              <DashboardStatCard icon="edibles" value={stats.edibleHerbCount} label="Edibles & Herbs" />
+              <DashboardStatCard icon="zones" value={stats.gardenZoneCount} label="Garden Zones" />
+              <DashboardStatCard icon="photos" value={stats.photoCount} label="Photos Logged" />
+            </div>
+            <div className="js-dashboard-artwork__strip-side js-dashboard-artwork__strip-side--right" aria-hidden="true"><img src={dashboardArtwork} alt="" /></div>
+          </div>
+          <div className="js-dashboard-artwork__lower" aria-hidden="true"><img src={dashboardArtwork} alt="" /></div>
         </div>
 
-        <div className="js-dashboard-artwork__fruit-stat" aria-live="polite" aria-label={`${stats.orchardCount} fruit trees`}>
-          <strong>{stats.orchardCount}</strong>
-          <span>Fruit Trees</span>
+        <EstateEnvironment paused={animationsPaused} />
+
+        <div
+          className={`js-garden-motion ${isDayGarden ? "is-day" : "is-evening"} weather-${environment.condition} phase-${environment.phase} intensity-${environment.settings.intensity.toLowerCase()}${environment.windy ? " is-windy" : ""}${!environment.settings.wildlife ? " wildlife-off" : ""}${animationsPaused ? " is-paused" : ""}${DEBUG_ANIMATIONS ? " is-debug" : ""}`}
+          aria-hidden="true"
+        >
+          <div className="js-fountain-motion">
+            <span className="js-fountain-motion__basin" />
+            <span className="js-fountain-motion__ripple js-fountain-motion__ripple--one" />
+            <span className="js-fountain-motion__ripple js-fountain-motion__ripple--two" />
+            <span className="js-fountain-motion__jet js-fountain-motion__jet--left" />
+            <span className="js-fountain-motion__jet js-fountain-motion__jet--center" />
+            <span className="js-fountain-motion__jet js-fountain-motion__jet--right" />
+            <span className="js-fountain-motion__mist" />
+            <span className="js-fountain-motion__sparkle js-fountain-motion__sparkle--one" />
+            <span className="js-fountain-motion__sparkle js-fountain-motion__sparkle--two" />
+          </div>
+
+          <span className="js-butterfly js-butterfly--one" /><span className="js-butterfly js-butterfly--two" />
+          <span className="js-butterfly js-butterfly--three" /><span className="js-butterfly js-butterfly--four" />
+          <span className="js-bee js-bee--one" /><span className="js-bee js-bee--two" /><span className="js-bee js-bee--three" />
+          <span className="js-moth" />
+          <span className="js-hummingbird"><i /><b /></span>
+
+          <span className="js-bloom js-bloom--one" /><span className="js-bloom js-bloom--two" /><span className="js-bloom js-bloom--three" />
+          <span className="js-leaf-sway js-leaf-sway--one" /><span className="js-leaf-sway js-leaf-sway--two" />
+          <span className="js-pollen js-pollen--one" /><span className="js-pollen js-pollen--two" /><span className="js-pollen js-pollen--three" />
+
+          {DEBUG_ANIMATIONS && <div className="js-motion-debug">
+            <span style={{ left:"44.2%", top:"48.4%" }}>Fountain 44.2%, 48.4%</span>
+            <span style={{ left:"34%", top:"56%" }}>Butterfly 34%, 56%</span>
+            <span style={{ left:"35%", top:"58%" }}>Bee 35%, 58%</span>
+            <span style={{ left:"16%", top:"56%" }}>Hummingbird 16%, 56%</span>
+          </div>}
         </div>
+
+        {environment.settings.buddy&&<BuddyCompanion onOpenJournal={() => navigate("Buddy's Garden Journal")} paused={animationsPaused} weatherMode={environment.buddyMode} />}
 
         <section className="js-dashboard-artwork__clock" aria-label={`Local date and time in ${localTimeZone}`}>
           <span className="js-dashboard-artwork__weekday">{localNow.toLocaleDateString(undefined, { weekday:"long" })}</span>
@@ -96,7 +141,7 @@ export default function Dashboard({ onNavigate }) {
             />
           ))}
         </nav>
-      </div>
+      </div></div>
     </section>
   );
 }

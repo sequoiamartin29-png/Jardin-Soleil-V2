@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { useGarden } from "../context/GardenContext";
 import BotanicalIcon from "./icons/BotanicalIcon";
+import PlantMoveForm from "./PlantMoveForm";
+import PlantDeleteDialog from "./PlantDeleteDialog";
 import "./PlantProfile.css";
 
 const careActions = [
@@ -18,9 +20,10 @@ const includesType = (entry, words) =>
   words.some((word) => cleanType(entry.type).toLowerCase().includes(word.toLowerCase()));
 const formatDate = (value) => value ? new Date(value).toLocaleDateString() : "Not recorded";
 
-export default function PlantProfile() {
+export default function PlantProfile({onEdit,onExit,onConsult}) {
   const {
     selectedPlant,
+    setSelectedPlant,
     plants,
     getEntriesForPlant,
     getPhotosForPlant,
@@ -29,6 +32,8 @@ export default function PlantProfile() {
     deleteJournalEntry,
     addPhotos,
     updatePlant,
+    archivePlant,
+    restorePlant,
   } = useGarden();
   const [entryType, setEntryType] = useState("Watering");
   const [entryNotes, setEntryNotes] = useState("");
@@ -44,10 +49,14 @@ export default function PlantProfile() {
   const [nextDueDate, setNextDueDate] = useState("");
   const [editingCareId, setEditingCareId] = useState(null);
   const [careFilter, setCareFilter] = useState("All");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [movingPlant, setMovingPlant] = useState(false);
 
   const plant = plants.find((item) => item.id === selectedPlant?.id) || selectedPlant;
   const history = plant ? getEntriesForPlant(plant.id) : [];
   const photos = plant ? getPhotosForPlant(plant.id) : [];
+  const hasHealth = plant?.health !== undefined && plant?.health !== null && plant?.health !== "";
+  const collectionMembers = (plant?.collectionMembers || []).map((id) => plants.find((item) => item.id === id)).filter(Boolean);
 
   const sortedHistory = useMemo(
     () => [...history].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)),
@@ -86,7 +95,7 @@ export default function PlantProfile() {
   );
   const nextCare = nextScheduledCare
     ? `${cleanType(nextScheduledCare.type)} due ${formatDate(nextScheduledCare.nextDueDate)}`
-    : (plant.health ?? 100) < 85
+    : hasHealth && Number(plant.health) < 85
     ? "Inspect health concerns and record a treatment"
     : !lastWatered
       ? `Check soil moisture and follow ${plant.water || "the watering plan"}`
@@ -149,7 +158,7 @@ export default function PlantProfile() {
     addJournalEntry({
       plantId: plant.id,
       type: entryType,
-      health: plant.health ?? 100,
+      ...(hasHealth ? { health:plant.health } : {}),
       notes: entryNotes.trim(),
     });
     setEntryNotes("");
@@ -206,10 +215,11 @@ export default function PlantProfile() {
         <p>Jardin Soleil · Individual Estate Record</p>
         <h1 id="plant-profile-title">{plant.name}</h1>
         <strong>{plant.nickname || "A cherished garden resident"}</strong>
-        <div className="js-profile__health" aria-label={`${plant.health ?? 100}% health`}>
-          <span style={{ width: `${plant.health ?? 100}%` }} />
-        </div>
+        {hasHealth ? <div className="js-profile__health" aria-label={`${plant.health}% health`}><span style={{ width: `${plant.health}%` }} /></div> : <p>Health not recorded</p>}
       </header>
+      <div className="js-profile__record-actions"><button type="button" onClick={()=>onConsult?.(plant)}>Consult the Head Gardener</button><button type="button" onClick={onEdit}>Edit Plant</button><button type="button" onClick={()=>setMovingPlant(true)}>Move / Reclassify</button>{plant.archived?<button type="button" onClick={()=>restorePlant(plant.id)}>Restore Plant</button>:<button type="button" onClick={()=>{archivePlant(plant.id);onExit?.();}}>Archive Plant</button>}<button className="is-danger" type="button" onClick={()=>setConfirmDelete(true)}>Delete Plant</button></div>
+      {movingPlant&&<PlantMoveForm plant={plant} onCancel={()=>setMovingPlant(false)} onSaved={(updated)=>{setSelectedPlant(updated);setMovingPlant(false);}}/>}
+      {confirmDelete&&<PlantDeleteDialog plant={plant} onCancel={()=>setConfirmDelete(false)} onScheduled={()=>{setConfirmDelete(false);onExit?.();}}/>}
 
       <div className="js-profile__grid js-profile__grid--top">
         <article className="js-profile__card">
@@ -224,10 +234,15 @@ export default function PlantProfile() {
           </dl>
         </article>
 
+        {collectionMembers.length > 0 && <article className="js-profile__card js-profile__collection">
+          <h2>Mint Collection</h2><p>{collectionMembers.length} canonical mint varieties</p>
+          <div>{collectionMembers.map((member)=><button type="button" key={member.id} onClick={()=>setSelectedPlant(member)}>{member.name}</button>)}</div>
+        </article>}
+
         <article className="js-profile__card">
           <h2>Current care</h2>
           <dl>
-            <div><dt>Health status</dt><dd>{plant.health ?? 100}% · {plant.status || "No status"}</dd></div>
+            <div><dt>Health status</dt><dd>{hasHealth ? `${plant.health}%` : "Not recorded"}{plant.status ? ` · ${plant.status}` : ""}</dd></div>
             <div><dt>Last watered</dt><dd>{formatDate(lastWatered?.createdAt)}</dd></div>
             <div><dt>Last fed</dt><dd>{formatDate(lastFertilized?.createdAt)}</dd></div>
             <div><dt>Last pruned</dt><dd>{formatDate(lastPruned?.createdAt)}</dd></div>

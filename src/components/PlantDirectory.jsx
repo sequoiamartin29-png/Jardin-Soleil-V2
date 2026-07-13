@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useGarden } from "../context/GardenContext";
 import BotanicalIcon from "./icons/BotanicalIcon";
-import { isOrchardFruitTree, normalizePlantText } from "../utils/plantClassification";
+import { getPlantDirectoryGroup, isOrchardFruitTree, normalizePlantText, plantDirectoryGroups } from "../utils/plantClassification";
 
 const filters = [
   "All",
@@ -12,62 +12,16 @@ const filters = [
   "Flowers"
 ];
 
-const plantGroups = [
-  "Citrus Trees",
-  "Other Fruit Trees",
-  "Berries and Vines",
-  "Herbs",
-  "Vegetables",
-  "Flowers and Perennials",
-  "Houseplants and Container Plants",
-  "Other / Uncategorized"
-];
-
-const getPlantGroup = (plant) => {
-  const identity = [
-    plant.category,
-    plant.type,
-    plant.variety,
-    plant.name,
-    plant.location
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  if (/\bcitrus\b|citrangequat|lemon|lime|mandarin|orange|grapefruit|kumquat/.test(identity)) {
-    return "Citrus Trees";
-  }
-  if (/berr(?:y|ies)|grape|vine|strawberry|raspberry|blackberry|blueberry|goji/.test(identity)) {
-    return "Berries and Vines";
-  }
-  if (/\borchard\b|fruit[ -]?tree|apple|pear|plum|cherry|peach|nectarine|apricot|fig|persimmon|pomegranate|quince/.test(identity)) {
-    return "Other Fruit Trees";
-  }
-  if (/\bherbs?\b|\btea\b|mint|thyme|sage|basil|rosemary|chamomile|stevia|balm|verbena/.test(identity)) {
-    return "Herbs";
-  }
-  if (/vegetable|tomato|pepper|eggplant|squash|zucchini|carrot|lettuce|cucurbit|melon/.test(identity)) {
-    return "Vegetables";
-  }
-  if (/flower|perennial|rose|lavender|camellia|hydrangea|eucalyptus/.test(identity)) {
-    return "Flowers and Perennials";
-  }
-  if (/houseplant|indoor|container|potted|patio plant/.test(identity)) {
-    return "Houseplants and Container Plants";
-  }
-  return "Other / Uncategorized";
-};
-
-export default function PlantDirectory({ onSelectPlant }) {
-  const { plants } = useGarden();
+export default function PlantDirectory({ onSelectPlant, onAddPlant, onViewArchived }) {
+  const { plants, activePlants, stats } = useGarden();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
 
   const filteredPlants = useMemo(() => {
     const normalizedSearch = normalizePlantText(search);
 
-    return plants.filter((plant) => {
+    return activePlants.filter((plant) => {
+      const directoryGroup = getPlantDirectoryGroup(plant);
       const searchablePlant = normalizePlantText([
         plant.name,
         plant.nickname,
@@ -81,21 +35,25 @@ export default function PlantDirectory({ onSelectPlant }) {
       ].filter(Boolean).join(" "));
       const matchesSearch = !normalizedSearch || searchablePlant.includes(normalizedSearch);
 
-      const matchesFilter =
-        normalizedSearch || filter === "All" || plant.category === filter;
+      const matchesFilter = normalizedSearch || filter === "All" ||
+        (filter === "Orchard" && isOrchardFruitTree(plant)) ||
+        (filter === "Citrus" && directoryGroup === "Citrus Trees") ||
+        (filter === "Vegetables" && directoryGroup === "Vegetables") ||
+        (filter === "Herbs" && directoryGroup === "Herbs") ||
+        (filter === "Flowers" && directoryGroup === "Flowers and Perennials");
 
       return matchesSearch && matchesFilter;
     });
-  }, [search, filter]);
+  }, [activePlants, search, filter]);
 
   const groupedPlants = useMemo(() => {
-    const groups = Object.fromEntries(plantGroups.map((group) => [group, []]));
+    const groups = Object.fromEntries(plantDirectoryGroups.map((group) => [group, []]));
 
     filteredPlants.forEach((plant) => {
-      groups[getPlantGroup(plant)].push(plant);
+      groups[getPlantDirectoryGroup(plant)].push(plant);
     });
 
-    return plantGroups
+    return plantDirectoryGroups
       .map((group) => ({
         group,
         plants: groups[group].sort((a, b) =>
@@ -125,6 +83,7 @@ export default function PlantDirectory({ onSelectPlant }) {
       >
         Browse every plant growing in Jardin Soleil.
       </p>
+      <div style={{display:"flex",flexWrap:"wrap",gap:"10px",margin:"0 0 22px"}}><button type="button" onClick={onAddPlant} style={{background:"#61764F",border:"1px solid #4D603E",borderRadius:"16px",color:"white",cursor:"pointer",fontWeight:800,padding:"13px 20px"}}>Add New Plant</button><button type="button" onClick={onViewArchived} style={{background:"#F8F1E4",border:"1px solid #BFA267",borderRadius:"16px",color:"#53633F",cursor:"pointer",fontWeight:800,padding:"13px 20px"}}>Archived Plants ({plants.filter((plant)=>plant.archived||String(plant.status).toLocaleLowerCase()==="archived").length})</button></div>
 
       <input
         placeholder="Search plants..."
@@ -174,10 +133,13 @@ export default function PlantDirectory({ onSelectPlant }) {
       <p aria-live="polite" style={{ color: "#6E745F", margin: "-12px 0 28px" }}>
         Showing <strong>{filteredPlants.length}</strong> {filteredPlants.length === 1 ? "plant" : "plants"}
         {search.trim() ? ` for “${search.trim()}”` : ""} · {plants.filter(isOrchardFruitTree).length} orchard fruit trees
+        <span>{` · ${stats.mintVarietyCount} mint varieties · ${stats.edibleHerbCount} edibles & herbs · ${stats.gardenZoneCount} garden zones`}</span>
       </p>
 
       {groupedPlants.map(({ group, plants: grouped }) => {
         const headingId = `plant-group-${group.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+        const mintMembers = group === "Herbs" ? grouped.filter((plant) => plant.group === "Mints" || plant.collection === "Mint Collection") : [];
+        const orderedGrouped = group === "Herbs" ? [...mintMembers, ...grouped.filter((plant) => plant.group !== "Mints" && plant.collection !== "Mint Collection")] : grouped;
 
         return (
           <section key={group} aria-labelledby={headingId} style={{ marginBottom: "38px" }}>
@@ -203,9 +165,12 @@ export default function PlantDirectory({ onSelectPlant }) {
                 gap: "20px"
               }}
             >
-              {grouped.map((plant) => (
+              {mintMembers.length > 0 && <h3 style={{gridColumn:"1 / -1",color:"#6A7654",fontFamily:"Georgia,serif",fontSize:"22px",margin:"0"}}>Mints</h3>}
+              {orderedGrouped.map((plant, index) => (
+                <React.Fragment key={plant.id}>
+                {mintMembers.length > 0 && index === mintMembers.length && <h3 style={{gridColumn:"1 / -1",color:"#6A7654",fontFamily:"Georgia,serif",fontSize:"22px",margin:"12px 0 0"}}>Other Herbs</h3>}
                 <article
-                  key={plant.id}
+                  key={`${plant.id}-card`}
             style={{
               background: "#FFFDF9",
               borderRadius: "24px",
@@ -243,7 +208,7 @@ export default function PlantDirectory({ onSelectPlant }) {
             </p>
 
             <p>
-              ❤️ {plant.health}% • 📍 {plant.location}
+              {plant.health !== undefined && plant.health !== null ? `Health ${plant.health}%` : "Health not recorded"} · {plant.location || "Location not recorded"}
             </p>
 
             <button
@@ -263,6 +228,7 @@ export default function PlantDirectory({ onSelectPlant }) {
               🌿 Open Profile
             </button>
                 </article>
+                </React.Fragment>
               ))}
             </div>
           </section>

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { plants } from "../data/plants";
+import React, { useEffect, useState } from "react";
+import { useGarden } from "../context/GardenContext";
 
 const entryTypes = [
   "💧 Watering",
@@ -16,6 +16,8 @@ const entryTypes = [
 
 export default function JournalEntry({ onSaveEntry }) {
 
+const { activePlants:plants } = useGarden();
+
 const [selectedPlant,setSelectedPlant]=useState(plants[0]?.id || "");
 
 const [entryType,setEntryType]=useState(entryTypes[0]);
@@ -23,6 +25,8 @@ const [entryType,setEntryType]=useState(entryTypes[0]);
 const [health,setHealth]=useState(100);
 
 const [notes,setNotes]=useState("");
+
+useEffect(()=>{if(!plants.some((plant)=>plant.id===selectedPlant))setSelectedPlant(plants[0]?.id||"");},[plants,selectedPlant]);
 
 return(
 

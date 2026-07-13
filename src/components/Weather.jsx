@@ -1,128 +1,17 @@
 import React from "react";
+import { useEstateEnvironment } from "../context/EstateEnvironmentContext";
 
-const forecast = [
-  {
-    day: "Today",
-    icon: "☀️",
-    high: "90°",
-    low: "74°",
-    note: "Check citrus moisture"
-  },
-  {
-    day: "Tomorrow",
-    icon: "⛅",
-    high: "88°",
-    low: "72°",
-    note: "Inspect tomatoes"
-  },
-  {
-    day: "Day 3",
-    icon: "🌦",
-    high: "85°",
-    low: "70°",
-    note: "Watch for rain"
-  }
-];
-
+const display=(value,suffix="")=>value===null||value===undefined?"Unavailable":`${Math.round(Number(value)*10)/10}${suffix}`;
 export default function Weather() {
-  return (
-    <section style={{ marginTop: "50px" }}>
-      <h2
-        style={{
-          fontSize: "42px",
-          color: "#5D6B46"
-        }}
-      >
-        🌤 Garden Weather
-      </h2>
-
-      <p
-        style={{
-          color: "#777",
-          fontSize: "18px",
-          marginBottom: "35px"
-        }}
-      >
-        Weather guidance for Jardin Soleil.
-      </p>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
-          gap: "24px"
-        }}
-      >
-        {forecast.map((day) => (
-          <article
-            key={day.day}
-            style={{
-              background: "#FFFDF9",
-              borderRadius: "28px",
-              padding: "26px",
-              border: "1px solid #EFE5D8",
-              boxShadow: "0 12px 28px rgba(0,0,0,.08)"
-            }}
-          >
-            <div
-              style={{
-                fontSize: "60px",
-                textAlign: "center"
-              }}
-            >
-              {day.icon}
-            </div>
-
-            <h3 style={{ textAlign: "center" }}>
-              {day.day}
-            </h3>
-
-            <h2
-              style={{
-                textAlign: "center",
-                color: "#5D6B46"
-              }}
-            >
-              {day.high} / {day.low}
-            </h2>
-
-            <p
-              style={{
-                textAlign: "center",
-                color: "#666"
-              }}
-            >
-              {day.note}
-            </p>
-                        <div
-              style={{
-                marginTop: "20px",
-                display: "grid",
-                gridTemplateColumns: "repeat(2,1fr)",
-                gap: "10px"
-              }}
-            >
-              <button>💧 Water Guide</button>
-              <button>🌱 Garden Tasks</button>
-            </div>
-
-            <div
-              style={{
-                marginTop: "20px",
-                paddingTop: "16px",
-                borderTop: "1px solid #ECE4D8",
-                display: "flex",
-                justifyContent: "space-between",
-                color: "#777",
-                fontSize: "14px"
-              }}
-            >
-              <span>🌡 Forecast</span>
-              <span>☔ Garden Ready</span>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
+  const {weather,status,error,conditionLabel,phase,season}=useEstateEnvironment();
+  return <section style={{marginTop:"50px"}} aria-labelledby="weather-title">
+    <h1 id="weather-title" style={{fontFamily:"Baskerville,Georgia,serif",fontSize:"42px",color:"#5D6B46"}}>Garden Weather</h1>
+    <p style={{color:"#777",fontSize:"18px",marginBottom:"28px"}}>Live local conditions used by the Jardin Soleil estate environment.</p>
+    {error&&<p role="status" style={{background:"#fff5df",border:"1px solid #d4ad68",borderRadius:"14px",padding:"14px"}}>{error}</p>}
+    {!weather?<article className="card"><h2>{status==="loading"?"Locating the estate weather…":"Live conditions unavailable"}</h2><p>Enable Live Weather and allow browser location access to synchronize the estate.</p></article>:
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:"18px"}}>
+      {[["Conditions",conditionLabel],["Temperature",display(weather.temperature,"°F")],["Feels like",display(weather.apparentTemperature,"°F")],["Precipitation",display(weather.precipitation," in")],["Wind",display(weather.wind," mph")],["Cloud cover",display(weather.cloudCover,"%")],["Sunrise",weather.sunrise?new Date(weather.sunrise).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"Unavailable"],["Sunset",weather.sunset?new Date(weather.sunset).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"Unavailable"]].map(([label,value])=><article className="card" key={label}><span style={{color:"#8a744d",fontSize:"12px",letterSpacing:".12em",textTransform:"uppercase"}}>{label}</span><h2 style={{color:"#52623f",fontFamily:"Georgia,serif"}}>{value}</h2></article>)}
+    </div>}
+    <p style={{color:"#736b5d",marginTop:"22px"}}>Estate state: <strong>{phase.replace("-"," ")}</strong> · <strong>{season}</strong>{weather?.timezone?` · ${weather.timezone.replace(/_/g," ")}`:""}</p>
+  </section>;
 }

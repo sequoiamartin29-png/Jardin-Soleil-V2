@@ -8,6 +8,8 @@
 .js-profile__hero > strong { color:#89745a; display:block; font-family:Georgia,serif; font-size:1.1rem; font-style:italic; margin-top:10px; }
 .js-profile__health { background:rgba(255,255,255,.56); border-radius:99px; height:7px; margin-top:24px; max-width:460px; overflow:hidden; }
 .js-profile__health span { background:linear-gradient(90deg,#7f9b74,#c4a25b); border-radius:inherit; display:block; height:100%; }
+.js-profile__collection div{display:flex;flex-wrap:wrap;gap:8px}.js-profile__collection button{background:#f1eddf;border:1px solid #cfb57b;border-radius:999px;color:#52613f;cursor:pointer;padding:8px 12px}.js-profile__collection button:focus-visible{outline:3px solid #b58b45;outline-offset:2px}
+.js-profile__record-actions{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}.js-profile__record-actions button,.js-profile__delete-confirm button{background:#eef1e6;border:1px solid #9aaa7d;border-radius:13px;color:#4e613f;cursor:pointer;font-weight:800;padding:11px 16px}.js-profile__record-actions .is-danger,.js-profile__delete-confirm .is-danger{background:#9a4e54;border-color:#803d43;color:white}.js-profile__delete-confirm{background:#fff4e3;border:1px solid #bd7c67;border-radius:18px;margin:18px 0;padding:20px}.js-profile__delete-confirm div{display:flex;gap:10px;justify-content:flex-end}
 .js-profile__grid { display:grid; gap:24px; grid-template-columns:repeat(2,minmax(0,1fr)); }
 .js-profile__card { background:linear-gradient(145deg,#fffdf8,#f5ead8); border:1px solid rgba(178,138,67,.36); border-radius:26px; box-shadow:0 14px 34px rgba(65,55,37,.09); padding:28px; }
 .js-profile__card h2 { color:var(--profile-ink); font-family:Baskerville,"Palatino Linotype",Georgia,serif; font-size:1.55rem; font-weight:500; margin:0 0 20px; }

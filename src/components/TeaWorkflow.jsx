@@ -13,7 +13,7 @@ const blankForm = { plantId:"", blendId:"", gardenLocation:"", harvestDate:"", h
 const seasonFor = (date) => { if (!date) return "Unscheduled"; const month=new Date(`${date}T12:00`).getMonth()+1; return month<=2||month===12?"Winter":month<=5?"Spring":month<=8?"Summer":"Fall"; };
 
 export default function TeaWorkflow({ blends }) {
-  const { plants, photos, addPhotos, teaWorkflows, addTeaWorkflow, updateTeaWorkflow, deleteTeaWorkflow } = useGarden();
+  const { activePlants:plants, photos, addPhotos, teaWorkflows, addTeaWorkflow, updateTeaWorkflow, deleteTeaWorkflow } = useGarden();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(blankForm);
@@ -46,7 +46,7 @@ export default function TeaWorkflow({ blends }) {
   const openEdit = (workflow) => { setEditingId(workflow.id); setForm({ ...blankForm, ...workflow }); setShowForm(true); };
   const save = (event) => { event.preventDefault(); if (editingId) updateTeaWorkflow(editingId, form); else addTeaWorkflow(form); setShowForm(false); setEditingId(null); setForm(blankForm); };
   const choosePlant = (plantId) => { const plant=plantById(plantId); setForm((current) => ({ ...current, plantId, gardenLocation:plant?.location || current.gardenLocation })); };
-  const remove = (workflow) => { if (window.confirm(`Delete the Garden to Cup record for ${plantById(workflow.plantId)?.name || "this ingredient"}?`)) deleteTeaWorkflow(workflow.id); };
+  const remove = (workflow) => { if (window.confirm(`Delete the Garden to Cup record for ${plantById(workflow.plantId)?.name || workflow.deletedPlantName || "this ingredient"}?`)) deleteTeaWorkflow(workflow.id); };
 
   const attachPhotos = async (workflow, event) => {
     const files=Array.from(event.target.files||[]); if(!files.length)return;
@@ -84,7 +84,7 @@ export default function TeaWorkflow({ blends }) {
 
       {visibleWorkflows.length ? <div className="js-cup__records">{visibleWorkflows.map((workflow)=>{
         const plant=plantById(workflow.plantId); const blend=blendById(workflow.blendId); const stageIndex=teaWorkflowStages.indexOf(workflow.currentStage); const workflowPhotos=photos.filter((photo)=>Object.values(workflow.stagePhotos||{}).flat().includes(photo.id));
-        return <article key={workflow.id}><div className="js-cup__record-head"><BotanicalIcon plant={plant} size="lg" decorative /><div><span>{blend?.name || "Ingredient journey"}</span><h3>{plant?.name || "Unknown herb"}</h3><p>{workflow.gardenLocation || "Garden location not recorded"}</p></div><select aria-label={`Update stage for ${plant?.name || "workflow"}`} value={workflow.currentStage} onChange={(e)=>updateTeaWorkflow(workflow.id,{currentStage:e.target.value})}>{teaWorkflowStages.map((stage)=><option key={stage}>{stage}</option>)}</select></div>
+        return <article key={workflow.id}><div className="js-cup__record-head"><BotanicalIcon plant={plant} size="lg" decorative /><div><span>{blend?.name || "Ingredient journey"}</span><h3>{plant?.name || workflow.deletedPlantName || "Unknown herb"}</h3>{workflow.plantDeleted&&<small>Historical record · plant deleted</small>}<p>{workflow.gardenLocation || "Garden location not recorded"}</p></div><select aria-label={`Update stage for ${plant?.name || workflow.deletedPlantName || "workflow"}`} value={workflow.currentStage} onChange={(e)=>updateTeaWorkflow(workflow.id,{currentStage:e.target.value})}>{teaWorkflowStages.map((stage)=><option key={stage}>{stage}</option>)}</select></div>
           <div className="js-cup__timeline" aria-label={`Current stage: ${workflow.currentStage}`}>{teaWorkflowStages.map((stage,index)=><span key={stage} className={index<=stageIndex?"is-complete":""} title={stage}>{index+1}</span>)}</div>
           <p className="js-cup__stage">{workflow.currentStage} · {seasonFor(workflow.harvestDate)}</p>
           <dl><div><dt>Harvest</dt><dd>{workflow.harvestDate||"Not recorded"}{workflow.harvestQuantity?` · ${workflow.harvestQuantity}`:""}</dd></div><div><dt>Drying</dt><dd>{workflow.dryingStartDate||"Not started"} → {workflow.dryingCompletionDate||"Pending"}</dd></div><div><dt>Storage</dt><dd>{workflow.jarredDate||"Not jarred"}{workflow.storageContainer?` · ${workflow.storageContainer}`:""}</dd></div><div><dt>Blend / brew</dt><dd>{workflow.blendCreationDate||"Not blended"} · {workflow.brewingDate||"Not brewed"}</dd></div></dl>

@@ -1,38 +1,7 @@
 import React, { useMemo } from "react";
 import { useGarden } from "../context/GardenContext";
 import BotanicalIcon from "./icons/BotanicalIcon";
-import { isOrchardFruitTree } from "../utils/plantClassification";
-
-const orchardGroups = [
-  "Apples",
-  "Pears",
-  "Plums",
-  "Cherries",
-  "Citrus",
-  "Peach / Stone Fruit",
-  "Figs",
-  "Pomegranates",
-  "Persimmons",
-  "Other Fruit Trees"
-];
-
-const getOrchardGroup = (plant) => {
-  const identity = [plant.category, plant.type, plant.variety, plant.group, plant.name]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  if (/\bcitrus\b|citrangequat|lemon|lime|mandarin|orange|grapefruit|kumquat/.test(identity)) return "Citrus";
-  if (/\bapples?\b/.test(identity)) return "Apples";
-  if (/\bpears?\b/.test(identity)) return "Pears";
-  if (/\bplums?\b/.test(identity)) return "Plums";
-  if (/cherr(?:y|ies)/.test(identity)) return "Cherries";
-  if (/peach|nectarine|apricot|stone fruit|multi[ -]?graft/.test(identity)) return "Peach / Stone Fruit";
-  if (/\bfigs?\b/.test(identity)) return "Figs";
-  if (/pomegranate/.test(identity)) return "Pomegranates";
-  if (/persimmon/.test(identity)) return "Persimmons";
-  return "Other Fruit Trees";
-};
+import { getPlantDirectoryGroup, isOrchardFruitTree, orchardDirectoryGroups } from "../utils/plantClassification";
 
 const badgeColors = {
   Healthy: "#6BA368",
@@ -44,15 +13,15 @@ const badgeColors = {
   "New Arrival": "#6C9EC4"
 };
 
-export default function Orchard({ onSelectPlant }) {
-  const { plants } = useGarden();
-  const orchardPlants = plants.filter(isOrchardFruitTree);
+export default function Orchard({ onSelectPlant, onAddPlant }) {
+  const { activePlants } = useGarden();
+  const orchardPlants = activePlants.filter(isOrchardFruitTree);
   const groupedPlants = useMemo(() => {
-    const groups = Object.fromEntries(orchardGroups.map((group) => [group, []]));
+    const groups = Object.fromEntries(orchardDirectoryGroups.map((group) => [group, []]));
 
-    orchardPlants.forEach((plant) => groups[getOrchardGroup(plant)].push(plant));
+    orchardPlants.forEach((plant) => groups[getPlantDirectoryGroup(plant)].push(plant));
 
-    return orchardGroups
+    return orchardDirectoryGroups
       .map((group) => ({
         group,
         plants: groups[group].sort((a, b) =>
@@ -83,6 +52,7 @@ export default function Orchard({ onSelectPlant }) {
       >
         Every fruit tree and citrus currently growing in Jardin Soleil.
       </p>
+      <button type="button" onClick={onAddPlant} style={{background:"#61764F",border:"1px solid #4D603E",borderRadius:"16px",color:"white",cursor:"pointer",fontWeight:800,margin:"0 0 28px",padding:"13px 20px"}}>Add New Plant</button>
 
       {groupedPlants.map(({ group, plants: grouped }) => {
         const headingId = `orchard-group-${group.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;

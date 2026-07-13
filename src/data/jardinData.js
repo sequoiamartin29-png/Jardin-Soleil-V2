@@ -129,6 +129,20 @@ export const orchardPlants = [
   }
 ];
 
+const mintVarietyNames = [
+  "Apple Mint", "Chocolate Mint", "Indian Mint", "Orange Mint", "Peppermint",
+  "Pineapple Mint", "Strawberry Mint", "Lavender Mint", "Marshmallow Mint",
+  "Hillary’s Sweet Lemon Mint", "Hazelnut Mint", "Candied Fruit Mint", "Fruit Sorbet Mint",
+  "Berries and Cream Mint", "Banana Mint", "Eau de Cologne Mint", "Jessica’s Sweet Pear Mint",
+  "Swiss Mint", "Basil Mint", "Cotton Candy Mint", "Lime Mint", "Ginger Mint",
+  "After Eight Mint", "Chewing Gum Mint", "Currant Mint"
+];
+
+const mintId = (name) => `mint-${name.toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+export const mintPlants = mintVarietyNames.map((name) => ({
+  id: mintId(name), name, type:"Mint", category:"Herbs", group:"Mints", collection:"Mint Collection"
+}));
+
 export const gardenPlants = [
   {
     id: "tea-plant",
@@ -140,8 +154,12 @@ export const gardenPlants = [
   {
     id: "mint-collection",
     name: "Mint Collection",
-    type: "Peppermint, chocolate mint, apple mint, orange mint, pineapple mint, Indian mint, strawberry mint",
-    category: "Herbs & Tea",
+    type: "Mint",
+    variety: mintVarietyNames.join(", "),
+    category: "Herbs",
+    group: "Herbs",
+    collectionMembers: mintPlants.map((plant) => plant.id),
+    collectionTotal: mintPlants.length,
     status: "Active"
   },
   {
@@ -168,8 +186,17 @@ export const gardenPlants = [
   {
     id: "pineapple-sage",
     name: "Pineapple Sage",
-    type: "Herb",
-    category: "Herbs & Tea",
+    type: "Sage",
+    category: "Herbs",
+    group: "Herbs",
+    status: "Growing"
+  },
+  {
+    id: "honey-melon-sage",
+    name: "Honey Melon Sage",
+    type: "Sage",
+    category: "Herbs",
+    group: "Herbs",
     status: "Growing"
   },
   {
@@ -182,8 +209,10 @@ export const gardenPlants = [
   {
     id: "tomatoes",
     name: "Tomatoes",
-    type: "Big Boy, Early Girl, Roma, Little Napoli, Husky Red Cherry, Pineapple Tomato",
+    type: "Tomato",
+    variety: "Big Boy, Early Girl, Roma, Little Napoli, Husky Red Cherry, Pineapple Tomato",
     category: "Vegetables",
+    group: "Vegetables",
     status: "Producing / flowering"
   },
   {
@@ -217,8 +246,10 @@ export const gardenPlants = [
   {
     id: "rose",
     name: "Ms. Rose",
-    type: "Julie Andrews Hybrid Tea Rose",
-    category: "Flowers",
+    type: "Rose",
+    variety: "Julie Andrews Hybrid Tea Rose",
+    category: "Flowers & Perennials",
+    group: "Flowers & Perennials",
     status: "Growing"
   },
   {
@@ -228,6 +259,14 @@ export const gardenPlants = [
     category: "Flowers",
     status: "Monitoring"
   }
+];
+
+export const gardenZones = [
+  { id:"vegetable-garden", name:"Vegetable Garden", directoryGroup:"Vegetables" },
+  { id:"herb-tea-garden", name:"Herb & Tea Garden", directoryGroup:"Herbs" },
+  { id:"berry-vine-zone", name:"Berry & Vine Zone", directoryGroup:"Berries and Vines" },
+  { id:"flower-perennial-garden", name:"Flower & Perennial Garden", directoryGroup:"Flowers and Perennials" },
+  { id:"melon-patch", name:"Melon Patch", matchType:"melon" },
 ];
 
 export const starterTasks = [

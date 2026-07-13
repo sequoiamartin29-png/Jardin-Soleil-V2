@@ -1,9 +1,10 @@
 import React from "react";
-import { plants } from "../data/plants";
+import { useGarden } from "../context/GardenContext";
 
 export default function JournalTimeline({ entries = [] }) {
-  const getPlantName = (plantId) => {
-    return plants.find((plant) => plant.id === plantId)?.name || "Jardin Soleil";
+  const { plants } = useGarden();
+  const getPlantName = (entry) => {
+    return plants.find((plant) => plant.id === entry.plantId)?.name || entry.deletedPlantName || "Jardin Soleil";
   };
 
   return (
@@ -31,7 +32,7 @@ export default function JournalTimeline({ entries = [] }) {
               <h3>{entry.type}</h3>
 
               <p>
-                <strong>Plant:</strong> {getPlantName(entry.plantId)}
+                <strong>Plant:</strong> {getPlantName(entry)}{entry.plantDeleted ? " (historical — plant deleted)" : ""}
               </p>
 
               <p>

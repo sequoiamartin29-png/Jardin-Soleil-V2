@@ -1,8 +1,11 @@
+.js-dashboard-artwork__menu[aria-expanded="true"]{z-index:2101}
+
 .js-dashboard-artwork {
   margin: 0 auto;
   max-width: 1024px;
   width: 100%;
 }
+.js-dashboard-artwork__viewport{aspect-ratio:862.2/1536;overflow:hidden;position:relative;width:100%}
 
 .js-dashboard-artwork *,
 .js-dashboard-artwork *::before,
@@ -14,75 +17,159 @@
   line-height: 0;
   overflow: hidden;
   position: relative;
-  width: 100%;
+  transform:translateX(-15.8%);
+  transform-origin:top left;
+  width:118.765%;
 }
+.js-dashboard-artwork__menu{align-items:center;background:linear-gradient(145deg,rgba(255,250,239,.98),rgba(235,220,194,.98));border:2px solid #b98b42;border-radius:15px;box-shadow:0 8px 22px rgba(54,42,26,.22),inset 0 0 0 3px rgba(255,253,247,.72);color:#505b3d;cursor:pointer;display:grid;font-family:Georgia,"Times New Roman",serif;gap:2px;left:1.4%;line-height:1;min-height:62px;min-width:70px;padding:8px;position:absolute;text-align:center;top:1.15%;z-index:10}.js-dashboard-artwork__menu span{font-size:25px}.js-dashboard-artwork__menu strong{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.js-dashboard-artwork__menu:hover,.js-dashboard-artwork__menu:focus-visible{box-shadow:0 0 0 3px rgba(255,247,218,.85),0 8px 24px rgba(83,57,24,.3);outline:2px solid #9d7332;outline-offset:2px}
+.js-dashboard-artwork__menu[aria-expanded="true"]{z-index:2101}
 
-.js-dashboard-artwork__image {
-  display: block;
-  height: auto;
-  object-fit: contain;
-  width: 100%;
-}
+.js-dashboard-artwork__pieces{line-height:0;width:100%}.js-dashboard-artwork__pieces img{display:block;height:auto;max-width:none;width:100%}.js-dashboard-artwork__upper{aspect-ratio:1024/381;overflow:hidden}.js-dashboard-artwork__stat-strip{aspect-ratio:1024/123;display:grid;grid-template-columns:178fr 680fr 166fr;overflow:hidden}.js-dashboard-artwork__strip-side{overflow:hidden;position:relative}.js-dashboard-artwork__strip-side img{position:absolute;top:0}.js-dashboard-artwork__strip-side--left img{transform:translateY(-24.8047%);width:575.281%}.js-dashboard-artwork__strip-side--right img{transform:translate(-83.7891%,-24.8047%);width:616.867%}.js-dashboard-artwork__lower{aspect-ratio:1024/1032;overflow:hidden}.js-dashboard-artwork__lower img{transform:translateY(-32.8125%)}
 
-.js-dashboard-artwork__photo-stat {
-  align-items: center;
-  background: rgb(243, 231, 216);
-  border: 0;
-  box-shadow: none;
-  color: #27251f;
-  display: flex;
-  flex-direction: column;
-  height: 4.65%;
-  justify-content: center;
-  left: 73.15%;
-  line-height: 1;
+.js-garden-motion {
+  inset: 0;
+  overflow: hidden;
   pointer-events: none;
   position: absolute;
-  top: 27.45%;
-  width: 10.7%;
-  z-index: 2;
-}
-.js-dashboard-artwork__photo-stat strong {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(.72rem, 2.65vw, 1.8rem);
-  font-weight: 400;
-}
-.js-dashboard-artwork__photo-stat span {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(.28rem, .9vw, .61rem);
-  margin-top: 12%;
-  white-space: nowrap;
+  z-index: 1;
 }
 
-.js-dashboard-artwork__fruit-stat {
-  align-items: center;
-  background: rgb(243, 231, 216);
-  border: 0;
-  box-shadow: none;
-  color: #27251f;
-  display: flex;
-  flex-direction: column;
-  height: 4.65%;
-  justify-content: center;
-  left: 20.2%;
-  line-height: 1;
+.js-garden-motion *,
+.js-garden-motion *::before,
+.js-garden-motion *::after {
   pointer-events: none;
   position: absolute;
-  top: 27.45%;
-  width: 10.65%;
-  z-index: 2;
+  will-change: transform, opacity;
 }
-.js-dashboard-artwork__fruit-stat strong {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(.72rem, 2.65vw, 1.8rem);
-  font-weight: 400;
+
+.js-garden-motion.is-paused *,
+.js-garden-motion.is-paused *::before,
+.js-garden-motion.is-paused *::after { animation-play-state: paused !important; }
+
+/* Fountain region is nested over the painted basin: center x 47.55%, y 51.1%. */
+.js-fountain-motion {
+  height: 5.4%;
+  left: 44.2%;
+  top: 48.4%;
+  width: 6.7%;
 }
-.js-dashboard-artwork__fruit-stat span {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(.28rem, .9vw, .61rem);
-  margin-top: 12%;
-  white-space: nowrap;
+
+.js-fountain-motion__basin {
+  background: radial-gradient(ellipse, rgba(235,253,255,.42), rgba(97,180,203,.3) 44%, transparent 72%);
+  border-radius: 50%;
+  bottom: 7%;
+  height: 42%;
+  left: 13%;
+  width: 74%;
+  animation: fountain-shimmer 3.8s ease-in-out infinite;
 }
+
+.js-fountain-motion__ripple {
+  border: 1.4px solid rgba(231,253,255,.86);
+  border-radius: 50%;
+  bottom: 12%;
+  height: 24%;
+  left: 34%;
+  opacity: .85;
+  width: 32%;
+  animation: fountain-ripple 3.6s ease-out infinite;
+}
+.js-fountain-motion__ripple--two { animation-delay: 1.8s; }
+
+.js-fountain-motion__jet {
+  background: linear-gradient(to top, rgba(90,183,210,.34), rgba(249,255,255,.96) 46%, rgba(152,219,237,.38));
+  border-radius: 50% 50% 45% 45%;
+  bottom: 31%;
+  filter: blur(.2px);
+  transform-origin: 50% 100%;
+  box-shadow: 0 0 3px rgba(223,250,255,.65);
+  opacity: .96;
+  width: 3.1%;
+  animation: fountain-jet 2.2s ease-in-out infinite;
+}
+.js-fountain-motion__jet::after { background:rgba(249,255,255,.92); border-radius:50%; box-shadow:0 0 2px rgba(175,226,240,.8); content:""; height:9%; left:-55%; top:13%; width:210%; animation:fountain-droplet 2.2s ease-in infinite; }
+.js-fountain-motion__jet--left { height:39%; left:37%; transform:rotate(-12deg); }
+.js-fountain-motion__jet--center { animation-delay:-.7s; height:52%; left:49%; }
+.js-fountain-motion__jet--right { animation-delay:-1.25s; height:39%; left:61%; transform:rotate(12deg); }
+.js-fountain-motion__mist { background:radial-gradient(ellipse,rgba(245,253,255,.4),transparent 70%); border-radius:50%; bottom:23%; filter:blur(2px); height:28%; left:25%; width:50%; animation:fountain-mist 5s ease-in-out infinite; }
+.js-fountain-motion__sparkle { background:#fffef2; border-radius:50%; box-shadow:0 0 4px rgba(255,255,240,.65); height:3px; width:3px; animation:water-sparkle 4.4s ease-in-out infinite; }
+.js-fountain-motion__sparkle::before,.js-fountain-motion__sparkle::after { background:rgba(255,255,245,.72); content:""; height:1px; left:-3px; top:1px; width:9px; }
+.js-fountain-motion__sparkle::after { transform:rotate(90deg); }
+.js-fountain-motion__sparkle--one { bottom:22%; left:29%; }
+.js-fountain-motion__sparkle--two { animation-delay:2.1s; bottom:18%; right:25%; }
+.is-evening .js-fountain-motion__basin { opacity:.65; }
+.is-evening .js-fountain-motion__sparkle { animation-duration:7s; opacity:.4; }
+
+.js-butterfly { filter:drop-shadow(0 1px 1px rgba(52,39,39,.75)); height:10px; opacity:1; width:8px; z-index:1; }
+.js-butterfly::before,.js-butterfly::after { background:#c36f8c; border:1px solid #6f4655; border-radius:90% 15% 80% 20%; content:""; height:12px; top:-4px; transform-origin:100% 60%; width:10px; animation:wing-left .52s ease-in-out infinite alternate; }
+.js-butterfly::before { right:50%; }
+.js-butterfly::after { left:50%; transform:scaleX(-1); transform-origin:0 60%; animation-name:wing-right; }
+.js-butterfly--one { left:34%; top:56%; animation:butterfly-one 22s ease-in-out infinite; }
+.js-butterfly--two { left:64%; top:56%; transform:scale(.88); animation:butterfly-two 26s ease-in-out -8s infinite; }
+.js-butterfly--two::before,.js-butterfly--two::after { background:#8274b0; border-color:#51446f; }
+.js-butterfly--three { left:29%; top:66%; transform:scale(.78); animation:butterfly-three 29s ease-in-out -14s infinite; }
+.js-butterfly--three::before,.js-butterfly--three::after { background:#d9a54a; border-color:#80632d; }
+.js-butterfly--four { left:68%; top:67%; transform:scale(.82); animation:butterfly-four 32s ease-in-out -5s infinite; }
+.js-butterfly--four::before,.js-butterfly--four::after { background:#d393a2; border-color:#865b66; }
+.is-evening .js-butterfly { animation-duration:34s; }
+
+.js-bee { background:#322c21; border-radius:50%; filter:drop-shadow(0 1px 1px rgba(30,24,16,.72)); height:7px; opacity:1; width:14px; animation:bee-hover 13s ease-in-out infinite; }
+.js-bee::before { background:linear-gradient(90deg,#d6a43d 0 32%,#4a4030 33% 52%,#d6a43d 53% 76%,#4a4030 77%); border-radius:50%; content:""; inset:0; }
+.js-bee::after { border-left:5px solid rgba(239,248,241,.92); border-radius:50%; border-right:5px solid rgba(239,248,241,.92); content:""; height:8px; left:-1px; top:-5px; width:16px; animation:bee-wings .18s linear infinite alternate; }
+.js-bee--one { left:35%; top:58%; }
+.js-bee--two { animation-delay:-4s; left:59%; top:47%; transform:scale(.85); }
+.js-bee--three { animation-delay:-7.5s; left:61%; top:65%; transform:scale(.7); }
+.is-evening .js-bee { animation-duration:20s; }
+
+.js-moth { display:none; height:5px; left:56%; top:47%; width:4px; animation:moth-drift 18s ease-in-out infinite; }
+.js-moth::before,.js-moth::after { background:rgba(218,205,171,.62); border-radius:70% 20%; content:""; height:6px; top:-2px; width:5px; animation:wing-left .8s ease-in-out infinite alternate; }
+.js-moth::before { right:50%; }.js-moth::after { left:50%; transform:scaleX(-1); }
+.is-evening .js-moth { display:block; }
+
+.js-hummingbird { filter:drop-shadow(0 1px 2px rgba(30,49,38,.75)); height:15px; left:16%; opacity:1; top:56%; transform:translateX(-320px); width:27px; animation:hummingbird-journey 46s ease-in-out 5s infinite; }
+.js-hummingbird::before { background:linear-gradient(100deg,#245e51,#6b9c7d 55%,#c85f68); border:1px solid rgba(33,71,55,.7); border-radius:70% 42% 58% 55%; content:""; height:10px; left:6px; top:3px; width:18px; }
+.js-hummingbird::after { border-bottom:2px solid #463d31; content:""; height:1px; left:23px; top:6px; transform:rotate(-5deg); width:13px; }
+.js-hummingbird i,.js-hummingbird b { background:rgba(76,119,96,.9); border-radius:90% 15%; height:17px; left:9px; top:-7px; transform-origin:20% 100%; width:8px; animation:hummingbird-wing .11s linear infinite alternate; }
+.js-hummingbird b { top:6px; transform:scaleY(-1); }
+.is-evening .js-hummingbird { filter:drop-shadow(0 1px 2px rgba(30,49,38,.82)) saturate(.9); }
+.wildlife-off .js-butterfly,.wildlife-off .js-bee,.wildlife-off .js-moth,.wildlife-off .js-hummingbird{display:none!important}.weather-rain .js-butterfly,.weather-rain .js-bee,.weather-rain .js-hummingbird,.weather-storm .js-butterfly,.weather-storm .js-bee,.weather-storm .js-hummingbird,.weather-snow .js-butterfly,.weather-snow .js-bee,.weather-snow .js-hummingbird{display:none}.weather-rain .js-fountain-motion__ripple,.weather-storm .js-fountain-motion__ripple{animation-duration:1.8s}.phase-night .js-fountain-motion{filter:drop-shadow(0 0 5px rgba(155,219,235,.65))}.intensity-minimal .js-bloom,.intensity-minimal .js-pollen{display:none}.intensity-enhanced .js-leaf-sway{animation-duration:3.5s}
+.is-windy .js-leaf-sway{animation-duration:1.8s}.is-windy .js-bloom{animation-duration:7s}
+
+.js-bloom { background:radial-gradient(circle,#e8bd7a 0 13%,#d28da1 15% 35%,rgba(247,208,218,.7) 36% 60%,transparent 62%); border-radius:50%; height:1.7%; opacity:.35; transform:scale(.92); width:2.3%; animation:bloom-open 14s ease-in-out infinite; }
+.js-bloom--one { left:37.5%; top:43.5%; }
+.js-bloom--two { animation-delay:-5s; left:60.2%; top:57.2%; }
+.js-bloom--three { animation-delay:-9s; left:29.4%; top:67%; }
+.js-leaf-sway { border-left:1px solid rgba(62,88,52,.35); height:2.5%; transform-origin:50% 100%; width:1.5%; animation:leaf-sway 7s ease-in-out infinite alternate; }
+.js-leaf-sway::before,.js-leaf-sway::after { background:rgba(98,126,75,.3); border-radius:100% 0; content:""; height:34%; width:90%; }
+.js-leaf-sway::before { left:-65%; top:20%; transform:rotate(28deg); }.js-leaf-sway::after { left:30%; top:48%; transform:rotate(-28deg) scaleX(-1); }
+.js-leaf-sway--one { left:20%; top:19%; }.js-leaf-sway--two { animation-delay:-3s; left:75%; top:20%; transform:scaleX(-1); }
+.js-pollen { background:rgba(246,220,145,.65); border-radius:50%; height:2px; width:2px; animation:pollen-float 12s linear infinite; }
+.js-pollen--one { left:41%; top:48%; }.js-pollen--two { animation-delay:-4s; left:57%; top:55%; }.js-pollen--three { animation-delay:-8s; left:32%; top:64%; }
+
+.js-motion-debug { inset:0; z-index:1; }
+.js-motion-debug span { background:#fff8cf; border:1px solid #9a6d22; color:#382b17; font:700 9px/1.2 sans-serif; line-height:1.2; padding:2px 4px; white-space:nowrap; }
+.is-debug .js-fountain-motion { outline:2px dashed #1d8fb8; }
+
+@keyframes fountain-shimmer { 0%,100%{opacity:.45;transform:scale(.96)} 50%{opacity:.8;transform:scale(1.04)} }
+@keyframes fountain-ripple { 0%{opacity:.9;transform:scale(.35)} 72%{opacity:.76} 100%{opacity:0;transform:scale(1.65)} }
+@keyframes fountain-jet { 0%,100%{opacity:.92;scale:1 .9} 50%{opacity:1;scale:1 1.08} }
+@keyframes fountain-droplet { 0%,42%{opacity:0;transform:translateY(0) scale(.4)} 55%{opacity:.75} 100%{opacity:0;transform:translateY(260%) scale(.8)} }
+@keyframes fountain-mist { 0%,100%{opacity:.15;transform:translateX(-4%) scale(.92)} 50%{opacity:.35;transform:translateX(4%) scale(1.08)} }
+@keyframes water-sparkle { 0%,30%,100%{opacity:0;transform:scale(.4) rotate(0)} 42%,55%{opacity:.85;transform:scale(1) rotate(45deg)} 68%{opacity:0;transform:scale(.5) rotate(90deg)} }
+@keyframes wing-left { from{transform:rotateY(20deg) rotate(-12deg)} to{transform:rotateY(75deg) rotate(8deg)} }
+@keyframes wing-right { from{transform:scaleX(-1) rotateY(20deg) rotate(-12deg)} to{transform:scaleX(-1) rotateY(75deg) rotate(8deg)} }
+@keyframes butterfly-one { 0%,100%{transform:translate(0,0) rotate(-8deg)} 24%{transform:translate(70px,-16px) rotate(12deg)} 46%{transform:translate(120px,12px) rotate(-5deg)} 53%{transform:translate(122px,13px) rotate(-5deg)} 76%{transform:translate(48px,25px) rotate(9deg)} }
+@keyframes butterfly-two { 0%,100%{transform:translate(0,0) scale(.8)} 28%{transform:translate(-65px,17px) scale(.8) rotate(-10deg)} 52%{transform:translate(-112px,-14px) scale(.8) rotate(8deg)} 60%{transform:translate(-113px,-14px) scale(.8)} 82%{transform:translate(-34px,-22px) scale(.8)} }
+@keyframes butterfly-three { 0%,100%{transform:translate(0,0) scale(.65)} 30%{transform:translate(48px,-40px) scale(.65)} 58%{transform:translate(102px,-10px) scale(.65)} 68%{transform:translate(102px,-10px) scale(.65)} 84%{transform:translate(36px,18px) scale(.65)} }
+@keyframes butterfly-four { 0%,100%{transform:translate(0,0) scale(.72)} 30%{transform:translate(-60px,-20px) scale(.72)} 48%{transform:translate(-105px,22px) scale(.72)} 58%{transform:translate(-105px,22px) scale(.72)} 80%{transform:translate(-35px,35px) scale(.72)} }
+@keyframes bee-hover { 0%,100%{transform:translate(0,0)} 28%{transform:translate(28px,-12px)} 48%{transform:translate(42px,9px)} 58%{transform:translate(41px,8px)} 78%{transform:translate(12px,17px)} }
+@keyframes bee-wings { from{transform:scaleY(.35)} to{transform:scaleY(1)} }
+@keyframes moth-drift { 0%,100%{transform:translate(0,0)} 35%{transform:translate(-40px,17px)} 65%{transform:translate(24px,35px)} }
+@keyframes hummingbird-journey { 0%,12%,100%{opacity:1;transform:translate(-320px,0) scale(.82)} 18%{opacity:1;transform:translate(20px,-5px) scale(.82)} 36%{opacity:1;transform:translate(230px,-12px) scale(.82)} 45%,58%{opacity:1;transform:translate(300px,-5px) scale(.82)} 76%{opacity:1;transform:translate(500px,10px) scale(.82)} 86%{opacity:1;transform:translate(700px,-8px) scale(.82)} }
+@keyframes hummingbird-wing { from{transform:rotate(-25deg) scaleY(.35)} to{transform:rotate(35deg) scaleY(1)} }
+@keyframes bloom-open { 0%,100%{opacity:.2;transform:scale(.92)} 35%,62%{opacity:.58;transform:scale(1)} }
+@keyframes leaf-sway { from{transform:rotate(-2deg)} to{transform:rotate(3deg)} }
+@keyframes pollen-float { 0%{opacity:0;transform:translate(0,14px)} 18%{opacity:.7} 75%{opacity:.28} 100%{opacity:0;transform:translate(18px,-42px)} }
 
 .js-dashboard-artwork__clock {
   align-items:center;
@@ -103,7 +190,7 @@
   text-align:center;
   top:2.75%;
   width:14.35%;
-  z-index:2;
+  z-index:3;
 }
 .js-dashboard-artwork__weekday { font-size:clamp(.34rem,1.17vw,.8rem); }
 .js-dashboard-artwork__date { font-size:clamp(.31rem,1.04vw,.71rem); margin-top:4%; }
@@ -116,7 +203,7 @@
   inset: 0;
   pointer-events: none;
   position: absolute;
-  z-index: 3;
+  z-index: 4;
 }
 
 .js-dashboard-artwork__hotspot {
@@ -140,6 +227,8 @@
   outline: none;
 }
 
+.js-dashboard-artwork__menu{left:max(12px,calc((100vw - 1024px)/2 + 12px));position:fixed;top:12px}
+
 .js-dashboard-artwork__summary {
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
@@ -153,13 +242,31 @@
 }
 
 @media (max-width: 600px) {
+  .js-dashboard-artwork__menu{border-radius:11px;min-height:49px;min-width:54px;padding:6px}.js-dashboard-artwork__menu span{font-size:19px}.js-dashboard-artwork__menu strong{font-size:8px}
   .js-dashboard-artwork__hotspot {
     border-radius: 5px;
   }
+  .js-butterfly,
+  .js-bee,
+  .js-moth,
+  .js-hummingbird { scale: .72; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .js-dashboard-artwork__hotspot {
     transition: none;
   }
+  .js-garden-motion *,
+  .js-garden-motion *::before,
+  .js-garden-motion *::after { animation: none !important; }
+  .js-butterfly,
+  .js-bee,
+  .js-moth,
+  .js-hummingbird,
+  .js-pollen { display: none !important; }
+  .js-fountain-motion__basin { opacity: .38; }
+  .js-fountain-motion__ripple,
+  .js-fountain-motion__jet,
+  .js-fountain-motion__mist,
+  .js-fountain-motion__sparkle { opacity: .22; }
 }

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useGarden } from "../context/GardenContext";
 
 export default function PhotoManager() {
-  const { plants, photos, addPhotos, deletePhoto } = useGarden();
+  const { activePlants:plants, photos, addPhotos, deletePhoto } = useGarden();
   const [selectedPlant, setSelectedPlant] = useState("All");
 
   const filteredPhotos = useMemo(() => {
