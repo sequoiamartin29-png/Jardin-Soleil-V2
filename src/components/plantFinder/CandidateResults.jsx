@@ -4,6 +4,8 @@ import CandidateComparison from "./CandidateComparison";
 import ExpertVerification from "./ExpertVerification";
 import { identificationStatuses } from "../../utils/plantFinderRules";
 
+const photoFlowSteps = ["Photo Selected", "Analyzing", "Results", "Confirm Match / Guided Follow-Up", "Save Identification", "Add to My Estate"];
+
 const compactMatch = (match) => ({
   id:match.id, commonName:match.commonName, botanicalName:match.botanicalName, family:match.family,
   category:match.category, type:match.type, group:match.group, confidence:match.confidence, score:match.score,
@@ -16,7 +18,7 @@ const compactMatch = (match) => ({
   conservationLegal:match.conservationLegal,
 });
 
-export default function CandidateResults({ context, matches, sourceLabel, sourceNotice, onRestart, onContinueIdentifying, onAddPhoto, onSaveRecord, onUpdateRecord, onAddToEstate, onOpenHealthCenter }) {
+export default function CandidateResults({ context, matches, sourceLabel, sourceNotice, photoBased = false, needsFocusedFollowUp = false, onRestart, onContinueIdentifying, onAddPhoto, onSaveRecord, onUpdateRecord, onAddToEstate, onOpenHealthCenter }) {
   const [selectedId, setSelectedId] = useState("");
   const [compareIds, setCompareIds] = useState([]);
   const [showComparison, setShowComparison] = useState(false);
@@ -26,6 +28,8 @@ export default function CandidateResults({ context, matches, sourceLabel, source
   const [message, setMessage] = useState("");
   const selected = matches.find((item) => item.id === selectedId) || null;
   const comparison = useMemo(() => matches.filter((item) => compareIds.includes(item.id)), [matches, compareIds]);
+  const photoFlowIndex = savedRecord ? 4 : selected ? 3 : 2;
+  const followUpLabel = photoBased ? needsFocusedFollowUp ? "Guided Follow-Up" : "Refine with Focused Questions" : "Continue identifying";
 
   const recordPayload = () => ({
     date:new Date().toISOString().slice(0, 10),
@@ -72,6 +76,7 @@ export default function CandidateResults({ context, matches, sourceLabel, source
   return (
     <section className="js-finder-results" aria-labelledby="plant-finder-results-title">
       <header className="js-finder-results__header"><div><p>{sourceLabel}</p><h2 id="plant-finder-results-title">Possible Field Matches</h2><span>{matches.length ? `${matches.length} cautious ${matches.length === 1 ? "comparison" : "comparisons"}, ranked from the traits provided` : "The current observations are not specific enough for a reliable match"}</span></div><button type="button" onClick={onRestart}>Start over</button></header>
+      {photoBased && <ol className="js-finder-photo-flow is-results" aria-label="Photo identification progress">{photoFlowSteps.map((step, index) => <li key={step} className={index === photoFlowIndex ? "is-current" : index < photoFlowIndex ? "is-complete" : ""}><span>{index + 1}</span><small>{step}</small></li>)}</ol>}
       {sourceNotice && <aside className="js-finder-notice" role="status">{sourceNotice}</aside>}
 
       {!matches.length ? (
@@ -79,7 +84,7 @@ export default function CandidateResults({ context, matches, sourceLabel, source
           <BotanicalIcon type="generic-plant" size="xl" decorative />
           <h3>No reliable match was found from the current traits.</h3>
           <p>Photograph more structures, revisit uncertain traits, or ask a qualified local expert. A weak result has not been presented as an identity.</p>
-          <div><button type="button" onClick={onContinueIdentifying}>Continue identifying</button><button type="button" onClick={save}>Save Unconfirmed record</button></div>
+          <div><button type="button" onClick={onContinueIdentifying}>{followUpLabel}</button><button type="button" onClick={save}>Save Unconfirmed record</button></div>
         </div>
       ) : (
         <>
@@ -98,7 +103,7 @@ export default function CandidateResults({ context, matches, sourceLabel, source
               </article>
             ))}
           </div>
-          <div className="js-finder-results__decision"><button type="button" onClick={() => { setSelectedId(""); setCompareIds([]); setMessage("No candidate selected. Continue the field key or save an unconfirmed record."); }}>None of these</button><button type="button" onClick={onContinueIdentifying}>Continue identifying</button><button type="button" aria-label={`Compare selected (${compareIds.length})`} disabled={compareIds.length < 2} onClick={() => setShowComparison(true)}>Compare selected ({compareIds.length})</button></div>
+          <div className="js-finder-results__decision"><button type="button" onClick={() => { setSelectedId(""); setCompareIds([]); setMessage("No candidate selected. Continue the field key or save an unconfirmed record."); }}>None of these</button><button type="button" onClick={onContinueIdentifying}>{followUpLabel}</button><button type="button" aria-label={`Compare selected (${compareIds.length})`} disabled={compareIds.length < 2} onClick={() => setShowComparison(true)}>Compare selected ({compareIds.length})</button></div>
         </>
       )}
 

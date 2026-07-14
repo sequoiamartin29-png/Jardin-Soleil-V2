@@ -8,6 +8,8 @@ import { rankPlantMatches, searchPlantFieldKey } from "../../utils/rankPlantMatc
 import CandidateResults from "./CandidateResults";
 import IdentificationWizard from "./IdentificationWizard";
 import PhotoIdentifier from "./PhotoIdentifier";
+import PhotoFollowUp from "./PhotoFollowUp";
+import { refinePhotoMatches } from "../../utils/photoFollowUp";
 import "./PlantFinder.css";
 
 const normalize = (value) => String(value || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -20,24 +22,28 @@ export default function PlantFinder({ onNavigate, onAddToEstate, onOpenHealthCen
   const [session, setSession] = useState(null);
   const [knownQuery, setKnownQuery] = useState("");
 
-  const prepareResults = (context, matches, sourceLabel = "Local deterministic field key", sourceNotice = "") => {
-    setSession({ context, matches:matches.slice(0, 5), sourceLabel, sourceNotice });
+  const prepareResults = (context, matches, sourceLabel = "Local deterministic field key", sourceNotice = "", options = {}) => {
+    setSession({ context, matches:matches.slice(0, 5), sourceLabel, sourceNotice, ...options });
     setMode("results");
   };
   const completeWizard = (context) => prepareResults(context, rankPlantMatches(context), "Local deterministic field key", notice);
   const continuePhoto = ({ photoId, subject, analysis }) => {
     const photoIds = [...new Set([...(wizardSeed.photoIds || []), photoId])];
-    if (!analysis.analyzed) {
-      setWizardSeed({ ...wizardSeed, subject, photoIds, sourceMode:"Photo fallback + Manual Wizard" });
-      setNotice(analysis.message);
-      setMode("wizard");
-      return;
-    }
+    if (!analysis.analyzed) return;
     const externalMatches = (analysis.matches || []).slice(0, 5).map((match, index) => {
       const keyMatch = plantFinderFieldKey.find((item) => normalize(item.commonName) === normalize(match.commonName) || normalize(item.botanicalName) === normalize(match.botanicalName));
       return { ...(keyMatch || {}), ...match, id:keyMatch?.id || `external-photo-match-${index}`, commonName:match.commonName || keyMatch?.commonName || "Possible visual match", botanicalName:match.botanicalName || keyMatch?.botanicalName || "Unknown", confidence:match.confidence || "Low", why:Array.isArray(match.why) ? match.why : ["External visual similarity was reported."], conflicts:Array.isArray(match.conflicts) ? match.conflicts : [], inspectNext:match.inspectNext || "Compare several structures with a regional key before confirming." };
     });
-    prepareResults(buildIdentificationContext({ ...wizardSeed, subject, photoIds, sourceMode:"Secure photo analysis" }), externalMatches, "External photo analysis · possible matches", analysis.limitation);
+    const context = buildIdentificationContext({ ...wizardSeed, ...(analysis.inferredTraits || {}), subject, photoIds, sourceMode:"Secure photo analysis" });
+    const needsFocusedFollowUp = analysis.requiresFollowUp || !externalMatches.length || externalMatches[0]?.confidence === "Low";
+    const limitation = [analysis.limitation, needsFocusedFollowUp ? "Confidence is limited. Guided Follow-Up will ask only the observations needed to separate these candidates." : ""].filter(Boolean).join(" ");
+    prepareResults(context, externalMatches, "External photo analysis · possible matches", limitation, { photoBased:true, needsFocusedFollowUp });
+  };
+  const continueUnavailablePhoto = ({ photoId, subject, analysis }) => {
+    const photoIds = [...new Set([...(wizardSeed.photoIds || []), photoId])];
+    setWizardSeed({ ...wizardSeed, subject, photoIds, sourceMode:"Saved photo + Guided Identification" });
+    setNotice(`${analysis?.message || "Photo analysis is unavailable."} The photo was saved. Guided Identification begins only because you selected it.`);
+    setMode("wizard");
   };
   const searchKnown = (event) => {
     event.preventDefault();
@@ -45,7 +51,16 @@ export default function PlantFinder({ onNavigate, onAddToEstate, onOpenHealthCen
     prepareResults(context, searchPlantFieldKey(knownQuery), "Known-trait field-key search", "Text search narrows the read-only field key. Continue the Manual Wizard to test structural traits.");
   };
   const restart = () => { setMode("home"); setSession(null); setNotice(""); setWizardSeed({}); setKnownQuery(""); };
-  const continueIdentifying = () => { setWizardSeed(session?.context || {}); setNotice("Review uncertain traits and add more observations before comparing again."); setMode("wizard"); };
+  const continueIdentifying = () => {
+    if (session?.photoBased) { setMode("followup"); return; }
+    setWizardSeed(session?.context || {});
+    setNotice("Review uncertain traits and add more observations before comparing again.");
+    setMode("wizard");
+  };
+  const completePhotoFollowUp = (context) => {
+    const refined = refinePhotoMatches(session?.matches || [], context);
+    prepareResults(context, refined, "Photo analysis + guided follow-up", "Candidates were refined using only the focused observations you supplied; the image match remains unconfirmed.", { photoBased:true, needsFocusedFollowUp:false });
+  };
 
   const actions = <><EstateActionButton variant="ledger" onClick={() => onNavigate("Plant Finder History")}>History ({garden.plantIdentifications.length})</EstateActionButton><EstateActionButton variant="gate" onClick={() => setMode("wizard")}>Begin Manual Wizard</EstateActionButton></>;
   return (
@@ -60,8 +75,9 @@ export default function PlantFinder({ onNavigate, onAddToEstate, onOpenHealthCen
         <aside className="js-finder-expert-prompt"><div><p>Field verification</p><h2>Prepare a useful expert question</h2><span>Save your traits, ranked possibilities, photographs, and conflicts for a local extension office, certified arborist, botanist, or regional field guide.</span></div><button type="button" onClick={onConsultHeadGardener}>Ask the Head Gardener to summarize observations</button></aside>
       </>}
 
-      {mode === "photo" && <PhotoIdentifier onContinue={continuePhoto} onCancel={() => setMode("home")} />}
+      {mode === "photo" && <PhotoIdentifier context={wizardSeed} onContinue={continuePhoto} onGuided={continueUnavailablePhoto} onCancel={() => setMode("home")} />}
       {mode === "wizard" && <IdentificationWizard key={JSON.stringify(wizardSeed.photoIds || [])} initialData={wizardSeed} notice={notice} onComplete={completeWizard} onCancel={() => setMode("home")} />}
+      {mode === "followup" && session && <PhotoFollowUp context={session.context} candidates={session.matches} onComplete={completePhotoFollowUp} onCancel={() => setMode("results")} />}
       {mode === "known" && <form className="js-finder-ledger js-finder-known" onSubmit={searchKnown}><header><p>Brass index & specimen key</p><h2>Search by Known Traits</h2><span>Use concrete observations such as “opposite aromatic square stem purple flowers” or “tree lobed leaves nut woodland.”</span></header><label><span>Known name or traits</span><input autoFocus value={knownQuery} onChange={(event) => setKnownQuery(event.target.value)} placeholder="Enter a common name, family, leaf trait, flower, fruit, or habitat" /></label><p>This broad search is not a confirmation. Structural observations in the Manual Wizard produce a more useful ranking.</p><div className="js-finder-actions"><button type="button" className="is-quiet" onClick={() => setMode("home")}>Back</button><button type="button" onClick={() => { setWizardSeed({ notes:knownQuery, sourceMode:"Known Trait Search + Manual Wizard" }); setMode("wizard"); }}>Continue in Manual Wizard</button><button type="submit" className="is-primary" disabled={!knownQuery.trim()}>Search field key</button></div></form>}
       {mode === "results" && session && <CandidateResults {...session} onRestart={restart} onContinueIdentifying={continueIdentifying} onAddPhoto={() => { setWizardSeed(session.context); setMode("photo"); }} onSaveRecord={garden.addPlantIdentification} onUpdateRecord={garden.updatePlantIdentification} onAddToEstate={onAddToEstate} onOpenHealthCenter={(payload) => onOpenHealthCenter({ ...payload, traits:session.context })} />}
 
