@@ -1,14 +1,14 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import BotanicalIcon from "../icons/BotanicalIcon";
 import CandidateComparison from "./CandidateComparison";
 import ExpertVerification from "./ExpertVerification";
 import { identificationStatuses } from "../../utils/plantFinderRules";
 
-const photoFlowSteps = ["Photo Selected", "Analyzing", "Results", "Confirm Match / Guided Follow-Up", "Save Identification", "Add to My Estate"];
+const photoFlowSteps = ["Photo Selected", "Compress image", "Analyzing", "Results", "Confirm Match / Guided Follow-Up", "Save Identification", "Add to My Estate"];
 
 const compactMatch = (match) => ({
   id:match.id, commonName:match.commonName, botanicalName:match.botanicalName, family:match.family,
-  category:match.category, type:match.type, group:match.group, confidence:match.confidence, score:match.score,
+  category:match.category, type:match.type, group:match.group, confidence:match.confidence, confidenceScore:match.confidenceScore, score:match.score,
   why:match.why, conflicts:match.conflicts, inspectNext:match.inspectNext,
   form:match.form, leafArrangement:match.leafArrangement, leafTraits:match.leafTraits, flowerColors:match.flowerColors,
   flowerShapes:match.flowerShapes, fruit:match.fruit, stem:match.stem, habitat:match.habitat, regions:match.regions,
@@ -18,7 +18,7 @@ const compactMatch = (match) => ({
   conservationLegal:match.conservationLegal,
 });
 
-export default function CandidateResults({ context, matches, sourceLabel, sourceNotice, photoBased = false, needsFocusedFollowUp = false, onRestart, onContinueIdentifying, onAddPhoto, onSaveRecord, onUpdateRecord, onAddToEstate, onOpenHealthCenter }) {
+export default function CandidateResults({ context, matches, sourceLabel, sourceNotice, photoBased = false, needsFocusedFollowUp = false, pendingPhoto = null, providerStatus = "", imageQuality = "", onRestart, onContinueIdentifying, onTakeAnotherPhoto, onAddPhoto, onPersistPhoto, onSaveRecord, onUpdateRecord, onAddToEstate, onOpenHealthCenter }) {
   const [selectedId, setSelectedId] = useState("");
   const [compareIds, setCompareIds] = useState([]);
   const [showComparison, setShowComparison] = useState(false);
@@ -26,10 +26,22 @@ export default function CandidateResults({ context, matches, sourceLabel, source
   const [verificationStatus, setVerificationStatus] = useState("Unconfirmed");
   const [savedRecord, setSavedRecord] = useState(null);
   const [message, setMessage] = useState("");
+  const [photoSaved, setPhotoSaved] = useState(false);
+  const photoPersistedRef = useRef(false);
   const selected = matches.find((item) => item.id === selectedId) || null;
   const comparison = useMemo(() => matches.filter((item) => compareIds.includes(item.id)), [matches, compareIds]);
-  const photoFlowIndex = savedRecord ? 4 : selected ? 3 : 2;
+  const photoFlowIndex = savedRecord ? 5 : selected ? 4 : 3;
   const followUpLabel = photoBased ? needsFocusedFollowUp ? "Guided Follow-Up" : "Refine with Focused Questions" : "Continue identifying";
+
+  const ensurePhotoPersisted = () => {
+    if (!pendingPhoto) return null;
+    if (!photoPersistedRef.current) {
+      onPersistPhoto?.(pendingPhoto);
+      photoPersistedRef.current = true;
+      setPhotoSaved(true);
+    }
+    return pendingPhoto;
+  };
 
   const recordPayload = () => ({
     date:new Date().toISOString().slice(0, 10),
@@ -45,6 +57,7 @@ export default function CandidateResults({ context, matches, sourceLabel, source
   });
 
   const save = () => {
+    ensurePhotoPersisted();
     if (savedRecord) {
       onUpdateRecord(savedRecord.id, recordPayload());
       const next = { ...savedRecord, ...recordPayload() };
@@ -61,7 +74,14 @@ export default function CandidateResults({ context, matches, sourceLabel, source
   const addToEstate = () => {
     if (!selected) { setMessage("Choose the closest candidate before opening the estate plant form."); return; }
     const record = savedRecord || save();
-    onAddToEstate(selected, record);
+    const photo = ensurePhotoPersisted();
+    onAddToEstate(selected, record, photo);
+  };
+
+  const savePhotoToGallery = () => {
+    if (!pendingPhoto) return;
+    ensurePhotoPersisted();
+    setMessage("Prepared photograph saved to Gallery.");
   };
 
   const updateExpert = (expertReview) => {
@@ -77,27 +97,28 @@ export default function CandidateResults({ context, matches, sourceLabel, source
     <section className="js-finder-results" aria-labelledby="plant-finder-results-title">
       <header className="js-finder-results__header"><div><p>{sourceLabel}</p><h2 id="plant-finder-results-title">Possible Field Matches</h2><span>{matches.length ? `${matches.length} cautious ${matches.length === 1 ? "comparison" : "comparisons"}, ranked from the traits provided` : "The current observations are not specific enough for a reliable match"}</span></div><button type="button" onClick={onRestart}>Start over</button></header>
       {photoBased && <ol className="js-finder-photo-flow is-results" aria-label="Photo identification progress">{photoFlowSteps.map((step, index) => <li key={step} className={index === photoFlowIndex ? "is-current" : index < photoFlowIndex ? "is-complete" : ""}><span>{index + 1}</span><small>{step}</small></li>)}</ol>}
+      {photoBased && providerStatus === "ready" && <aside className="js-finder-provider is-ready" role="status"><strong>Provider status · Ready</strong><p>Secure photo analysis completed{imageQuality ? ` with ${imageQuality} image quality` : ""}. Review the evidence before confirming a candidate.</p></aside>}
       {sourceNotice && <aside className="js-finder-notice" role="status">{sourceNotice}</aside>}
 
       {!matches.length ? (
         <div className="js-finder-no-match">
           <BotanicalIcon type="generic-plant" size="xl" decorative />
-          <h3>No reliable match was found from the current traits.</h3>
-          <p>Photograph more structures, revisit uncertain traits, or ask a qualified local expert. A weak result has not been presented as an identity.</p>
-          <div><button type="button" onClick={onContinueIdentifying}>{followUpLabel}</button><button type="button" onClick={save}>Save Unconfirmed record</button></div>
+          <h3>{photoBased ? "This image does not show enough identifying detail." : "No reliable match was found from the current traits."}</h3>
+          <p>{photoBased ? "Try photographing a leaf, flower, fruit, or the whole plant in natural light. No weak visual guess has been presented as an identity." : "Photograph more structures, revisit uncertain traits, or ask a qualified local expert. A weak result has not been presented as an identity."}</p>
+          <div>{photoBased && <button type="button" onClick={onTakeAnotherPhoto}>Take another photo</button>}<button type="button" onClick={onContinueIdentifying}>{photoBased ? "Continue with Guided Identification" : followUpLabel}</button><button type="button" onClick={save}>Save Unconfirmed record</button></div>
         </div>
       ) : (
         <>
           <div className="js-finder-results__grid">
             {matches.map((match, index) => (
               <article className={selectedId === match.id ? "is-selected" : ""} key={match.id}>
-                <header><span>Candidate {index + 1}</span><strong className={`is-${match.confidence.toLocaleLowerCase()}`}>{match.confidence} confidence</strong></header>
+                <header><span>Candidate {index + 1}</span><strong className={`is-${String(match.confidence || "low").toLocaleLowerCase()}`}>{Number.isFinite(match.confidenceScore) ? `${match.confidenceScore}% · ` : ""}{match.confidence || "Low"} confidence</strong></header>
                 <BotanicalIcon type={match.type === "Fruit Tree" ? "generic-fruit-tree" : match.type === "Mint" ? "mint" : match.category === "Flowers & Perennials" ? "flower" : "generic-plant"} size="lg" decorative />
                 <h3>{match.commonName}</h3><em>{match.botanicalName || "Botanical name unknown"}</em>
                 <p className="js-finder-results__family">{match.family || "Family unknown"}</p>
                 <h4>Why it ranked</h4><ul>{(match.why || []).slice(0, 4).map((item) => <li key={item}>{item}</li>)}</ul>
                 {match.conflicts?.length > 0 && <><h4>Conflicting evidence</h4><ul className="is-conflict">{match.conflicts.map((item) => <li key={item}>{item}</li>)}</ul></>}
-                <h4>Inspect next</h4><p>{match.inspectNext}</p>
+                <h4>Inspect next</h4>{Array.isArray(match.inspectNext) ? <ul>{match.inspectNext.map((item) => <li key={item}>{item}</li>)}</ul> : <p>{match.inspectNext}</p>}
                 <details><summary>Field profile & cautions</summary><dl><Info label="Native or introduced" value={match.nativeStatus} /><Info label="Habit and size" value={[match.habit, match.size].filter(Boolean).join(" · ")} /><Info label="Light and water" value={[match.light, match.water].filter(Boolean).join(" · ")} /><Info label="Zones" value={match.zones} /><Info label="Flower / fruit season" value={[match.flowerSeason, match.fruitSeason].filter(Boolean).join(" · ")} /><Info label="Pollinator value" value={match.pollinatorValue} /><Info label="Invasive status" value={match.invasiveStatus} /><Info label="Toxicity" value={match.toxicity} /><Info label="Edibility" value={match.edibility} /><Info label="Traditional herbal use" value={match.herbalUse} /><Info label="Legal / conservation" value={match.conservationLegal} /></dl></details>
                 <div className="js-finder-results__card-actions"><button type="button" className="is-primary" aria-pressed={selectedId === match.id} onClick={() => setSelectedId(match.id)}>This looks closest</button><label><input type="checkbox" checked={compareIds.includes(match.id)} disabled={!compareIds.includes(match.id) && compareIds.length >= 3} onChange={() => toggleCompare(match.id)} /> Compare</label></div>
               </article>
@@ -113,7 +134,7 @@ export default function CandidateResults({ context, matches, sourceLabel, source
         <header><p>Field notebook</p><h3 id="save-identification-title">Save this identification</h3></header>
         <div><label><span>Verification status</span><select value={verificationStatus} onChange={(event) => setVerificationStatus(event.target.value)}>{identificationStatuses.map((item) => <option key={item}>{item}</option>)}</select></label><label className="is-wide"><span>Personal notes</span><textarea rows="3" value={notes} onChange={(event) => setNotes(event.target.value)} /></label></div>
         {message && <p role="status">{message}</p>}
-        <div className="js-finder-actions"><button type="button" className="is-quiet" onClick={save}>{savedRecord ? "Update identification" : "Save identification"}</button><button type="button" className="is-primary" onClick={addToEstate} disabled={!selected}>Add to My Estate</button></div>
+        <div className="js-finder-actions">{photoBased && pendingPhoto && <button type="button" className="is-quiet" onClick={savePhotoToGallery} disabled={photoSaved}>{photoSaved ? "Photo saved to Gallery" : "Save to Gallery"}</button>}<button type="button" className="is-quiet" onClick={save}>{savedRecord ? "Update identification" : "Save identification"}</button><button type="button" className="is-primary" onClick={addToEstate} disabled={!selected}>Add to My Estate</button></div>
       </section>
 
       <ExpertVerification initial={savedRecord?.expertReview} onSave={updateExpert} onAddPhoto={onAddPhoto} />

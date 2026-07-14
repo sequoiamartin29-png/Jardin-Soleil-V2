@@ -138,8 +138,8 @@ function GardenApp() {
         return <PlantHealthCenter key={healthCenterLaunch.launchId} initialPlantId={healthCenterLaunch.plantId} initialDiagnosisId={healthCenterLaunch.diagnosisId} initialMode={healthCenterLaunch.mode} initialFinderContext={healthCenterLaunch.finderContext} onOpenPlantFinder={() => navigate("Plant Finder")} onConsult={(plant) => openConservatory("gardener", plant)} />;
 
       case "Plant Finder":
-        return <PlantFinder onNavigate={navigate} onConsultHeadGardener={() => openConservatory("gardener")} onOpenHealthCenter={(finderContext) => openHealthCenter({ mode:"wizard", finderContext, ...finderContext })} onAddToEstate={(candidate, identification) => {
-          const photo = photos.find((item) => identification.photoIds?.includes(item.id));
+        return <PlantFinder onNavigate={navigate} onConsultHeadGardener={() => openConservatory("gardener")} onOpenHealthCenter={(finderContext) => openHealthCenter({ mode:"wizard", finderContext, ...finderContext })} onAddToEstate={(candidate, identification, preparedPhoto = null) => {
+          const photo = preparedPhoto || photos.find((item) => identification.photoIds?.includes(item.id));
           setSelectedPlant(null);
           setPlantEditorReturnPage("Plant Finder");
           setPlantEditorPrefill({
