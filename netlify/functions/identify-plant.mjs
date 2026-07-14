@@ -1,5 +1,4 @@
 const OPENAI_RESPONSES_ENDPOINT = "https://api.openai.com/v1/responses";
-const DEFAULT_VISION_MODEL = "gpt-5.6";
 const MAX_REQUEST_BYTES = 4.5 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
@@ -19,8 +18,54 @@ const json = (body, status = 200, headers = {}) => new Response(JSON.stringify(b
   headers:{ ...responseHeaders, ...headers },
 });
 
-const errorResponse = (code, message, status) => json({ status:"error", code, message }, status);
+const publicErrors = {
+  NOT_CONFIGURED:"Photo identification credentials need attention.",
+  INVALID_API_KEY:"Photo identification credentials need attention.",
+  BILLING_OR_QUOTA:"Photo identification needs active API billing or available API credit.",
+  RATE_LIMITED:"Photo analysis is temporarily busy. Please try again shortly.",
+  MODEL_NOT_AVAILABLE:"The configured vision model is unavailable.",
+  INVALID_IMAGE:"This photograph could not be processed. Try JPEG, PNG, or WebP.",
+  IMAGE_TOO_LARGE:"This image is too large for photo analysis. Try a closer crop or smaller photograph.",
+  PROVIDER_TIMEOUT:"Photo analysis took too long. Try a smaller or clearer photograph.",
+  MALFORMED_PROVIDER_RESPONSE:"Photo analysis returned an unreadable result. No identification was generated.",
+  PROVIDER_UNAVAILABLE:"Photo identification is temporarily unavailable. Guided Identification is still available.",
+  INVALID_REQUEST:"The photo request could not be processed.",
+  INTERNAL_ERROR:"Photo identification encountered an internal error. Guided Identification is still available.",
+  METHOD_NOT_ALLOWED:"Use POST for plant photo identification.",
+};
+
+const errorResponse = (code, status, requestId) => json({ status:"error", code, message:publicErrors[code] || publicErrors.INTERNAL_ERROR, requestId }, status);
 const cleanText = (value, limit) => String(value || "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, limit);
+const requestId = () => globalThis.crypto?.randomUUID?.() || `plant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+const diagnosticLog = (event, details = {}) => console.info(JSON.stringify({ scope:"identify-plant", event, ...details }));
+
+function providerErrorCategory(status, payload) {
+  const providerCode = cleanText(payload?.error?.code, 100).toLocaleLowerCase();
+  const providerType = cleanText(payload?.error?.type, 100).toLocaleLowerCase();
+  const providerMessage = cleanText(payload?.error?.message, 300).toLocaleLowerCase();
+  const categoryText = `${providerCode} ${providerType} ${providerMessage}`;
+  if (status === 401 || /invalid.*api.*key|authentication/.test(categoryText)) return "INVALID_API_KEY";
+  if (/insufficient_quota|billing|credit|hard_limit|exceeded.*quota/.test(categoryText)) return "BILLING_OR_QUOTA";
+  if (status === 429) return "RATE_LIMITED";
+  if (status === 404 || /model.*not.*found|model.*does not support|unsupported.*model|image.*not.*supported|model_not_available/.test(categoryText)) return "MODEL_NOT_AVAILABLE";
+  if (status === 413) return "IMAGE_TOO_LARGE";
+  if (status === 408 || status === 504) return "PROVIDER_TIMEOUT";
+  if (status === 400 && /image|image_url|invalid_value/.test(categoryText)) return "INVALID_IMAGE";
+  if (status >= 500) return "PROVIDER_UNAVAILABLE";
+  return "INTERNAL_ERROR";
+}
+
+const providerStatusCode = (category) => ({
+  INVALID_API_KEY:401,
+  BILLING_OR_QUOTA:402,
+  RATE_LIMITED:429,
+  MODEL_NOT_AVAILABLE:503,
+  INVALID_IMAGE:400,
+  IMAGE_TOO_LARGE:413,
+  PROVIDER_TIMEOUT:504,
+  PROVIDER_UNAVAILABLE:503,
+  INTERNAL_ERROR:500,
+}[category] || 500);
 
 const outputSchema = {
   type:"object",
@@ -143,49 +188,79 @@ function buildPrompt({ subject, region, season }) {
 }
 
 export default async function handler(request) {
-  if (request.method !== "POST") return errorResponse("method-not-allowed", "Use POST for plant photo identification.", 405);
-  if (!consumeRateLimit(getClientAddress(request))) {
-    return errorResponse("rate-limited", "Photo analysis is busy. Please wait a few minutes and try again.", 429);
+  const startedAt = Date.now();
+  const id = requestId();
+  const apiKey = String(process.env.OPENAI_API_KEY || "").trim();
+  const model = cleanText(process.env.OPENAI_VISION_MODEL, 120);
+  diagnosticLog("request-received", { requestId:id, method:request.method });
+
+  if (request.method === "GET") {
+    const providerStatus = !apiKey ? "CREDENTIALS_MISSING" : !model ? "MODEL_CONFIGURATION_ERROR" : "READY";
+    diagnosticLog("diagnostic-check", {
+      requestId:id,
+      providerStatus,
+      apiKeyPresent:Boolean(apiKey),
+      modelConfigured:Boolean(model),
+      durationMs:Date.now() - startedAt,
+    });
+    return json({
+      status:"ok",
+      providerStatus,
+      checks:{ functionReachable:true, apiKeyPresent:Boolean(apiKey), modelConfigured:Boolean(model) },
+    });
   }
 
-  const apiKey = cleanText(process.env.OPENAI_API_KEY, 500);
-  if (!apiKey) return errorResponse("not-configured", "Photo identification is not configured yet.", 503);
-  const model = cleanText(process.env.OPENAI_VISION_MODEL, 120) || DEFAULT_VISION_MODEL;
+  if (request.method !== "POST") return errorResponse("METHOD_NOT_ALLOWED", 405, id);
+  if (!apiKey) return errorResponse("NOT_CONFIGURED", 503, id);
+  if (!model) return errorResponse("MODEL_NOT_AVAILABLE", 503, id);
+  if (!consumeRateLimit(getClientAddress(request))) {
+    diagnosticLog("request-rejected", { requestId:id, errorCategory:"RATE_LIMITED", source:"function", durationMs:Date.now() - startedAt });
+    return errorResponse("RATE_LIMITED", 429, id);
+  }
 
   let rawBody;
   try {
     rawBody = await request.text();
   } catch {
-    return errorResponse("invalid-request", "The photo request could not be read.", 400);
+    diagnosticLog("request-validation", { requestId:id, success:false, errorCategory:"INVALID_REQUEST", durationMs:Date.now() - startedAt });
+    return errorResponse("INVALID_REQUEST", 400, id);
   }
   if (!rawBody || Buffer.byteLength(rawBody, "utf8") > MAX_REQUEST_BYTES) {
-    return errorResponse("oversized-image", "The prepared image is too large for analysis.", 413);
+    diagnosticLog("request-validation", { requestId:id, success:false, errorCategory:"IMAGE_TOO_LARGE", durationMs:Date.now() - startedAt });
+    return errorResponse("IMAGE_TOO_LARGE", 413, id);
   }
 
   let input;
   try {
     input = JSON.parse(rawBody);
   } catch {
-    return errorResponse("invalid-request", "The photo request is invalid.", 400);
+    return errorResponse("INVALID_REQUEST", 400, id);
   }
-  if (!input || typeof input !== "object" || Array.isArray(input)) return errorResponse("invalid-request", "The photo request is invalid.", 400);
+  if (!input || typeof input !== "object" || Array.isArray(input)) return errorResponse("INVALID_REQUEST", 400, id);
   const extraKeys = Object.keys(input).filter((key) => !["image", "subject", "context"].includes(key));
   if (extraKeys.length || (input.context != null && (typeof input.context !== "object" || Array.isArray(input.context)))) {
-    return errorResponse("invalid-request", "The photo request contains unsupported fields.", 400);
+    return errorResponse("INVALID_REQUEST", 400, id);
   }
   const contextKeys = Object.keys(input.context || {}).filter((key) => !["region", "season"].includes(key));
-  if (contextKeys.length) return errorResponse("invalid-request", "The photo context contains unsupported fields.", 400);
+  if (contextKeys.length) return errorResponse("INVALID_REQUEST", 400, id);
 
   const image = validateImage(input.image);
-  if (image.error === "unsupported-type") return errorResponse("unsupported-type", "Choose a JPEG, PNG, or WebP photograph.", 415);
-  if (image.error === "oversized-image") return errorResponse("oversized-image", "The prepared image is too large for analysis.", 413);
-  if (image.error) return errorResponse("invalid-image", "The selected image could not be read.", 400);
+  if (image.error === "oversized-image") return errorResponse("IMAGE_TOO_LARGE", 413, id);
+  if (image.error) return errorResponse("INVALID_IMAGE", image.error === "unsupported-type" ? 415 : 400, id);
+
+  diagnosticLog("image-validated", {
+    requestId:id,
+    imageMimeType:image.mimeType,
+    imageBytes:image.bytes,
+    model,
+  });
 
   const subject = cleanText(input.subject, 60);
   const region = cleanText(input.context?.region, 120);
   const season = cleanText(input.context?.season, 40);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
+  const providerStartedAt = Date.now();
 
   try {
     const providerResponse = await fetch(OPENAI_RESPONSES_ENDPOINT, {
@@ -220,27 +295,55 @@ export default async function handler(request) {
       signal:controller.signal,
     });
 
-    if (providerResponse.status === 429) return errorResponse("rate-limited", "Photo analysis is busy. Please wait a few minutes and try again.", 429);
-    if (!providerResponse.ok) return errorResponse("provider-unavailable", "Photo analysis is temporarily unavailable.", 502);
-
-    let providerPayload;
+    let providerPayload = null;
+    let providerJsonParsed = true;
     try {
       providerPayload = await providerResponse.json();
     } catch {
-      return errorResponse("malformed-response", "Photo analysis returned an unreadable result.", 502);
+      providerJsonParsed = false;
     }
+
+    const providerCategory = providerResponse.ok
+      ? providerJsonParsed ? "SUCCESS" : "MALFORMED_PROVIDER_RESPONSE"
+      : providerErrorCategory(providerResponse.status, providerPayload);
+    diagnosticLog("provider-response", {
+      requestId:id,
+      model,
+      providerHttpStatus:providerResponse.status,
+      providerErrorCategory:providerCategory,
+      responseJsonParsed:providerJsonParsed,
+      durationMs:Date.now() - providerStartedAt,
+    });
+
+    if (!providerResponse.ok) return errorResponse(providerCategory, providerStatusCode(providerCategory), id);
+    if (!providerJsonParsed) return errorResponse("MALFORMED_PROVIDER_RESPONSE", 502, id);
+
     let parsed;
     try {
-      parsed = JSON.parse(extractOutputText(providerPayload));
+      const outputText = extractOutputText(providerPayload);
+      if (!outputText) throw new Error("missing-output-text");
+      parsed = JSON.parse(outputText);
     } catch {
-      return errorResponse("malformed-response", "Photo analysis returned an unreadable result.", 502);
+      diagnosticLog("response-parsing", { requestId:id, success:false, errorCategory:"MALFORMED_PROVIDER_RESPONSE", durationMs:Date.now() - startedAt });
+      return errorResponse("MALFORMED_PROVIDER_RESPONSE", 502, id);
     }
     const result = normalizeProviderResult(parsed);
-    if (!result) return errorResponse("malformed-response", "Photo analysis returned an unreadable result.", 502);
+    if (!result) {
+      diagnosticLog("response-parsing", { requestId:id, success:false, errorCategory:"MALFORMED_PROVIDER_RESPONSE", durationMs:Date.now() - startedAt });
+      return errorResponse("MALFORMED_PROVIDER_RESPONSE", 502, id);
+    }
+    diagnosticLog("response-parsing", {
+      requestId:id,
+      success:true,
+      candidateCount:result.candidates.length,
+      imageQuality:result.imageQuality,
+      durationMs:Date.now() - startedAt,
+    });
     return json(result);
   } catch (error) {
-    if (error?.name === "AbortError") return errorResponse("provider-timeout", "Photo analysis took too long. Please try again.", 504);
-    return errorResponse("provider-unavailable", "Photo analysis is temporarily unavailable.", 502);
+    const category = error?.name === "AbortError" ? "PROVIDER_TIMEOUT" : "PROVIDER_UNAVAILABLE";
+    diagnosticLog("provider-exception", { requestId:id, providerErrorCategory:category, durationMs:Date.now() - startedAt });
+    return errorResponse(category, providerStatusCode(category), id);
   } finally {
     clearTimeout(timeout);
   }

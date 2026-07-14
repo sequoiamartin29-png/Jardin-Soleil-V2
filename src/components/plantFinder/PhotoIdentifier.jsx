@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import { identifyPlantPhoto } from "../../services/plantFinderService";
+import React, { useEffect, useRef, useState } from "react";
+import { getPlantPhotoProviderLabel, getPlantPhotoProviderStatus, identifyPlantPhoto } from "../../services/plantFinderService";
 import { PLANT_IMAGE_ACCEPT, PlantImageError, preparePlantImage } from "../../utils/plantImageProcessing";
 import { plantFinderSubjects } from "../../utils/plantFinderRules";
 
@@ -17,6 +17,13 @@ export default function PhotoIdentifier({ context = {}, onContinue, onGuided, on
   const [phase, setPhase] = useState("idle");
   const [message, setMessage] = useState("");
   const [providerResult, setProviderResult] = useState(null);
+  const [providerDiagnostic, setProviderDiagnostic] = useState({ providerStatus:"checking", label:"Checking provider status", message:"Confirming the secure function configuration." });
+
+  useEffect(() => {
+    let active = true;
+    getPlantPhotoProviderStatus().then((result) => { if (active) setProviderDiagnostic(result); });
+    return () => { active = false; };
+  }, []);
 
   const chooseFile = async (event) => {
     const file = event.target.files?.[0] || null;
@@ -112,11 +119,7 @@ export default function PhotoIdentifier({ context = {}, onContinue, onGuided, on
   };
 
   const flowIndex = phase === "compressing" ? 1 : phase === "analyzing" ? 2 : phase === "unavailable" ? 3 : processedPhoto ? 1 : 0;
-  const providerHeading = providerResult?.providerStatus === "not-configured"
-    ? "Provider status · Not configured"
-    : providerResult?.providerStatus === "local-fallback"
-      ? "Provider status · Local fallback"
-      : "Provider status · Unavailable";
+  const providerHeading = `Provider status · ${getPlantPhotoProviderLabel(providerResult?.providerStatus)}`;
 
   return (
     <form className="js-finder-ledger js-finder-photo" onSubmit={submit}>
@@ -177,8 +180,8 @@ export default function PhotoIdentifier({ context = {}, onContinue, onGuided, on
 
       {phase === "prepared" && (
         <aside className="js-finder-provider" aria-label="Photo identification provider status">
-          <strong>Provider status · Checking on analysis</strong>
-          <p>The secure function—not browser code—checks server configuration when you select Analyze Photo.</p>
+          <strong>Provider status · {providerDiagnostic.label}</strong>
+          <p>{providerDiagnostic.message}</p>
         </aside>
       )}
 
@@ -186,6 +189,7 @@ export default function PhotoIdentifier({ context = {}, onContinue, onGuided, on
 
       {phase === "unavailable" ? (
         <div className="js-finder-actions js-finder-photo__unavailable-actions">
+          <button type="submit" className="is-primary" disabled={busy}>Retry Photo Analysis</button>
           <button type="button" className="is-primary" onClick={continueGuided}>Continue with Guided Identification</button>
           <button type="button" className="is-quiet" onClick={clearPhoto}>Cancel / Choose Another Photo</button>
           <button type="button" className="is-quiet" onClick={onCancel}>Back to Plant Finder</button>

@@ -5,9 +5,11 @@ import "./DashboardStatCard.css";
 export default function DashboardStatCard({ icon, value, label, subtext="", accessibleName }) {
   return <article className="js-dashboard-stat-card" aria-label={accessibleName || `${value} ${label}`}>
     <span className="js-dashboard-stat-card__icon" aria-hidden="true"><StatIcon icon={icon}/></span>
-    <strong>{value}</strong>
-    <span className="js-dashboard-stat-card__label">{label}</span>
-    {subtext&&<small>{subtext}</small>}
+    <span className="js-dashboard-stat-card__content">
+      <strong>{value}</strong>
+      <span className="js-dashboard-stat-card__label">{label}</span>
+      {subtext&&<small>{subtext}</small>}
+    </span>
   </article>;
 }
 
