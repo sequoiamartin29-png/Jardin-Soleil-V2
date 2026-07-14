@@ -3,6 +3,11 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 const EnvironmentContext = createContext(null);
 const defaultSettings = { liveWeather:true, seasonalEffects:true, wildlife:true, buddy:true, intensity:"Normal" };
 const loadJson = (key, fallback) => { try { const value=localStorage.getItem(key); return value?JSON.parse(value):fallback; } catch { return fallback; } };
+const estateLocation = { label:"Delaware", latitude:39.0, longitude:-75.5 };
+const loadWeather = () => {
+  const cached = loadJson("jardinSoleilWeatherCache", null);
+  return cached?.locationLabel === estateLocation.label ? cached : null;
+};
 
 const conditionFromCode = (code=0) => {
   if ([95,96,99].includes(code)) return "storm";
@@ -18,7 +23,7 @@ const seasonFor = (now, latitude=38) => { const month=now.getMonth()+1; const no
 
 export function EstateEnvironmentProvider({ children }) {
   const [settings,setSettings]=useState(()=>loadJson("jardinSoleilEnvironmentSettings",defaultSettings));
-  const [weather,setWeather]=useState(()=>loadJson("jardinSoleilWeatherCache",null));
+  const [weather,setWeather]=useState(loadWeather);
   const [status,setStatus]=useState("idle");
   const [error,setError]=useState("");
   const [now,setNow]=useState(()=>new Date());
@@ -27,17 +32,17 @@ export function EstateEnvironmentProvider({ children }) {
   useEffect(()=>{const timer=window.setInterval(()=>setNow(new Date()),60000);return()=>window.clearInterval(timer);},[]);
   useEffect(()=>{
     if(!settings.liveWeather){setStatus("disabled");return undefined;}
-    if(!navigator.geolocation){setError("Location is unavailable in this browser.");setStatus("error");return undefined;}
     let cancelled=false; const controller=new AbortController(); setStatus("loading");
-    navigator.geolocation.getCurrentPosition(async({coords})=>{
+    const refresh=async()=>{
       try {
         const fields="temperature_2m,apparent_temperature,precipitation,weather_code,cloud_cover,wind_speed_10m";
-        const url=`https://api.open-meteo.com/v1/forecast?latitude=${coords.latitude}&longitude=${coords.longitude}&current=${fields}&daily=sunrise,sunset&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=1`;
+        const browserTimeZone=Intl.DateTimeFormat().resolvedOptions().timeZone||"auto";
+        const url=`https://api.open-meteo.com/v1/forecast?latitude=${estateLocation.latitude}&longitude=${estateLocation.longitude}&current=${fields}&daily=sunrise,sunset&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=${encodeURIComponent(browserTimeZone)}&forecast_days=1`;
         const response=await fetch(url,{signal:controller.signal}); if(!response.ok)throw new Error("Weather service unavailable"); const data=await response.json();
-        const next={ latitude:coords.latitude, longitude:coords.longitude, temperature:data.current?.temperature_2m, apparentTemperature:data.current?.apparent_temperature, precipitation:data.current?.precipitation, wind:data.current?.wind_speed_10m, cloudCover:data.current?.cloud_cover, weatherCode:data.current?.weather_code, sunrise:data.daily?.sunrise?.[0], sunset:data.daily?.sunset?.[0], observedAt:data.current?.time, timezone:data.timezone };
+        const next={ locationLabel:estateLocation.label, latitude:estateLocation.latitude, longitude:estateLocation.longitude, temperature:data.current?.temperature_2m, apparentTemperature:data.current?.apparent_temperature, precipitation:data.current?.precipitation, wind:data.current?.wind_speed_10m, cloudCover:data.current?.cloud_cover, weatherCode:data.current?.weather_code, sunrise:data.daily?.sunrise?.[0], sunset:data.daily?.sunset?.[0], observedAt:data.current?.time, timezone:browserTimeZone };
         if(!cancelled){setWeather(next);setStatus("ready");setError("");localStorage.setItem("jardinSoleilWeatherCache",JSON.stringify(next));}
       } catch(err){if(!cancelled&&err.name!=="AbortError"){setStatus(weather?"cached":"error");setError("Live weather could not be refreshed. Cached conditions remain available when present.");}}
-    },()=>{if(!cancelled){setStatus(weather?"cached":"error");setError("Allow location access to use live local weather.");}},{maximumAge:15*60*1000,timeout:12000});
+    };refresh();
     return()=>{cancelled=true;controller.abort();};
   },[settings.liveWeather]);
 
@@ -49,6 +54,7 @@ export function EstateEnvironmentProvider({ children }) {
     return { condition:baseCondition, conditionLabel:conditionLabel[baseCondition], windy, heat, buddyMode, phase:phaseFor(now,weather?.sunrise,weather?.sunset), season:seasonFor(now,weather?.latitude), now };
   },[now,weather,settings.liveWeather]);
   const updateSetting=(key,value)=>setSettings((current)=>({...current,[key]:value}));
-  return <EnvironmentContext.Provider value={{settings,updateSetting,weather,status,error,...state}}>{children}</EnvironmentContext.Provider>;
+  const sourceStatus=status==="ready"?"Live":status==="cached"?"Cached":status==="disabled"?"Manual":"Unavailable";
+  return <EnvironmentContext.Provider value={{settings,updateSetting,weather,status,sourceStatus,estateLocation,error,...state}}>{children}</EnvironmentContext.Provider>;
 }
 export const useEstateEnvironment=()=>{const value=useContext(EnvironmentContext);if(!value)throw new Error("useEstateEnvironment must be used inside EstateEnvironmentProvider");return value;};

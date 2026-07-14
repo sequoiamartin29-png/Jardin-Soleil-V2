@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useGarden } from "../context/GardenContext";
 import BotanicalIcon from "./icons/BotanicalIcon";
+import PlantSelectorWithCreate from "./PlantSelectorWithCreate";
 import "./TeaWorkflow.css";
 
 export const teaWorkflowStages = ["Growing", "Ready to Harvest", "Harvested", "Drying", "Ready to Jar", "Jarred", "Ready to Blend", "Blended", "Brewed", "Enjoyed"];
@@ -63,7 +64,7 @@ export default function TeaWorkflow({ blends }) {
 
       {showForm && <form className="js-cup__form" onSubmit={save}>
         <div className="js-cup__form-heading"><h3>{editingId?"Edit":"New"} Garden to Cup workflow</h3><button type="button" onClick={()=>setShowForm(false)}>Close</button></div>
-        <label>Linked plant or herb<select required value={form.plantId} onChange={(e)=>choosePlant(e.target.value)}><option value="">Select an existing herb</option>{herbs.map((plant)=><option key={plant.id} value={plant.id}>{plant.name}{plant.nickname?` (${plant.nickname})`:""}</option>)}</select></label>
+        <PlantSelectorWithCreate label="Linked plant or herb" value={form.plantId} onChange={(plantId) => choosePlant(plantId)} required emptyLabel="Search all plants" description="Link any canonical plant or create a missing herb without closing this workflow." />
         <label>Linked tea blend<select value={form.blendId} onChange={(e)=>updateForm("blendId",e.target.value)}><option value="">No blend selected yet</option>{blends.map((blend)=><option key={blend.id} value={blend.id}>{blend.name}</option>)}</select></label>
         <label>Garden location<input value={form.gardenLocation} onChange={(e)=>updateForm("gardenLocation",e.target.value)} /></label>
         <label>Current stage<select value={form.currentStage} onChange={(e)=>updateForm("currentStage",e.target.value)}>{teaWorkflowStages.map((stage)=><option key={stage}>{stage}</option>)}</select></label>
@@ -84,7 +85,7 @@ export default function TeaWorkflow({ blends }) {
 
       {visibleWorkflows.length ? <div className="js-cup__records">{visibleWorkflows.map((workflow)=>{
         const plant=plantById(workflow.plantId); const blend=blendById(workflow.blendId); const stageIndex=teaWorkflowStages.indexOf(workflow.currentStage); const workflowPhotos=photos.filter((photo)=>Object.values(workflow.stagePhotos||{}).flat().includes(photo.id));
-        return <article key={workflow.id}><div className="js-cup__record-head"><BotanicalIcon plant={plant} size="lg" decorative /><div><span>{blend?.name || "Ingredient journey"}</span><h3>{plant?.name || workflow.deletedPlantName || "Unknown herb"}</h3>{workflow.plantDeleted&&<small>Historical record · plant deleted</small>}<p>{workflow.gardenLocation || "Garden location not recorded"}</p></div><select aria-label={`Update stage for ${plant?.name || workflow.deletedPlantName || "workflow"}`} value={workflow.currentStage} onChange={(e)=>updateTeaWorkflow(workflow.id,{currentStage:e.target.value})}>{teaWorkflowStages.map((stage)=><option key={stage}>{stage}</option>)}</select></div>
+        return <article key={workflow.id}><div className="js-cup__record-head"><BotanicalIcon plant={plant} size="lg" decorative /><div><span>{blend?.name || workflow.deletedBlendName || "Ingredient journey"}</span><h3>{plant?.name || workflow.deletedPlantName || "Unknown herb"}</h3>{workflow.plantDeleted&&<small>Historical record · plant deleted</small>}{workflow.blendDeleted&&<small>Linked recipe deleted · workflow preserved</small>}<p>{workflow.gardenLocation || "Garden location not recorded"}</p></div><select aria-label={`Update stage for ${plant?.name || workflow.deletedPlantName || "workflow"}`} value={workflow.currentStage} onChange={(e)=>updateTeaWorkflow(workflow.id,{currentStage:e.target.value})}>{teaWorkflowStages.map((stage)=><option key={stage}>{stage}</option>)}</select></div>
           <div className="js-cup__timeline" aria-label={`Current stage: ${workflow.currentStage}`}>{teaWorkflowStages.map((stage,index)=><span key={stage} className={index<=stageIndex?"is-complete":""} title={stage}>{index+1}</span>)}</div>
           <p className="js-cup__stage">{workflow.currentStage} · {seasonFor(workflow.harvestDate)}</p>
           <dl><div><dt>Harvest</dt><dd>{workflow.harvestDate||"Not recorded"}{workflow.harvestQuantity?` · ${workflow.harvestQuantity}`:""}</dd></div><div><dt>Drying</dt><dd>{workflow.dryingStartDate||"Not started"} → {workflow.dryingCompletionDate||"Pending"}</dd></div><div><dt>Storage</dt><dd>{workflow.jarredDate||"Not jarred"}{workflow.storageContainer?` · ${workflow.storageContainer}`:""}</dd></div><div><dt>Blend / brew</dt><dd>{workflow.blendCreationDate||"Not blended"} · {workflow.brewingDate||"Not brewed"}</dd></div></dl>

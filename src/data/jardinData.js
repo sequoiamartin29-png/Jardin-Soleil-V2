@@ -196,7 +196,8 @@ export const gardenPlants = [
     name: "Honey Melon Sage",
     type: "Sage",
     category: "Herbs",
-    group: "Herbs",
+    group: "Sage",
+    collection: "Herb & Tea Garden",
     status: "Growing"
   },
   {
@@ -237,6 +238,33 @@ export const gardenPlants = [
     status: "Monitoring"
   },
   {
+    id: "black-diamond-watermelon-1",
+    name: "Black Diamond Watermelon 1",
+    type: "Watermelon",
+    category: "Vegetables",
+    group: "Watermelons",
+    collection: "Vegetable Garden",
+    status: "Active"
+  },
+  {
+    id: "black-diamond-watermelon-2",
+    name: "Black Diamond Watermelon 2",
+    type: "Watermelon",
+    category: "Vegetables",
+    group: "Watermelons",
+    collection: "Vegetable Garden",
+    status: "Active"
+  },
+  {
+    id: "crimson-red-watermelon",
+    name: "Crimson Red Watermelon",
+    type: "Watermelon",
+    category: "Vegetables",
+    group: "Watermelons",
+    collection: "Vegetable Garden",
+    status: "Active"
+  },
+  {
     id: "carrots-lettuce",
     name: "Carrots & Lettuce",
     type: "Cool-season crops",
@@ -262,11 +290,11 @@ export const gardenPlants = [
 ];
 
 export const gardenZones = [
-  { id:"vegetable-garden", name:"Vegetable Garden", directoryGroup:"Vegetables" },
-  { id:"herb-tea-garden", name:"Herb & Tea Garden", directoryGroup:"Herbs" },
-  { id:"berry-vine-zone", name:"Berry & Vine Zone", directoryGroup:"Berries and Vines" },
-  { id:"flower-perennial-garden", name:"Flower & Perennial Garden", directoryGroup:"Flowers and Perennials" },
-  { id:"melon-patch", name:"Melon Patch", matchType:"melon" },
+  { id:"vegetable-garden", name:"Vegetable Garden", label:"Kitchen Garden", description:"Seasonal edible crops", directoryGroup:"Vegetables" },
+  { id:"herb-tea-garden", name:"Herb & Tea Garden", label:"Tea & Herb Corridor", description:"Kitchen, apothecary, and tea plantings", directoryGroup:"Herbs" },
+  { id:"berry-vine-zone", name:"Berry & Vine Zone", label:"Berry Zone", description:"Edible fruits and climbing crops", directoryGroup:"Berries and Vines" },
+  { id:"flower-perennial-garden", name:"Flower & Perennial Garden", label:"Flower & Perennials", description:"Color and pollinator plantings", directoryGroup:"Flowers and Perennials" },
+  { id:"melon-patch", name:"Melon Patch", label:"Melon Patch", description:"Warm-season melons", matchType:"melon" },
 ];
 
 export const starterTasks = [

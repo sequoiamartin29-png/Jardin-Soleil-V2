@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { plants as starterPlants } from "../data/plants";
-import { gardenPlants, gardenZones, mintPlants } from "../data/jardinData";
+import { gardenPlants, gardenZones, mintPlants, starterTasks } from "../data/jardinData";
+import { teaBlends as starterTeaRecipes } from "../data/teaBlends";
+import { starterInventoryItems } from "../data/inventory";
 import { countUniquePlants, getMintVarietyNames, getUniqueGardenBeds, isEdibleOrHerbPlant, isOrchardFruitTree } from "../utils/plantClassification";
 import { preserveDeletedPlantReference } from "../utils/plantMutations";
 
@@ -21,7 +23,8 @@ const chicagoHardyFigStarter = starterPlants.find(
 const mintCollectionStarter = gardenPlants.find(
   (plant) => plant.id === "mint-collection"
 );
-const mintLegacyIdMap = new Map();
+const watermelonStarters = gardenPlants.filter((plant) => ["black-diamond-watermelon-1", "black-diamond-watermelon-2", "crimson-red-watermelon"].includes(plant.id));
+const plantLegacyIdMap = new Map();
 
 const normalizePlantIdentity = (plant) =>
   `${plant.id || ""} ${plant.name || ""} ${plant.nickname || ""} ${plant.type || ""} ${plant.variety || ""}`
@@ -38,8 +41,85 @@ const canonicalGardenMetadata = {
   mintcollection: { name: "Mint Collection", category: "Herbs", group: "Herbs", type: "Mint", variety: mintCollectionStarter.variety, collectionMembers: mintCollectionStarter.collectionMembers, collectionTotal: mintCollectionStarter.collectionTotal },
   msrose: { name: "Ms. Rose", category: "Flowers & Perennials", group: "Flowers & Perennials", type: "Rose" },
   pineapplesage: { name: "Pineapple Sage", category: "Herbs", group: "Herbs", type: "Sage" },
-  honeymelonsage: { name: "Honey Melon Sage", category: "Herbs", group: "Herbs", type: "Sage" },
+  honeymelonsage: { name: "Honey Melon Sage", category: "Herbs", group: "Sage", collection: "Herb & Tea Garden", type: "Sage" },
+  blackdiamondwatermelon1: { name:"Black Diamond Watermelon 1", category:"Vegetables", group:"Watermelons", collection:"Vegetable Garden", type:"Watermelon" },
+  blackdiamondwatermelon2: { name:"Black Diamond Watermelon 2", category:"Vegetables", group:"Watermelons", collection:"Vegetable Garden", type:"Watermelon" },
+  crimsonredwatermelon: { name:"Crimson Red Watermelon", category:"Vegetables", group:"Watermelons", collection:"Vegetable Garden", type:"Watermelon" },
+  crismsonredwatermelon: { name:"Crimson Red Watermelon", category:"Vegetables", group:"Watermelons", collection:"Vegetable Garden", type:"Watermelon" },
 };
+
+const createStableId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+const diagnosisArray = (value) => Array.isArray(value) ? value : [];
+const normalizePlantDiagnosis = (diagnosis) => {
+  const createdAt = diagnosis.createdAt || diagnosis.date || new Date().toISOString();
+  return {
+    ...diagnosis,
+    id:diagnosis.id || createStableId("plant-diagnosis"),
+    plantId:diagnosis.plantId || "",
+    date:diagnosis.date || createdAt.slice(0, 10),
+    affectedArea:diagnosis.affectedArea || "whole plant",
+    symptoms:diagnosisArray(diagnosis.symptoms),
+    pestEvidence:diagnosisArray(diagnosis.pestEvidence),
+    recentConditions:diagnosisArray(diagnosis.recentConditions),
+    photoIds:diagnosisArray(diagnosis.photoIds),
+    rankedPossibilities:diagnosisArray(diagnosis.rankedPossibilities),
+    treatmentPlan:diagnosisArray(diagnosis.treatmentPlan),
+    followUps:diagnosisArray(diagnosis.followUps),
+    workingDiagnosis:diagnosis.workingDiagnosis || diagnosis.rankedPossibilities?.[0]?.name || "Unconfirmed",
+    confidence:diagnosis.confidence || "Low",
+    status:diagnosis.status || "Unconfirmed",
+    initialStatus:diagnosis.initialStatus || diagnosis.status || "Unconfirmed",
+    notes:diagnosis.notes || "",
+    followUpDate:diagnosis.followUpDate || "",
+    sourceMode:diagnosis.sourceMode || "Local deterministic analysis",
+    createdAt,
+    updatedAt:diagnosis.updatedAt || createdAt,
+  };
+};
+const normalizeInventoryItem = (item) => ({
+  id: item.id || createStableId("inventory"),
+  name: String(item.name || "").trim(),
+  category: String(item.category || "Other").trim() || "Other",
+  quantity: item.quantity === "" || item.quantity === null || item.quantity === undefined ? "" : Number(item.quantity),
+  unit: String(item.unit || "").trim(),
+  status: String(item.status || "In stock").trim(),
+  location: String(item.location || "").trim(),
+  lowThreshold: item.lowThreshold === "" || item.lowThreshold === null || item.lowThreshold === undefined ? "" : Number(item.lowThreshold),
+  notes: String(item.notes || "").trim(),
+  plantId: item.plantId || "",
+  createdAt: item.createdAt || new Date().toISOString(),
+  updatedAt: item.updatedAt || new Date().toISOString(),
+});
+const normalizeTeaRecipe = (recipe) => ({
+  ...recipe,
+  id: recipe.id || createStableId("tea-recipe"),
+  name: String(recipe.name || "").trim(),
+  description: String(recipe.description || recipe.subtitle || "").trim(),
+  subtitle: String(recipe.subtitle || recipe.description || "").trim(),
+  ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients.map((ingredient) =>
+    typeof ingredient === "string" ? { name:ingredient, amount:"" } : { name:String(ingredient.name || "").trim(), amount:String(ingredient.amount || "").trim() }
+  ).filter((ingredient) => ingredient.name) : [],
+  flavorProfile: Array.isArray(recipe.flavorProfile) ? recipe.flavorProfile : [],
+  wellnessBenefits: Array.isArray(recipe.wellnessBenefits) ? recipe.wellnessBenefits : [],
+  brewing: { temperature:"", steepTime:"", serving:"", ...(recipe.brewing || {}) },
+  inventory: { quantity:"", unit:"", ...(recipe.inventory || {}) },
+  linkedPlantIds: Array.isArray(recipe.linkedPlantIds)
+    ? [...new Set(recipe.linkedPlantIds.filter(Boolean))]
+    : [],
+  favorite: Boolean(recipe.favorite),
+  archived: Boolean(recipe.archived),
+  createdAt: recipe.createdAt || new Date().toISOString(),
+  updatedAt: recipe.updatedAt || new Date().toISOString(),
+});
+
+const starterTaskRecords = starterTasks.map((title, index) => ({
+  id:`starter-task-${index + 1}`,
+  title,
+  dueDate:"",
+  completed:false,
+  source:"Estate task",
+  createdAt:"2026-07-01T12:00:00.000Z",
+}));
 
 const isThomasvilleCitrangequat = (plant) => {
   const identity = normalizePlantIdentity(plant);
@@ -79,6 +159,7 @@ const load = (key, fallback) => {
 };
 
 const loadPlants = () => {
+  plantLegacyIdMap.clear();
   const deletedPlantIds = new Set(load("jardinSoleilDeletedPlantIds", []));
   const savedPlants = load("jardinSoleilPlants", starterPlants);
   const existingPlant = savedPlants.find(isThomasvilleCitrangequat);
@@ -175,7 +256,35 @@ const loadPlants = () => {
     }
   });
 
-  mintLegacyIdMap.clear();
+  watermelonStarters.forEach((canonicalWatermelon) => {
+    const canonicalName = normalizePlantName(canonicalWatermelon.name);
+    const matches = migratedPlants.filter((plant) => {
+      const name = normalizePlantName(plant.name);
+      if (canonicalWatermelon.id === "black-diamond-watermelon-1") return name === canonicalName || name === "blackdiamond1" || name === "blackdiamondwatermelonone";
+      if (canonicalWatermelon.id === "black-diamond-watermelon-2") return name === canonicalName || name === "blackdiamond2" || name === "blackdiamondwatermelontwo";
+      return [canonicalName, "crismsonred", "crismsonredwatermelon", "crimsonred"].includes(name);
+    });
+    const merged = matches.reduce((result, plant) => ({
+      ...result,
+      ...plant,
+      profileNotes:[...(result.profileNotes || []), ...(plant.profileNotes || [])],
+      photos:[...(result.photos || []), ...(plant.photos || [])],
+      journal:[...(result.journal || []), ...(plant.journal || [])],
+    }), { ...canonicalWatermelon });
+    matches.forEach((plant) => { if (plant.id && plant.id !== canonicalWatermelon.id) plantLegacyIdMap.set(plant.id, canonicalWatermelon.id); });
+    migratedPlants = migratedPlants.filter((plant) => !matches.includes(plant));
+    migratedPlants.push({
+      ...merged,
+      id:canonicalWatermelon.id,
+      name:canonicalWatermelon.name,
+      category:"Vegetables",
+      group:"Watermelons",
+      collection:"Vegetable Garden",
+      type:"Watermelon",
+      status:merged.status || "Active",
+    });
+  });
+
   mintPlants.forEach((canonicalMint) => {
     const canonicalName = normalizePlantName(canonicalMint.name);
     const matches = migratedPlants.filter((plant) => normalizePlantName(plant.name) === canonicalName);
@@ -191,7 +300,7 @@ const loadPlants = () => {
       photos: [...(result.photos || []), ...(plant.photos || [])],
       journal: [...(result.journal || []), ...(plant.journal || [])],
     }), { ...canonicalMint });
-    matches.forEach((plant) => { if (plant.id && plant.id !== canonicalMint.id) mintLegacyIdMap.set(plant.id, canonicalMint.id); });
+    matches.forEach((plant) => { if (plant.id && plant.id !== canonicalMint.id) plantLegacyIdMap.set(plant.id, canonicalMint.id); });
     migratedPlants = migratedPlants.filter((plant) => normalizePlantName(plant.name) !== canonicalName);
     migratedPlants.push({
       ...merged,
@@ -233,6 +342,20 @@ const loadPlants = () => {
     return plant;
   });
 
+  const honeyMelonMatches = migratedPlants.filter((plant) => normalizePlantName(plant.name) === "honeymelonsage");
+  if (honeyMelonMatches.length) {
+    const canonicalHoneyMelon = honeyMelonMatches.reduce((result, plant) => ({
+      ...result,
+      ...plant,
+      profileNotes:[...(result.profileNotes || []), ...(plant.profileNotes || [])],
+      photos:[...(result.photos || []), ...(plant.photos || [])],
+      journal:[...(result.journal || []), ...(plant.journal || [])],
+    }), { id:"honey-melon-sage", name:"Honey Melon Sage", category:"Herbs", group:"Sage", collection:"Herb & Tea Garden", type:"Sage" });
+    honeyMelonMatches.forEach((plant) => { if (plant.id && plant.id !== "honey-melon-sage") plantLegacyIdMap.set(plant.id, "honey-melon-sage"); });
+    migratedPlants = migratedPlants.filter((plant) => normalizePlantName(plant.name) !== "honeymelonsage");
+    migratedPlants.push({ ...canonicalHoneyMelon, id:"honey-melon-sage", name:"Honey Melon Sage", category:"Herbs", group:"Sage", collection:"Herb & Tea Garden", type:"Sage" });
+  }
+
   const uniquePlants = new Map();
   migratedPlants.forEach((plant) => {
     const key = plant.id ? `id:${plant.id}` : `name:${normalizePlantName(plant.name)}`;
@@ -252,15 +375,38 @@ export function GardenProvider({ children }) {
   const [selectedPlant, setSelectedPlant] = useState(null);
 
   const [journalEntries, setJournalEntries] = useState(() =>
-    load("jardinSoleilJournalEntries", []).map((entry) => mintLegacyIdMap.has(entry.plantId) ? { ...entry, plantId:mintLegacyIdMap.get(entry.plantId) } : entry)
+    load("jardinSoleilJournalEntries", []).map((entry) => plantLegacyIdMap.has(entry.plantId) ? { ...entry, plantId:plantLegacyIdMap.get(entry.plantId) } : entry)
   );
 
   const [photos, setPhotos] = useState(() =>
-    load("jardinSoleilPhotos", []).map((photo) => mintLegacyIdMap.has(photo.plantId) ? { ...photo, plantId:mintLegacyIdMap.get(photo.plantId) } : photo)
+    load("jardinSoleilPhotos", []).map((photo) => plantLegacyIdMap.has(photo.plantId) ? { ...photo, plantId:plantLegacyIdMap.get(photo.plantId) } : photo)
+  );
+
+  const [plantDiagnoses, setPlantDiagnoses] = useState(() =>
+    load("jardinSoleilPlantDiagnoses", []).map((diagnosis) => normalizePlantDiagnosis(
+      plantLegacyIdMap.has(diagnosis.plantId) ? { ...diagnosis, plantId:plantLegacyIdMap.get(diagnosis.plantId) } : diagnosis
+    ))
   );
 
   const [teaWorkflows, setTeaWorkflows] = useState(() =>
-    load("jardinSoleilTeaWorkflows", []).map((workflow) => mintLegacyIdMap.has(workflow.plantId) ? { ...workflow, plantId:mintLegacyIdMap.get(workflow.plantId) } : workflow)
+    load("jardinSoleilTeaWorkflows", []).map((workflow) => plantLegacyIdMap.has(workflow.plantId) ? { ...workflow, plantId:plantLegacyIdMap.get(workflow.plantId) } : workflow)
+  );
+  const [gardenCollections, setGardenCollections] = useState(() =>
+    load("jardinSoleilGardenCollections", gardenZones).map((collection) => ({ ...collection }))
+  );
+  const [tasks, setTasks] = useState(() => load("jardinSoleilTasks", starterTaskRecords).map((task) => plantLegacyIdMap.has(task.plantId) ? { ...task, plantId:plantLegacyIdMap.get(task.plantId) } : task));
+  const [inventoryItems, setInventoryItems] = useState(() =>
+    load("jardinSoleilInventory", starterInventoryItems).map(normalizeInventoryItem)
+  );
+  const [teaRecipes, setTeaRecipes] = useState(() =>
+    load("jardinSoleilTeaRecipes", starterTeaRecipes).map(normalizeTeaRecipe)
+  );
+  const [calendarEntries, setCalendarEntries] = useState(() =>
+    load("jardinSoleilCalendarEvents", []).map((entry) =>
+      plantLegacyIdMap.has(entry.plantId)
+        ? { ...entry, plantId:plantLegacyIdMap.get(entry.plantId) }
+        : entry
+    )
   );
 
   useEffect(() => {
@@ -279,8 +425,18 @@ export function GardenProvider({ children }) {
   }, [photos]);
 
   useEffect(() => {
+    localStorage.setItem("jardinSoleilPlantDiagnoses", JSON.stringify(plantDiagnoses));
+  }, [plantDiagnoses]);
+
+  useEffect(() => {
     localStorage.setItem("jardinSoleilTeaWorkflows", JSON.stringify(teaWorkflows));
   }, [teaWorkflows]);
+
+  useEffect(() => { localStorage.setItem("jardinSoleilGardenCollections", JSON.stringify(gardenCollections)); }, [gardenCollections]);
+  useEffect(() => { localStorage.setItem("jardinSoleilTasks", JSON.stringify(tasks)); }, [tasks]);
+  useEffect(() => { localStorage.setItem("jardinSoleilInventory", JSON.stringify(inventoryItems)); }, [inventoryItems]);
+  useEffect(() => { localStorage.setItem("jardinSoleilTeaRecipes", JSON.stringify(teaRecipes)); }, [teaRecipes]);
+  useEffect(() => { localStorage.setItem("jardinSoleilCalendarEvents", JSON.stringify(calendarEntries)); }, [calendarEntries]);
 
   useEffect(() => () => deletionTimers.current.forEach((timer) => clearTimeout(timer)), []);
 
@@ -326,6 +482,33 @@ export function GardenProvider({ children }) {
     setPhotos((current) => current.filter((photo) => photo.id !== photoId));
   };
 
+  const addPlantDiagnosis = (diagnosis) => {
+    const next = normalizePlantDiagnosis({ ...diagnosis, id:createStableId("plant-diagnosis"), createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
+    setPlantDiagnoses((current) => [next, ...current]);
+    return next;
+  };
+
+  const updatePlantDiagnosis = (diagnosisId, updates) => {
+    setPlantDiagnoses((current) => current.map((diagnosis) => {
+      if (diagnosis.id !== diagnosisId) return diagnosis;
+      const next = typeof updates === "function" ? updates(diagnosis) : { ...diagnosis, ...updates };
+      return normalizePlantDiagnosis({ ...diagnosis, ...next, id:diagnosis.id, createdAt:diagnosis.createdAt, updatedAt:new Date().toISOString() });
+    }));
+  };
+
+  const addDiagnosisFollowUp = (diagnosisId, followUp) => {
+    const next = { id:createStableId("diagnosis-follow-up"), createdAt:new Date().toISOString(), ...followUp };
+    updatePlantDiagnosis(diagnosisId, (diagnosis) => ({
+      ...diagnosis,
+      status:followUp.status || diagnosis.status,
+      resolvedAt:followUp.status === "Resolved" ? next.createdAt : followUp.status === "Recurring" ? null : diagnosis.resolvedAt,
+      followUps:[next, ...(diagnosis.followUps || [])],
+    }));
+    return next;
+  };
+
+  const deletePlantDiagnosis = (diagnosisId) => setPlantDiagnoses((current) => current.filter((diagnosis) => diagnosis.id !== diagnosisId));
+
   const addTeaWorkflow = (workflow) => {
     const newWorkflow = {
       id: `tea-workflow-${Date.now()}`,
@@ -347,6 +530,81 @@ export function GardenProvider({ children }) {
 
   const deleteTeaWorkflow = (workflowId) => {
     setTeaWorkflows((current) => current.filter((workflow) => workflow.id !== workflowId));
+  };
+
+  const updateGardenCollection = (collectionId, updates) => {
+    const currentCollection = gardenCollections.find((collection) => collection.id === collectionId);
+    if (currentCollection && updates.name && updates.name !== currentCollection.name) {
+      setPlants((current) => current.map((plant) => ({
+        ...plant,
+        ...(normalizePlantName(plant.collection) === normalizePlantName(currentCollection.name) ? { collection:updates.name } : {}),
+        ...(normalizePlantName(plant.gardenZone) === normalizePlantName(currentCollection.name) ? { gardenZone:updates.name } : {}),
+      })));
+    }
+    setGardenCollections((current) => current.map((collection) =>
+      collection.id === collectionId ? { ...collection, ...updates, updatedAt:new Date().toISOString() } : collection
+    ));
+  };
+  const assignPlantToCollection = (plantId, collectionId) => {
+    const collection = gardenCollections.find((item) => item.id === collectionId);
+    if (!collection) return;
+    updatePlant(plantId, {
+      collection:collection.name,
+      gardenZone:collection.name,
+    });
+  };
+
+  const addTask = (task) => {
+    const next = { id:createStableId("task"), completed:false, createdAt:new Date().toISOString(), ...task };
+    setTasks((current) => [next, ...current]);
+    return next;
+  };
+  const updateTask = (taskId, updates) => setTasks((current) => current.map((task) =>
+    task.id === taskId ? { ...task, ...updates, updatedAt:new Date().toISOString() } : task
+  ));
+  const deleteTask = (taskId) => setTasks((current) => current.filter((task) => task.id !== taskId));
+
+  const addInventoryItem = (item) => {
+    const normalizedName = normalizePlantName(item.name);
+    if (inventoryItems.some((current) => normalizePlantName(current.name) === normalizedName && normalizePlantName(current.category) === normalizePlantName(item.category))) {
+      throw new Error("That inventory item already exists in this category.");
+    }
+    const next = normalizeInventoryItem({ ...item, id:createStableId("inventory") });
+    setInventoryItems((current) => [next, ...current]);
+    return next;
+  };
+  const updateInventoryItem = (itemId, updates) => setInventoryItems((current) => current.map((item) =>
+    item.id === itemId ? normalizeInventoryItem({ ...item, ...updates, id:item.id, createdAt:item.createdAt, updatedAt:new Date().toISOString() }) : item
+  ));
+  const deleteInventoryItem = (itemId) => setInventoryItems((current) => current.filter((item) => item.id !== itemId));
+
+  const addCalendarEntry = (entry) => {
+    const next = { id:createStableId("calendar"), createdAt:new Date().toISOString(), ...entry };
+    setCalendarEntries((current) => [next, ...current]);
+    return next;
+  };
+  const updateCalendarEntry = (entryId, updates) => setCalendarEntries((current) => current.map((entry) =>
+    entry.id === entryId ? { ...entry, ...updates, updatedAt:new Date().toISOString() } : entry
+  ));
+  const deleteCalendarEntry = (entryId) => setCalendarEntries((current) => current.filter((entry) => entry.id !== entryId));
+
+  const addTeaRecipe = (recipe) => {
+    const next = normalizeTeaRecipe({ ...recipe, id:createStableId("tea-recipe") });
+    setTeaRecipes((current) => [next, ...current]);
+    return next;
+  };
+  const updateTeaRecipe = (recipeId, updates) => setTeaRecipes((current) => current.map((recipe) =>
+    recipe.id === recipeId ? normalizeTeaRecipe({ ...recipe, ...updates, id:recipe.id, createdAt:recipe.createdAt, updatedAt:new Date().toISOString() }) : recipe
+  ));
+  const deleteTeaRecipe = (recipeId) => {
+    const recipe = teaRecipes.find((item) => item.id === recipeId);
+    if (recipe) setTeaWorkflows((current) => current.map((workflow) => workflow.blendId === recipeId ? { ...workflow, blendId:"", deletedBlendName:recipe.name, blendDeleted:true } : workflow));
+    setTeaRecipes((current) => current.filter((item) => item.id !== recipeId));
+  };
+  const duplicateTeaRecipe = (recipeId) => {
+    const recipe = teaRecipes.find((item) => item.id === recipeId);
+    if (!recipe) return null;
+    return addTeaRecipe({ ...recipe, id:undefined, name:`${recipe.name} Copy`, favorite:false, archived:false });
   };
 
   const updatePlant = (plantId, updates) => {
@@ -398,7 +656,16 @@ export function GardenProvider({ children }) {
     setPlants((current)=>current.filter((item)=>item.id!==plantId));
     setJournalEntries((current)=>current.map(preserveReference));
     setPhotos((current)=>current.map(preserveReference));
+    setPlantDiagnoses((current)=>current.map(preserveReference));
     setTeaWorkflows((current)=>current.map(preserveReference));
+    setTasks((current)=>current.map(preserveReference));
+    setInventoryItems((current)=>current.map(preserveReference));
+    setCalendarEntries((current)=>current.map(preserveReference));
+    setTeaRecipes((current)=>current.map((recipe)=>recipe.linkedPlantIds?.includes(plantId)?{
+      ...recipe,
+      linkedPlantIds:recipe.linkedPlantIds.filter((id)=>id!==plantId),
+      deletedIngredientPlants:[...(recipe.deletedIngredientPlants||[]),{id:plant.id,name:plant.name}],
+    }:recipe));
     setPendingPlantDeletions((current)=>current.filter((item)=>item.plantId!==plantId));
     deletionTimers.current.delete(plantId);
     if(selectedPlant?.id===plantId)setSelectedPlant(null);
@@ -426,6 +693,9 @@ export function GardenProvider({ children }) {
   const getPhotosForPlant = (plantId) =>
     photos.filter((photo) => photo.plantId === plantId);
 
+  const getDiagnosesForPlant = (plantId) =>
+    plantDiagnoses.filter((diagnosis) => diagnosis.plantId === plantId);
+
   const stats = useMemo(() => {
     const totalPlants = activePlants.length;
     const averageHealth =
@@ -448,8 +718,8 @@ export function GardenProvider({ children }) {
       edibleHerbCount: countUniquePlants(activePlants, isEdibleOrHerbPlant),
       gardenBedCount: gardenBeds.length,
       gardenBeds,
-      gardenZoneCount: gardenZones.length,
-      gardenZones,
+      gardenZoneCount: gardenCollections.length,
+      gardenZones:gardenCollections,
       mintVarietyCount: mintVarieties.length,
       mintVarieties,
       citrusCount: activePlants.filter(
@@ -458,7 +728,7 @@ export function GardenProvider({ children }) {
       plantsNeedingAttention: activePlants.filter((p) => (p.health || 100) < 85),
       recentEntries: journalEntries.slice(0, 5),
     };
-  }, [activePlants, journalEntries, photos]);
+  }, [activePlants, journalEntries, photos, gardenCollections]);
 
   const value = {
     plants,
@@ -473,10 +743,35 @@ export function GardenProvider({ children }) {
     photos,
     addPhotos,
     deletePhoto,
+    plantDiagnoses,
+    addPlantDiagnosis,
+    updatePlantDiagnosis,
+    addDiagnosisFollowUp,
+    deletePlantDiagnosis,
     teaWorkflows,
     addTeaWorkflow,
     updateTeaWorkflow,
     deleteTeaWorkflow,
+    gardenCollections,
+    updateGardenCollection,
+    assignPlantToCollection,
+    tasks,
+    addTask,
+    updateTask,
+    deleteTask,
+    inventoryItems,
+    addInventoryItem,
+    updateInventoryItem,
+    deleteInventoryItem,
+    calendarEntries,
+    addCalendarEntry,
+    updateCalendarEntry,
+    deleteCalendarEntry,
+    teaRecipes,
+    addTeaRecipe,
+    updateTeaRecipe,
+    deleteTeaRecipe,
+    duplicateTeaRecipe,
     updatePlant,
     addPlant,
     archivePlant,
@@ -488,6 +783,7 @@ export function GardenProvider({ children }) {
     getPlantById,
     getEntriesForPlant,
     getPhotosForPlant,
+    getDiagnosesForPlant,
     stats,
   };
 

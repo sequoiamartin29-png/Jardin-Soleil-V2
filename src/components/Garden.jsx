@@ -1,41 +1,111 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useGarden } from "../context/GardenContext";
-import { getPlantDirectoryGroup } from "../utils/plantClassification";
-import { gardenZones } from "../data/jardinData";
+import { getPlantDirectoryGroup, normalizePlantText } from "../utils/plantClassification";
+import BotanicalIcon from "./icons/BotanicalIcon";
+import EstatePage from "./EstatePage";
+import PlantSelectorWithCreate from "./PlantSelectorWithCreate";
+import "./Garden.css";
 
-const zoneSubtitle = {
-  "vegetable-garden":"Seasonal edible crops", "herb-tea-garden":"Kitchen · Apothecary · Tea",
-  "berry-vine-zone":"Edible fruits and climbing crops", "flower-perennial-garden":"Color and pollinator plantings",
-  "melon-patch":"Warm-season melons"
+const belongsToCollection = (plant, collection, collections) => {
+  const names = [collection.name, collection.label].map(normalizePlantText);
+  const explicitZone = normalizePlantText(plant.gardenZone);
+  const knownZoneNames = new Set(collections.flatMap((item) => [normalizePlantText(item.name), normalizePlantText(item.label)]));
+  if (explicitZone && knownZoneNames.has(explicitZone)) return names.includes(explicitZone);
+  const explicitCollection = normalizePlantText(plant.collection);
+  if (explicitCollection && knownZoneNames.has(explicitCollection)) return names.includes(explicitCollection);
+  if (collection.matchType) return normalizePlantText(`${plant.type || ""} ${plant.name || ""}`).includes(normalizePlantText(collection.matchType));
+  if (collection.directoryGroup === "Vegetables" && /melon/i.test(`${plant.type || ""} ${plant.name || ""}`)) return false;
+  return getPlantDirectoryGroup(plant) === collection.directoryGroup;
 };
 
-export default function Garden({onAddPlant}) {
-  const { activePlants:plants, stats } = useGarden();
-  const sections = useMemo(() => gardenZones.map((zone) => ({
-    ...zone,
-    title:zone.name,
-    subtitle:zoneSubtitle[zone.id],
-    plants: plants.filter((plant) => zone.matchType
-      ? `${plant.type||""} ${plant.name||""}`.toLowerCase().includes(zone.matchType)
-      : getPlantDirectoryGroup(plant) === zone.directoryGroup && !(zone.directoryGroup === "Vegetables" && /melon/i.test(`${plant.type||""} ${plant.name||""}`)))
-      .sort((a,b)=>(a.name||"").localeCompare(b.name||"",undefined,{sensitivity:"base"}))
-  })),[plants]);
+export default function Garden({ onAddPlant, onSelectPlant, onEditPlant }) {
+  const { activePlants, stats, gardenCollections, updateGardenCollection, assignPlantToCollection } = useGarden();
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({ name:"", description:"", label:"" });
+  const [action, setAction] = useState(null);
+  const [selection, setSelection] = useState({ plantId:"", targetId:"" });
+  const [expanded, setExpanded] = useState(() => new Set());
 
-  return <section style={{marginTop:"50px"}}>
-    <h1 style={{color:"#5D6B46",fontFamily:"Baskerville,Georgia,serif",fontSize:"42px"}}>Garden Collections</h1>
-    <p style={{color:"#777",fontSize:"18px",marginBottom:"18px"}}>Canonical Jardin Soleil plants organized into their real garden rooms.</p>
-    <button type="button" onClick={onAddPlant} style={{background:"#61764F",border:"1px solid #4D603E",borderRadius:"16px",color:"white",cursor:"pointer",fontWeight:800,margin:"0 0 20px",padding:"13px 20px"}}>Add New Plant</button>
-    <p aria-live="polite" style={{background:"#f7f0e5",border:"1px solid #e2d3b9",borderRadius:"16px",color:"#5d654f",padding:"14px 18px",marginBottom:"28px"}}>
-      <strong>{stats.edibleHerbCount}</strong> edibles & herbs · <strong>{stats.gardenZoneCount}</strong> garden zones
-    </p>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(340px,1fr))",gap:"25px"}}>
-      {sections.map((section)=><article key={section.group} style={{background:"#FFFDF9",borderRadius:"28px",overflow:"hidden",border:"1px solid #EFE5D8",boxShadow:"0 12px 28px rgba(0,0,0,.08)"}}>
-        <div style={{background:"linear-gradient(135deg,#F8E8EE,#EEF5E7)",padding:"28px"}}><h2 style={{margin:0,color:"#55653F",fontFamily:"Baskerville,Georgia,serif",fontSize:"28px"}}>{section.title}</h2><p style={{marginTop:"10px",color:"#6D6D6D"}}>{section.subtitle}</p></div>
-        <div style={{padding:"24px"}}><div style={{display:"flex",flexWrap:"wrap",gap:"10px",marginBottom:"24px"}}>{section.plants.length?section.plants.map((plant)=><span key={plant.id} style={{background:"#F4EFE7",padding:"8px 14px",borderRadius:"999px",fontSize:"14px",color:"#5A5A5A"}}>{plant.name}</span>):<p style={{color:"#7d7466",fontStyle:"italic"}}>No canonical plant records are assigned to this zone yet.</p>}</div>
-          <div style={{marginTop:"24px",paddingTop:"18px",borderTop:"1px solid #ECE4D8",display:"flex",justifyContent:"space-between",fontSize:"14px",color:"#777"}}><span>{section.plants.length} {section.plants.length===1?"plant":"plants"}</span><span>{section.title}</span></div>
-        </div>
-      </article>)}
-    </div>
-    <section aria-labelledby="garden-areas-title" style={{marginTop:"30px",background:"#fffaf1",border:"1px solid #e0cfad",borderRadius:"22px",padding:"24px"}}><h2 id="garden-areas-title" style={{color:"#536441",fontFamily:"Georgia,serif"}}>Garden Zones</h2><div style={{display:"flex",flexWrap:"wrap",gap:"10px"}}>{stats.gardenZones.map((zone)=><span key={zone.id} style={{background:"#eef2e6",borderRadius:"999px",padding:"8px 13px"}}>{zone.name}</span>)}</div></section>
-  </section>;
+  const sections = useMemo(() => gardenCollections.map((collection) => ({
+    ...collection,
+    plants:activePlants.filter((plant) => belongsToCollection(plant, collection, gardenCollections))
+      .sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity:"base" })),
+  })), [activePlants, gardenCollections]);
+
+  const startEdit = (collection) => {
+    setEditing(collection.id);
+    setForm({ name:collection.name, description:collection.description || "", label:collection.label || "" });
+    setAction(null);
+  };
+  const saveCollection = (event) => {
+    event.preventDefault();
+    const name = form.name.trim();
+    if (!name) return;
+    updateGardenCollection(editing, { name, description:form.description.trim(), label:form.label.trim() });
+    setEditing(null);
+  };
+  const openAction = (mode, collectionId) => {
+    setAction({ mode, collectionId });
+    setSelection({ plantId:"", targetId:"" });
+    setEditing(null);
+  };
+  const saveAssignment = (event) => {
+    event.preventDefault();
+    if (!selection.plantId) return;
+    const targetId = action.mode === "move" ? selection.targetId : action.collectionId;
+    if (!targetId) return;
+    assignPlantToCollection(selection.plantId, targetId);
+    setAction(null);
+  };
+  const toggleExpanded = (id) => setExpanded((current) => {
+    const next = new Set(current);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+
+  return (
+    <EstatePage id="garden-collections-title" title="Garden Collections" description="Five editable garden rooms, each linked to the canonical plant registry." icon="flower" className="js-garden-collections" actions={<button className="js-estate-button is-primary" type="button" onClick={onAddPlant}>Add New Plant</button>}>
+      <div className="js-estate-toolbar">
+        <p><strong>{stats.edibleHerbCount}</strong> edibles & herbs · <strong>{stats.gardenZoneCount}</strong> garden zones</p>
+        <span className="js-estate-badge is-gold">Assignments update without duplicating plants</span>
+      </div>
+      <div className="js-garden-collections__grid">
+        {sections.map((section) => (
+          <article className="js-estate-card js-collection-card" key={section.id}>
+            <header>
+              <BotanicalIcon type={section.directoryGroup === "Herbs" ? "tea" : section.directoryGroup === "Vegetables" ? "vegetable" : "flower"} size="lg" decorative />
+              <div><p>{section.label || "Estate collection"}</p><h2>{section.name}</h2><span>{section.description || "Description not recorded."}</span></div>
+            </header>
+            <p className="js-collection-card__count"><strong>{section.plants.length}</strong> {section.plants.length === 1 ? "plant" : "plants"}</p>
+            <div className="js-collection-card__actions">
+              <button type="button" onClick={() => startEdit(section)}>Edit Collection</button>
+              <button type="button" onClick={() => openAction("add", section.id)}>Add Plant</button>
+              <button type="button" onClick={() => openAction("move", section.id)} disabled={!section.plants.length}>Move Plant</button>
+              <button type="button" aria-expanded={expanded.has(section.id)} onClick={() => toggleExpanded(section.id)}>View Plants</button>
+            </div>
+            {editing === section.id && (
+              <form className="js-estate-form js-collection-card__editor" onSubmit={saveCollection}>
+                <label>Zone name<input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name:event.target.value }))} required /></label>
+                <label>Card label<input value={form.label} onChange={(event) => setForm((current) => ({ ...current, label:event.target.value }))} /></label>
+                <label className="is-wide">Description<textarea rows="3" value={form.description} onChange={(event) => setForm((current) => ({ ...current, description:event.target.value }))} /></label>
+                <div className="js-collection-card__form-actions"><button type="button" onClick={() => setEditing(null)}>Cancel</button><button type="submit">Save Collection</button></div>
+              </form>
+            )}
+            {action?.collectionId === section.id && (
+              <form className="js-collection-card__editor" onSubmit={saveAssignment}>
+                <PlantSelectorWithCreate label={action.mode === "move" ? "Plant to move" : "Plant to assign"} value={selection.plantId} onChange={(plantId) => setSelection((current) => ({ ...current, plantId }))} expectedCollection={action.mode === "add" ? section.name : ""} expectedZone={action.mode === "add" ? section.name : ""} required description="Search every canonical plant or create a missing record without closing this collection." />
+                {action.mode === "move" && <label>Destination<select value={selection.targetId} onChange={(event) => setSelection((current) => ({ ...current, targetId:event.target.value }))} required><option value="">Choose a collection</option>{gardenCollections.filter((item) => item.id !== section.id).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
+                <div className="js-collection-card__form-actions"><button type="button" onClick={() => setAction(null)}>Cancel</button><button type="submit">{action.mode === "move" ? "Move Plant" : "Add to Collection"}</button></div>
+              </form>
+            )}
+            {expanded.has(section.id) && (
+              <div className="js-collection-card__plants">
+                {section.plants.length ? section.plants.map((plant) => <article key={plant.id}><BotanicalIcon plant={plant} size="sm" decorative /><button type="button" onClick={() => onSelectPlant?.(plant)}>{plant.name}</button><button type="button" onClick={() => onEditPlant?.(plant)}>Edit</button></article>) : <p className="js-estate-empty">No plants are assigned to this collection.</p>}
+              </div>
+            )}
+          </article>
+        ))}
+      </div>
+    </EstatePage>
+  );
 }

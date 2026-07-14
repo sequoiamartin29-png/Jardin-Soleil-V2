@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { answerWithOptionalExternal, companions } from "../../services/conservatoryService";
-const reports=["Daily Estate Update","Weekly Garden Report","Monthly Garden Summary","Orchard Health Report","Harvest Report","Tea Apothecary Inventory Report","Seasonal Care Review"];
+const reports=["Daily Estate Update","Weekly Garden Report","Monthly Garden Summary","Orchard Health Report","Plant Health Report","Harvest Report","Tea Apothecary Inventory Report","Seasonal Care Review"];
 const loadHistory=(enabled)=>{if(!enabled)return[];try{return JSON.parse(localStorage.getItem("jardinSoleilConservatoryHistory")||"[]");}catch{return[];}};
 export default function ConservatoryChat({companion,data,scopePlant,settings,onNavigate}){const [messages,setMessages]=useState(()=>loadHistory(settings.storeHistory).filter((m)=>m.companion===companion&&m.scopePlantId===(scopePlant?.id||null)));const [text,setText]=useState("");const [loading,setLoading]=useState(false);const [error,setError]=useState("");const inputRef=useRef(null);const info=companions[companion];
   useEffect(()=>{const clear=()=>setMessages([]);window.addEventListener("conservatory-history-cleared",clear);return()=>window.removeEventListener("conservatory-history-cleared",clear);},[]);

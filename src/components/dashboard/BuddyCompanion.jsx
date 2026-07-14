@@ -26,7 +26,7 @@ export default function BuddyCompanion({ onOpenJournal, weatherMode="clear", pau
   const point = buddyPathPoints[pointIndex];
   const displayedPoint = bubble ? { x:43, y:48 } : point;
   const behavior = pointIndex === 9 ? "is-resting" : pointIndex === 2 ? "is-sniffing" : pointIndex === 5 ? "is-watching-water" : "is-walking";
-  const estate = useMemo(() => selectBuddyEstateUpdates({ ...garden, plants:garden.activePlants }), [garden.activePlants, garden.journalEntries, garden.photos]);
+  const estate = useMemo(() => selectBuddyEstateUpdates({ ...garden, plants:garden.activePlants }), [garden.activePlants, garden.journalEntries, garden.photos, garden.inventoryItems, garden.plantDiagnoses]);
 
   useEffect(() => {
     if (paused) return undefined;

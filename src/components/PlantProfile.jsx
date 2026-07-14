@@ -3,6 +3,7 @@ import { useGarden } from "../context/GardenContext";
 import BotanicalIcon from "./icons/BotanicalIcon";
 import PlantMoveForm from "./PlantMoveForm";
 import PlantDeleteDialog from "./PlantDeleteDialog";
+import HealthStatusSeal from "./plantHealth/HealthStatusSeal";
 import "./PlantProfile.css";
 
 const careActions = [
@@ -20,13 +21,14 @@ const includesType = (entry, words) =>
   words.some((word) => cleanType(entry.type).toLowerCase().includes(word.toLowerCase()));
 const formatDate = (value) => value ? new Date(value).toLocaleDateString() : "Not recorded";
 
-export default function PlantProfile({onEdit,onExit,onConsult}) {
+export default function PlantProfile({onEdit,onExit,onConsult,onDiagnose,onOpenDiagnosis}) {
   const {
     selectedPlant,
     setSelectedPlant,
     plants,
     getEntriesForPlant,
     getPhotosForPlant,
+    getDiagnosesForPlant,
     addJournalEntry,
     updateJournalEntry,
     deleteJournalEntry,
@@ -55,6 +57,7 @@ export default function PlantProfile({onEdit,onExit,onConsult}) {
   const plant = plants.find((item) => item.id === selectedPlant?.id) || selectedPlant;
   const history = plant ? getEntriesForPlant(plant.id) : [];
   const photos = plant ? getPhotosForPlant(plant.id) : [];
+  const diagnoses = plant ? getDiagnosesForPlant(plant.id) : [];
   const hasHealth = plant?.health !== undefined && plant?.health !== null && plant?.health !== "";
   const collectionMembers = (plant?.collectionMembers || []).map((id) => plants.find((item) => item.id === id)).filter(Boolean);
 
@@ -217,7 +220,7 @@ export default function PlantProfile({onEdit,onExit,onConsult}) {
         <strong>{plant.nickname || "A cherished garden resident"}</strong>
         {hasHealth ? <div className="js-profile__health" aria-label={`${plant.health}% health`}><span style={{ width: `${plant.health}%` }} /></div> : <p>Health not recorded</p>}
       </header>
-      <div className="js-profile__record-actions"><button type="button" onClick={()=>onConsult?.(plant)}>Consult the Head Gardener</button><button type="button" onClick={onEdit}>Edit Plant</button><button type="button" onClick={()=>setMovingPlant(true)}>Move / Reclassify</button>{plant.archived?<button type="button" onClick={()=>restorePlant(plant.id)}>Restore Plant</button>:<button type="button" onClick={()=>{archivePlant(plant.id);onExit?.();}}>Archive Plant</button>}<button className="is-danger" type="button" onClick={()=>setConfirmDelete(true)}>Delete Plant</button></div>
+      <div className="js-profile__record-actions"><button className="is-health" type="button" onClick={()=>onDiagnose?.(plant)}>Diagnose This Plant</button><button type="button" onClick={()=>onConsult?.(plant)}>Consult the Head Gardener</button><button type="button" onClick={onEdit}>Edit Plant</button><button type="button" onClick={()=>setMovingPlant(true)}>Move / Reclassify</button>{plant.archived?<button type="button" onClick={()=>restorePlant(plant.id)}>Restore Plant</button>:<button type="button" onClick={()=>{archivePlant(plant.id);onExit?.();}}>Archive Plant</button>}<button className="is-danger" type="button" onClick={()=>setConfirmDelete(true)}>Delete Plant</button></div>
       {movingPlant&&<PlantMoveForm plant={plant} onCancel={()=>setMovingPlant(false)} onSaved={(updated)=>{setSelectedPlant(updated);setMovingPlant(false);}}/>}
       {confirmDelete&&<PlantDeleteDialog plant={plant} onCancel={()=>setConfirmDelete(false)} onScheduled={()=>{setConfirmDelete(false);onExit?.();}}/>}
 
@@ -251,6 +254,11 @@ export default function PlantProfile({onEdit,onExit,onConsult}) {
           </dl>
         </article>
       </div>
+
+      <article className="js-profile__card js-profile__health-center">
+        <div className="js-profile__section-heading"><div><p>Botanical infirmary</p><h2>Plant Health Timeline</h2></div><button className="js-profile__button" type="button" onClick={()=>onDiagnose?.(plant)}>Diagnose This Plant</button></div>
+        {diagnoses.length ? <div className="js-profile__diagnoses">{[...diagnoses].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).map((diagnosis)=><article key={diagnosis.id}><div><time>{formatDate(diagnosis.createdAt)}</time><h3>{diagnosis.workingDiagnosis}</h3><p>{diagnosis.symptoms.join(", ") || "Symptoms not recorded"}</p><small>{diagnosis.followUps?.length || 0} follow-up records</small></div><HealthStatusSeal status={diagnosis.status}/><button type="button" onClick={()=>onOpenDiagnosis?.(diagnosis)}>Open case file</button></article>)}</div> : <p className="js-profile__empty-state">No saved plant-health diagnosis exists for {plant.nickname || plant.name}.</p>}
+      </article>
 
       <article className="js-profile__card js-profile__gallery">
         <div className="js-profile__section-heading">

@@ -12,23 +12,33 @@ const DEBUG_ANIMATIONS = false;
 const dashboardHotspots = [
   { label: "Orchard Gate", page: "Orchard", area: [38.2, 36.1, 18.1, 4.2] },
   { label: "Orchard garden area", page: "Orchard", area: [23.5, 40.3, 17.4, 5.2] },
-  { label: "Flower and Perennials", page: "Garden", area: [56.7, 40.1, 16.1, 5.7] },
-  { label: "Tea and Herb Corridor", page: "Garden", area: [17.2, 49.2, 16.3, 5.8] },
-  { label: "Vegetable Garden", page: "Garden", area: [61.5, 49.8, 16.7, 5.5] },
-  { label: "Berry Zone", page: "Garden", area: [20.5, 60.6, 16.8, 5.5] },
-  { label: "Container Collection", page: "Garden", area: [59.1, 60.7, 17.2, 5.4] },
+  { label: "Flower and Perennials", page: "Garden Collections", area: [56.7, 40.1, 16.1, 5.7] },
+  { label: "Tea and Herb Corridor", page: "Garden Collections", area: [17.2, 49.2, 16.3, 5.8] },
+  { label: "Vegetable Garden", page: "Garden Collections", area: [61.5, 49.8, 16.7, 5.5] },
+  { label: "Berry Zone", page: "Garden Collections", area: [20.5, 60.6, 16.8, 5.5] },
+  { label: "Container Collection", page: "Garden Collections", area: [59.1, 60.7, 17.2, 5.4] },
   { label: "Nursery Shed", page: "Inventory", area: [39.1, 67.1, 18.8, 4.7] },
-  { label: "Water", page: "Garden", area: [1.8, 96.2, 19.3, 2.7] },
+  { label: "View All Tasks", page: "Tasks", area: [80.1, 49.7, 16.4, 2.1] },
+  { label: "View Calendar", page: "Calendar", area: [80.1, 63.9, 16.4, 2.0] },
+  { label: "View Full Forecast", page: "Weather", area: [79.8, 79.5, 16.8, 2.0] },
+  { label: "View All Logs", page: "Logbook", area: [20.8, 83.8, 16.5, 1.9] },
+  { label: "View Harvests", page: "Logbook", area: [41.0, 83.8, 15.2, 1.9] },
+  { label: "View Plant Directory", page: "Plant Directory", area: [60.4, 83.8, 15.5, 1.9] },
+  { label: "View Orchard", page: "Orchard", area: [24.7, 93.9, 13.2, 1.8] },
+  { label: "View Garden Details", page: "Garden Collections", area: [57.0, 93.9, 16.1, 1.8] },
+  { label: "Add New Plant", page: "Add New Plant", area: [81.0, 84.9, 16.2, 2.4] },
+  { label: "Log Garden Update", page: "New Journal Entry", area: [81.0, 87.6, 16.2, 2.4] },
+  { label: "Take Photo", page: "Photo Manager", area: [81.0, 90.3, 16.2, 2.4] },
+  { label: "Add to Task List", page: "Tasks", area: [81.0, 93.0, 16.2, 2.4] },
+  { label: "Water", page: "Garden Collections", area: [1.8, 96.2, 19.3, 2.7] },
   { label: "Feed", page: "Inventory", area: [21.2, 96.2, 19.2, 2.7] },
   { label: "Care", page: "New Journal Entry", area: [59.5, 96.2, 18.1, 2.7] },
   { label: "Harvest", page: "Logbook", area: [77.7, 96.2, 20.4, 2.7] },
-  { label: "Add New Plant", page: "Add New Plant", area: [80.2, 84.0, 16.5, 2.8] },
 ];
 
 export default function Dashboard({ onNavigate, menuOpen, onToggleMenu, menuTriggerRef }) {
   const { stats } = useGarden();
   const environment = useEstateEnvironment();
-  const navigate = (page) => onNavigate?.(page);
   const [localNow, setLocalNow] = useState(() => new Date());
   const [animationsPaused, setAnimationsPaused] = useState(() => document.hidden);
   const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local time";
@@ -118,15 +128,17 @@ export default function Dashboard({ onNavigate, menuOpen, onToggleMenu, menuTrig
           </div>}
         </div>
 
-        {environment.settings.buddy&&<BuddyCompanion onOpenJournal={() => navigate("Buddy's Garden Journal")} paused={animationsPaused} weatherMode={environment.buddyMode} />}
+        {environment.settings.buddy&&<BuddyCompanion onOpenJournal={() => onNavigate?.("Buddy's Garden Journal")} paused={animationsPaused} weatherMode={environment.buddyMode} />}
 
         <section className="js-dashboard-artwork__clock" aria-label={`Local date and time in ${localTimeZone}`}>
           <span className="js-dashboard-artwork__weekday">{localNow.toLocaleDateString(undefined, { weekday:"long" })}</span>
           <span className="js-dashboard-artwork__date">{localNow.toLocaleDateString(undefined, { month:"long", day:"numeric", year:"numeric" })}</span>
           <time dateTime={localNow.toISOString()}>{localNow.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" })}</time>
           <span className="js-dashboard-artwork__zone">{localTimeZone.replace(/_/g, " ")}</span>
-          <span className="js-dashboard-artwork__local-weather"><b aria-hidden="true">{gardenLight.icon}</b>{gardenLight.label}</span>
+          <span className="js-dashboard-artwork__local-weather"><b aria-hidden="true">{gardenLight.icon}</b>{environment.weather ? `${environment.conditionLabel} · ${Math.round(environment.weather.temperature)}°F` : gardenLight.label}</span>
         </section>
+
+        <button className="js-dashboard-artwork__health-action" type="button" onClick={() => onNavigate?.("Plant Health Center")}>Plant Health Center</button>
 
         <nav className="js-dashboard-artwork__hotspots" aria-label="Interactive Jardin Soleil estate map">
           {dashboardHotspots.map(({ label, page, area: [left, top, width, height] }) => (
@@ -136,7 +148,7 @@ export default function Dashboard({ onNavigate, menuOpen, onToggleMenu, menuTrig
               key={label}
               aria-label={label}
               title={label}
-              onClick={() => navigate(page)}
+              onClick={() => onNavigate?.(page)}
               style={{ left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` }}
             />
           ))}

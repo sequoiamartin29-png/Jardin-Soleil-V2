@@ -1,0 +1,1 @@
+.js-challenge-card__seal{animation:js-estate-seal .55s ease-out}@keyframes js-estate-seal{0%{opacity:0;transform:scale(.6) rotate(-12deg)}70%{transform:scale(1.08) rotate(3deg)}100%{opacity:1;transform:scale(1)}}@media(prefers-reduced-motion:reduce){.js-challenge-card__seal{animation:none}}

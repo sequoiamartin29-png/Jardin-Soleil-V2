@@ -1,1 +1,38 @@
-.js-plant-editor{background:radial-gradient(circle at 90% 0,rgba(167,190,143,.2),transparent 28%),#f8f0e3;border:1px solid rgba(181,142,72,.5);border-radius:30px;box-shadow:0 18px 40px rgba(65,49,29,.12),inset 0 0 0 5px rgba(255,253,246,.7);margin:34px 0;padding:36px}.js-plant-editor header{border-bottom:1px solid rgba(181,142,72,.42);margin-bottom:26px;padding-bottom:24px}.js-plant-editor header p{color:#987038;font-size:11px;font-weight:800;letter-spacing:.17em;margin:0;text-transform:uppercase}.js-plant-editor h1{color:#4f603e;font:italic 48px/1 Baskerville,Georgia,serif;margin:7px 0}.js-plant-editor fieldset{border:1px solid rgba(183,145,77,.4);border-radius:20px;display:grid;gap:16px;grid-template-columns:repeat(2,minmax(0,1fr));margin:20px 0;padding:24px}.js-plant-editor legend{color:#536441;font:600 25px/1 Georgia,serif;padding:0 10px}.js-plant-editor label{color:#5b604d;display:flex;flex-direction:column;font-weight:700;gap:7px}.js-plant-editor label.is-wide{grid-column:1/-1}.js-plant-editor label small{color:#a13e48}.js-plant-editor__duplicates{background:#fff4dd;border:1px solid #c99b4b;border-radius:18px;padding:20px}.js-plant-editor__duplicates button{margin:6px}.js-plant-editor__actions{display:flex;gap:12px;justify-content:flex-end}.js-plant-editor__actions button,.js-plant-editor__duplicates button{background:#eef1e6;border:1px solid #9aab7e;border-radius:14px;color:#4e613f;cursor:pointer;font-weight:800;padding:12px 18px}.js-plant-editor__actions button[type=submit]{background:#61764f;color:white}@media(max-width:650px){.js-plant-editor{padding:20px}.js-plant-editor fieldset{grid-template-columns:1fr}.js-plant-editor label.is-wide{grid-column:auto}.js-plant-editor h1{font-size:38px}}
+.js-plant-editor {
+  background:
+    radial-gradient(circle at 92% 0, rgba(159, 184, 137, .17), transparent 28%),
+    repeating-linear-gradient(2deg, rgba(103, 75, 40, .018) 0 1px, transparent 1px 5px),
+    linear-gradient(145deg, rgba(255, 251, 240, .96), rgba(239, 224, 198, .94));
+  border: 1px solid rgba(169, 125, 57, .55);
+  border-radius: 14px 34px 14px 34px;
+  box-shadow: inset 0 0 0 5px rgba(255, 255, 255, .45), 0 22px 50px rgba(65, 49, 29, .14);
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: clamp(20px, 4vw, 42px);
+  position: relative;
+}
+.js-plant-editor::before,
+.js-plant-editor::after { color: rgba(165, 122, 56, .55); content: "❦"; font: 28px Georgia, serif; position: absolute; top: 14px; }
+.js-plant-editor::before { left: 22px; }
+.js-plant-editor::after { right: 22px; transform: scaleX(-1); }
+.js-plant-editor label { color: #585e4c; display: flex; flex-direction: column; font-weight: 750; gap: 7px; min-width: 0; }
+.js-plant-editor label.is-wide { grid-column: 1 / -1; }
+.js-plant-editor label > span { color: #59664a; font-size: 12px; letter-spacing: .04em; }
+.js-plant-editor label small { color: #9b3f49; }
+.js-plant-editor input,
+.js-plant-editor select,
+.js-plant-editor textarea { background: rgba(255, 253, 247, .9); border: 1px solid #c8b18a; border-radius: 12px; color: #413d35; box-shadow: inset 0 2px 6px rgba(76, 56, 30, .05); padding: 12px 13px; }
+.js-plant-editor input:focus-visible,
+.js-plant-editor select:focus-visible,
+.js-plant-editor textarea:focus-visible { outline: 3px solid rgba(181, 135, 57, .43); outline-offset: 2px; }
+
+.js-plant-editor__duplicates { background: linear-gradient(135deg, #fff4df, #f4dfbd); border: 1px solid #bf8d42; border-radius: 18px; box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .4); margin: 22px 0; padding: 22px; }
+.js-plant-editor__duplicates h2 { color: #725233; font: italic 28px Georgia, serif; margin: 0 0 7px; }
+.js-plant-editor__duplicates > div { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
+.js-plant-editor__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; margin-top: 26px; }
+
+@media (max-width: 650px) {
+  .js-plant-editor { padding: 24px 16px; }
+  .js-plant-editor label.is-wide { grid-column: auto; }
+  .js-plant-editor__actions .js-estate-action { flex: 1 1 130px; }
+}

@@ -1,0 +1,74 @@
+.js-orchard-estate__welcome {
+  align-items: center;
+  background: linear-gradient(90deg, transparent, rgba(255, 249, 235, .7) 18%, rgba(255, 249, 235, .7) 82%, transparent);
+  color: #615849;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 0 auto 30px;
+  max-width: 920px;
+  padding: 12px 24px;
+  text-align: center;
+}
+
+.js-orchard-estate__welcome p { color: #8c642f; font-size: 11px; font-weight: 850; letter-spacing: .17em; margin: 0; text-transform: uppercase; }
+.js-orchard-estate__welcome strong { color: #4e613f; font: italic 34px/1 Georgia, serif; }
+.js-orchard-estate__welcome span { font: 15px/1.4 Georgia, serif; }
+
+.js-orchard-grove {
+  background:
+    radial-gradient(ellipse at 0 50%, color-mix(in srgb, var(--grove-accent), transparent 87%), transparent 28%),
+    radial-gradient(ellipse at 100% 50%, rgba(101, 126, 79, .1), transparent 30%);
+  border-bottom: 1px solid rgba(167, 124, 58, .2);
+  margin: 0 0 clamp(38px, 6vw, 68px);
+  padding: 0 0 clamp(32px, 5vw, 54px);
+  position: relative;
+}
+
+.js-orchard-grove::before,
+.js-orchard-grove::after { background: radial-gradient(ellipse, rgba(91, 119, 71, .22) 0 32%, transparent 35%); content: ""; height: 90px; pointer-events: none; position: absolute; top: 62px; width: 160px; }
+.js-orchard-grove::before { left: -42px; transform: rotate(-20deg); }
+.js-orchard-grove::after { right: -42px; transform: scaleX(-1) rotate(-20deg); }
+
+.js-orchard-grove__grid { display: grid; gap: clamp(18px, 2.2vw, 28px); grid-template-columns: repeat(3, minmax(0, 1fr)); position: relative; z-index: 1; }
+
+.js-orchard-card { display: flex; flex-direction: column; min-height: 100%; }
+.js-orchard-card__illustration { align-items: center; background: radial-gradient(circle at center, rgba(255, 252, 240, .92), color-mix(in srgb, var(--estate-card-accent), transparent 80%)); border-bottom: 1px solid color-mix(in srgb, var(--estate-card-accent), transparent 54%); display: flex; height: 154px; justify-content: center; overflow: hidden; position: relative; }
+.js-orchard-card__illustration::before,
+.js-orchard-card__illustration::after { background: radial-gradient(ellipse, rgba(81, 112, 67, .36) 0 35%, transparent 38%); content: ""; height: 74px; position: absolute; width: 130px; }
+.js-orchard-card__illustration::before { left: -26px; top: 10px; transform: rotate(-22deg); }
+.js-orchard-card__illustration::after { bottom: 0; right: -25px; transform: scaleX(-1) rotate(-20deg); }
+.js-orchard-card__illustration .botanical-icon { filter: drop-shadow(0 8px 8px rgba(65, 48, 29, .18)); position: relative; z-index: 1; }
+.js-orchard-card__branch { border-bottom: 2px solid rgba(98, 91, 57, .28); border-radius: 50%; height: 70px; left: 10%; position: absolute; top: 19px; transform: rotate(-8deg); width: 80%; }
+
+.js-orchard-card__body { display: flex; flex: 1; flex-direction: column; padding: 22px; position: relative; z-index: 1; }
+.js-orchard-card__heading { align-items: flex-start; display: flex; gap: 12px; justify-content: space-between; }
+.js-orchard-card__heading p { color: #956d35; font-size: 10px; font-weight: 850; letter-spacing: .14em; margin: 0 0 5px; text-transform: uppercase; }
+.js-orchard-card__heading h3 { color: #46573b; font: italic clamp(23px, 2.1vw, 30px)/1.08 Baskerville, Georgia, serif; margin: 0; }
+.js-orchard-card__heading > div > span { color: #746958; display: block; font: 14px/1.35 Georgia, serif; margin-top: 6px; }
+.js-orchard-card__heading .js-botanical-status-seal { flex: 0 0 auto; }
+
+.js-orchard-card__facts { border-bottom: 1px solid rgba(165, 123, 59, .27); border-top: 1px solid rgba(165, 123, 59, .27); display: grid; gap: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 20px 0; }
+.js-orchard-card__facts div { min-width: 0; padding: 13px 9px; }
+.js-orchard-card__facts div:nth-child(odd) { border-right: 1px solid rgba(165, 123, 59, .2); }
+.js-orchard-card__facts div:nth-child(-n+2) { border-bottom: 1px solid rgba(165, 123, 59, .2); }
+.js-orchard-card__facts dt { color: #936b34; font-size: 10px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.js-orchard-card__facts dd { color: #514c42; font: 13px/1.35 Georgia, serif; margin: 4px 0 0; overflow-wrap: anywhere; }
+
+.js-orchard-card__actions { display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: auto; }
+.js-orchard-card__actions .js-estate-action:first-child { grid-column: 1 / -1; }
+.js-orchard-card__actions .js-estate-action { font-size: 13px; padding-inline: 10px; }
+.js-orchard-estate__empty { margin: 40px auto; max-width: 600px; padding: 40px; text-align: center; }
+.js-orchard-estate__empty h2 { color: #4d5e40; font: italic 34px Georgia, serif; }
+
+@media (max-width: 1120px) {
+  .js-orchard-grove__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 700px) {
+  .js-orchard-estate__welcome { align-items: center; flex-direction: column; }
+  .js-orchard-grove__grid { grid-template-columns: 1fr; }
+  .js-orchard-card__actions { grid-template-columns: 1fr; }
+  .js-orchard-card__actions .js-estate-action:first-child { grid-column: auto; }
+}
+

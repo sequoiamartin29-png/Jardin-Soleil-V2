@@ -12,7 +12,7 @@ const filters = [
   "Flowers"
 ];
 
-export default function PlantDirectory({ onSelectPlant, onAddPlant, onViewArchived }) {
+export default function PlantDirectory({ onSelectPlant, onEditPlant, onAddPlant, onViewArchived }) {
   const { plants, activePlants, stats } = useGarden();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
@@ -139,7 +139,9 @@ export default function PlantDirectory({ onSelectPlant, onAddPlant, onViewArchiv
       {groupedPlants.map(({ group, plants: grouped }) => {
         const headingId = `plant-group-${group.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
         const mintMembers = group === "Herbs" ? grouped.filter((plant) => plant.group === "Mints" || plant.collection === "Mint Collection") : [];
-        const orderedGrouped = group === "Herbs" ? [...mintMembers, ...grouped.filter((plant) => plant.group !== "Mints" && plant.collection !== "Mint Collection")] : grouped;
+        const sageMembers = group === "Herbs" ? grouped.filter((plant) => plant.group === "Sage") : [];
+        const otherHerbs = group === "Herbs" ? grouped.filter((plant) => plant.group !== "Mints" && plant.collection !== "Mint Collection" && plant.group !== "Sage") : [];
+        const orderedGrouped = group === "Herbs" ? [...mintMembers, ...sageMembers, ...otherHerbs] : grouped;
 
         return (
           <section key={group} aria-labelledby={headingId} style={{ marginBottom: "38px" }}>
@@ -168,7 +170,8 @@ export default function PlantDirectory({ onSelectPlant, onAddPlant, onViewArchiv
               {mintMembers.length > 0 && <h3 style={{gridColumn:"1 / -1",color:"#6A7654",fontFamily:"Georgia,serif",fontSize:"22px",margin:"0"}}>Mints</h3>}
               {orderedGrouped.map((plant, index) => (
                 <React.Fragment key={plant.id}>
-                {mintMembers.length > 0 && index === mintMembers.length && <h3 style={{gridColumn:"1 / -1",color:"#6A7654",fontFamily:"Georgia,serif",fontSize:"22px",margin:"12px 0 0"}}>Other Herbs</h3>}
+                {sageMembers.length > 0 && index === mintMembers.length && <h3 style={{gridColumn:"1 / -1",color:"#6A7654",fontFamily:"Georgia,serif",fontSize:"22px",margin:"12px 0 0"}}>Sage</h3>}
+                {otherHerbs.length > 0 && index === mintMembers.length + sageMembers.length && <h3 style={{gridColumn:"1 / -1",color:"#6A7654",fontFamily:"Georgia,serif",fontSize:"22px",margin:"12px 0 0"}}>Other Herbs</h3>}
                 <article
                   key={`${plant.id}-card`}
             style={{
@@ -227,6 +230,7 @@ export default function PlantDirectory({ onSelectPlant, onAddPlant, onViewArchiv
             >
               🌿 Open Profile
             </button>
+            <button type="button" onClick={() => onEditPlant?.(plant)} style={{width:"100%",marginTop:"8px",padding:"11px",borderRadius:"16px",border:"1px solid #b6955d",background:"#faf4e8",color:"#53633f",cursor:"pointer",fontWeight:"bold"}}>Edit Plant</button>
                 </article>
                 </React.Fragment>
               ))}

@@ -57,9 +57,9 @@ const todaysLogs = [
   }
 ];
 
-export default function Logbook() {
+export default function Logbook({onNavigate}) {
   return (
-    <section
+    <section className="js-estate-page"
       style={{
         marginTop: "50px"
       }}
@@ -119,8 +119,8 @@ export default function Logbook() {
                 gap: "10px"
               }}
             >
-              <button>➕ New Entry</button>
-              <button>📂 View History</button>
+              <button type="button" onClick={()=>onNavigate?.("New Journal Entry")}>➕ New Entry</button>
+              <button type="button" onClick={()=>onNavigate?.("Journal Timeline")}>📂 View History</button>
             </div>
 
             <div
@@ -185,10 +185,10 @@ export default function Logbook() {
             gap: "12px"
           }}
         >
-          <button>🌤 Weather</button>
-          <button>📸 Daily Gallery</button>
-          <button>📊 Statistics</button>
-          <button>🗂 Full Journal</button>
+          <button type="button" onClick={()=>onNavigate?.("Weather")}>🌤 Weather</button>
+          <button type="button" onClick={()=>onNavigate?.("Gallery")}>📸 Daily Gallery</button>
+          <button type="button" disabled title="No garden statistics destination currently exists.">📊 Statistics</button>
+          <button type="button" onClick={()=>onNavigate?.("Journal Timeline")}>🗂 Full Journal</button>
         </div>
       </div>
     </div>

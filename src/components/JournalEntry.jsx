@@ -1,222 +1,34 @@
 import React, { useEffect, useState } from "react";
 import { useGarden } from "../context/GardenContext";
+import EstatePage from "./EstatePage";
+import PlantSelectorWithCreate from "./PlantSelectorWithCreate";
 
-const entryTypes = [
-  "💧 Watering",
-  "🌱 Fertilizer",
-  "✂️ Pruning",
-  "🌸 Bloom",
-  "🍎 Harvest",
-  "🐛 Pest",
-  "🦠 Disease",
-  "🌦 Weather",
-  "📷 Photo",
-  "📝 Note"
-];
+const entryTypes = ["Watering", "Fertilizer", "Pruning", "Bloom", "Harvest", "Pest", "Disease", "Weather", "Photo", "Note"];
 
-export default function JournalEntry({ onSaveEntry }) {
-
-const { activePlants:plants } = useGarden();
-
-const [selectedPlant,setSelectedPlant]=useState(plants[0]?.id || "");
-
-const [entryType,setEntryType]=useState(entryTypes[0]);
-
-const [health,setHealth]=useState(100);
-
-const [notes,setNotes]=useState("");
-
-useEffect(()=>{if(!plants.some((plant)=>plant.id===selectedPlant))setSelectedPlant(plants[0]?.id||"");},[plants,selectedPlant]);
-
-return(
-
-<section
-style={{
-marginTop:"40px",
-background:"#FFFDF9",
-borderRadius:"30px",
-padding:"35px",
-boxShadow:"0 12px 30px rgba(0,0,0,.08)"
-}}
->
-
-<h2
-style={{
-marginTop:0,
-color:"#5D6B46",
-fontSize:"40px"
-}}
->
-📝 New Garden Journal Entry
-</h2>
-
-<p
-style={{
-color:"#777",
-marginBottom:"30px"
-}}
->
-Record everything that happens in Jardin Soleil.
-</p>
-
-<div
-style={{
-display:"grid",
-gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",
-gap:"24px"
-}}
->
-  <div>
-  <label>
-    <strong>🌿 Select Plant</strong>
-  </label>
-
-  <select
-    value={selectedPlant}
-    onChange={(event) => setSelectedPlant(event.target.value)}
-    style={{
-      width: "100%",
-      padding: "14px",
-      borderRadius: "14px",
-      border: "1px solid #D8D0C4",
-      marginTop: "10px"
-    }}
-  >
-    {plants.map((plant) => (
-      <option key={plant.id} value={plant.id}>
-        {plant.name} — {plant.type}
-      </option>
-    ))}
-  </select>
-</div>
-
-<div>
-  <label>
-    <strong>📌 Entry Type</strong>
-  </label>
-
-  <select
-    value={entryType}
-    onChange={(event) => setEntryType(event.target.value)}
-    style={{
-      width: "100%",
-      padding: "14px",
-      borderRadius: "14px",
-      border: "1px solid #D8D0C4",
-      marginTop: "10px"
-    }}
-  >
-    {entryTypes.map((type) => (
-      <option key={type} value={type}>
-        {type}
-      </option>
-    ))}
-  </select>
-</div>
-
-<div>
-  <label>
-    <strong>❤️ Health Rating</strong>
-  </label>
-
-  <input
-    type="range"
-    min="0"
-    max="100"
-    value={health}
-    onChange={(event) => setHealth(event.target.value)}
-    style={{ width: "100%", marginTop: "18px" }}
-  />
-
-  <p>{health}%</p>
-</div>
-  </div>
-
-<div style={{ marginTop: "28px" }}>
-  <label>
-    <strong>📝 Notes</strong>
-  </label>
-
-  <textarea
-    value={notes}
-    onChange={(event) => setNotes(event.target.value)}
-    placeholder="What happened in Jardin Soleil today?"
-    rows="6"
-    style={{
-      width: "100%",
-      padding: "16px",
-      borderRadius: "18px",
-      border: "1px solid #D8D0C4",
-      marginTop: "10px",
-      fontFamily: "Georgia, serif",
-      fontSize: "16px"
-    }}
-  />
-</div>
-
-<div
-  style={{
-    marginTop: "28px",
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
-    gap: "14px"
-  }}
->
- <button
-  onClick={() => {
-    onSaveEntry?.({
-      plantId: selectedPlant,
-      type: entryType,
-      health: Number(health),
-      notes,
-    });
-
-    alert("🌿 Journal entry saved!");
-  }}
->
-  💾 Save Entry
-</button>
-  <button>📸 Add Photo</button>
-  <button>📖 View Journal</button>
-</div>
-  <div
-  style={{
-    marginTop: "35px",
-    paddingTop: "25px",
-    borderTop: "1px solid #ECE4D8",
-    color: "#666"
-  }}
->
-  <h3
-    style={{
-      marginTop: 0,
-      color: "#5D6B46"
-    }}
-  >
-    🌿 Entry Preview
-  </h3>
-
-  <p>
-    <strong>Plant:</strong>{" "}
-    {plants.find((p) => p.id === selectedPlant)?.name || "None Selected"}
-  </p>
-
-  <p>
-    <strong>Entry:</strong> {entryType}
-  </p>
-
-  <p>
-    <strong>Health:</strong> {health}%
-  </p>
-
-  <p>
-    <strong>Notes:</strong>{" "}
-    {notes || "No notes entered yet."}
-  </p>
-</div>
-
-</section>
-
-);
-
+export default function JournalEntry({ onSaveEntry, onNavigate }) {
+  const { activePlants:plants } = useGarden();
+  const [selectedPlant, setSelectedPlant] = useState(plants[0]?.id || "");
+  const [entryType, setEntryType] = useState(entryTypes[0]);
+  const [health, setHealth] = useState(100);
+  const [notes, setNotes] = useState("");
+  const [message, setMessage] = useState("");
+  useEffect(() => { if (!plants.some((plant) => plant.id === selectedPlant)) setSelectedPlant(plants[0]?.id || ""); }, [plants, selectedPlant]);
+  const save = (event) => {
+    event.preventDefault();
+    if (!selectedPlant) { setMessage("Choose or create a plant before saving this entry."); return; }
+    onSaveEntry?.({ plantId:selectedPlant, type:entryType, health:Number(health), notes:notes.trim() });
+    setMessage("Journal entry saved in the estate archive."); setNotes("");
+  };
+  const selectedName = plants.find((plant) => plant.id === selectedPlant)?.name || "No plant selected";
+  return <EstatePage id="new-journal-entry-title" title="New Garden Journal Entry" description="Record care, harvests, observations, and memories in the estate’s botanical ledger." icon="herb" theme="journal">
+    <form className="js-estate-panel js-estate-form" onSubmit={save}>
+      <PlantSelectorWithCreate label="Plant" value={selectedPlant} onChange={(plantId) => setSelectedPlant(plantId)} required description="Search the full registry or create a missing plant inline." />
+      <label>Entry type<select value={entryType} onChange={(event) => setEntryType(event.target.value)}>{entryTypes.map((type) => <option key={type}>{type}</option>)}</select></label>
+      <label className="is-wide">Health rating · {health}%<input type="range" min="0" max="100" value={health} onChange={(event) => setHealth(event.target.value)} /></label>
+      <label className="is-wide">Notes<textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="What happened in Jardin Soleil today?" rows="6" /></label>
+      {message && <p role="status" className="js-estate-badge is-gold">{message}</p>}
+      <div className="js-task-form__actions"><button className="js-estate-button" type="button" onClick={() => onNavigate?.("Photo Manager")}>Add Photo</button><button className="js-estate-button" type="button" onClick={() => onNavigate?.("Journal Timeline")}>View Journal</button><button className="js-estate-button is-primary" type="submit">Save Entry</button></div>
+    </form>
+    <article className="js-estate-card" style={{marginTop:"22px"}}><span className="js-estate-kicker">Entry preview</span><h2 style={{fontFamily:"Georgia,serif",color:"#52623f"}}>{selectedName}</h2><p><strong>{entryType}</strong> · Health {health}%</p><p>{notes || "No notes entered yet."}</p></article>
+  </EstatePage>;
 }

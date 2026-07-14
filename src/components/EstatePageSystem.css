@@ -1,0 +1,302 @@
+.js-estate-shell {
+  --estate-burgundy: #773f4b;
+  --estate-cream: #fffaf0;
+  --estate-gold: #b88a42;
+  --estate-ink: #3e4935;
+  --estate-lavender: #88779a;
+  --estate-paper: #f6ead4;
+  --estate-sage: #647652;
+  background:
+    radial-gradient(circle at 9% 4%, rgba(150, 108, 137, .23), transparent 22%),
+    radial-gradient(circle at 91% 8%, rgba(99, 128, 79, .22), transparent 24%),
+    repeating-linear-gradient(3deg, rgba(108, 84, 50, .025) 0 1px, transparent 1px 6px),
+    linear-gradient(135deg, #e8dfc9 0%, #faf0dd 24%, #f3e7d1 68%, #e5ddc7 100%);
+  color: #50493e;
+  margin-bottom: -32px;
+  margin-left: 0;
+  margin-top: -88px;
+  max-width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: clamp(106px, 10vw, 136px) clamp(16px, 4vw, 68px) clamp(64px, 8vw, 108px);
+  position: relative;
+  width: 100%;
+}
+
+body:has(.js-estate-shell) .app { max-width: none; padding-left: 0; padding-right: 0; }
+body:has(.js-estate-shell) .js-global-menu-trigger { margin-left: 32px; }
+
+.js-estate-shell::before,
+.js-estate-shell::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+}
+
+.js-estate-shell::before {
+  background:
+    radial-gradient(ellipse at 18% 18%, rgba(91, 119, 70, .25) 0 16%, transparent 18%),
+    radial-gradient(ellipse at 38% 28%, rgba(113, 140, 88, .22) 0 13%, transparent 15%),
+    radial-gradient(ellipse at 65% 16%, rgba(119, 82, 127, .22) 0 10%, transparent 12%);
+  filter: blur(.4px);
+  height: 350px;
+  left: -70px;
+  opacity: .8;
+  top: 80px;
+  transform: rotate(-18deg);
+  width: 390px;
+}
+
+.js-estate-shell::after {
+  background:
+    linear-gradient(110deg, transparent 46%, rgba(139, 108, 61, .12) 47% 49%, transparent 50%),
+    repeating-radial-gradient(ellipse at center, rgba(111, 133, 84, .08) 0 2px, transparent 3px 17px);
+  bottom: -100px;
+  height: 420px;
+  opacity: .65;
+  right: -80px;
+  transform: rotate(14deg);
+  width: 480px;
+}
+
+.js-estate-shell__inner {
+  margin: 0 auto;
+  max-width: 1560px;
+  position: relative;
+  z-index: 1;
+}
+
+.js-estate-shell__canopy {
+  height: 250px;
+  inset: 0 0 auto;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+}
+
+.js-estate-shell__canopy::before,
+.js-estate-shell__canopy::after {
+  background:
+    radial-gradient(circle, rgba(117, 92, 137, .72) 0 7px, transparent 8px),
+    radial-gradient(circle, rgba(211, 151, 167, .72) 0 5px, transparent 6px),
+    radial-gradient(ellipse, rgba(83, 111, 68, .88) 0 12px, transparent 13px);
+  background-position: 4px 8px, 24px 35px, 42px 10px;
+  background-size: 54px 61px, 47px 54px, 63px 48px;
+  content: "";
+  height: 230px;
+  opacity: .68;
+  position: absolute;
+  top: -34px;
+  width: min(35vw, 470px);
+}
+
+.js-estate-shell__canopy::before { left: -35px; transform: rotate(-6deg); }
+.js-estate-shell__canopy::after { right: -35px; transform: scaleX(-1) rotate(-6deg); }
+.js-estate-shell__canopy > span { background: linear-gradient(#627654, #9d7691); border-radius: 999px; height: 110px; opacity: .3; position: absolute; top: 25px; width: 2px; }
+.js-estate-shell__canopy > span:nth-child(1) { left: 12%; }
+.js-estate-shell__canopy > span:nth-child(2) { left: 22%; height: 150px; }
+.js-estate-shell__canopy > span:nth-child(3) { right: 12%; }
+.js-estate-shell__canopy > span:nth-child(4) { right: 22%; height: 150px; }
+
+.js-estate-shell__hero {
+  align-items: center;
+  display: grid;
+  gap: clamp(18px, 3vw, 38px);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  margin: 0 auto;
+  max-width: 1320px;
+  padding: 6px clamp(0px, 2vw, 28px);
+}
+
+.js-estate-shell__crest {
+  align-items: center;
+  background: radial-gradient(circle, #fffaf0 35%, #e7d2a9 67%, #a77a36 69% 72%, #f8ead0 73%);
+  border: 1px solid #9f7536;
+  border-radius: 50%;
+  box-shadow: 0 12px 30px rgba(69, 50, 28, .22), inset 0 0 0 5px rgba(255, 255, 255, .65);
+  display: grid;
+  height: clamp(92px, 11vw, 138px);
+  justify-items: center;
+  place-content: center;
+  position: relative;
+  width: clamp(92px, 11vw, 138px);
+}
+
+.js-estate-shell__crest .botanical-icon { opacity: .36; position: absolute; }
+.js-estate-shell__crest > span { color: #7b5527; font: italic clamp(29px, 4vw, 45px)/1 Baskerville, Georgia, serif; position: relative; text-shadow: 0 1px #fff; }
+
+.js-estate-title-plaque {
+  background:
+    linear-gradient(110deg, rgba(255, 253, 245, .97), rgba(245, 230, 204, .96)),
+    repeating-linear-gradient(0deg, rgba(116, 85, 46, .04) 0 1px, transparent 1px 4px);
+  border: 1px solid rgba(154, 108, 46, .7);
+  box-shadow: inset 0 0 0 5px rgba(255, 252, 241, .72), 0 18px 46px rgba(71, 51, 28, .16);
+  clip-path: polygon(2.5% 0, 97.5% 0, 100% 18%, 97.5% 100%, 2.5% 100%, 0 82%, 0 18%);
+  min-width: 0;
+  padding: clamp(24px, 4vw, 40px) clamp(28px, 5vw, 64px);
+  position: relative;
+  text-align: center;
+}
+
+.js-estate-title-plaque::after {
+  border-bottom: 1px solid rgba(174, 126, 54, .6);
+  border-top: 1px solid rgba(174, 126, 54, .38);
+  content: "";
+  inset: 8px 18px;
+  pointer-events: none;
+  position: absolute;
+}
+
+.js-estate-title-plaque p,
+.js-estate-section-header p {
+  color: #8c632f;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .2em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.js-estate-title-plaque h1 {
+  color: var(--estate-ink);
+  font: italic clamp(38px, 5vw, 68px)/1 Baskerville, "Iowan Old Style", Georgia, serif;
+  letter-spacing: -.025em;
+  margin: 8px 0 9px;
+}
+
+.js-estate-title-plaque > span { color: #665d50; font: clamp(15px, 1.8vw, 20px)/1.45 Georgia, serif; }
+.js-estate-shell__actions { display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+
+.js-estate-shell__divider {
+  align-items: center;
+  color: #8d672f;
+  display: flex;
+  font: italic 12px Georgia, serif;
+  gap: 14px;
+  justify-content: center;
+  letter-spacing: .14em;
+  margin: 25px auto 34px;
+  text-transform: uppercase;
+}
+
+.js-estate-shell__divider::before,
+.js-estate-shell__divider::after { background: linear-gradient(90deg, transparent, #b78b44, transparent); content: ""; height: 1px; max-width: 330px; width: 28%; }
+.js-estate-shell__divider span { border: 1px solid rgba(174, 128, 55, .55); border-radius: 999px; padding: 6px 12px; }
+
+.js-estate-section-header {
+  align-items: center;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(146, 113, 73, .12), transparent 26%),
+    linear-gradient(135deg, rgba(255, 251, 239, .97), rgba(238, 224, 198, .94));
+  border: 1px solid rgba(162, 119, 54, .55);
+  border-radius: 24px 24px 8px 8px;
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .5), 0 13px 28px rgba(66, 48, 27, .1);
+  display: grid;
+  gap: 16px;
+  grid-template-columns: auto 1fr auto;
+  margin-bottom: 18px;
+  overflow: hidden;
+  padding: 18px clamp(18px, 3vw, 30px);
+  position: relative;
+}
+
+.js-estate-section-header::after { background: linear-gradient(90deg, transparent, var(--estate-gold), transparent); bottom: 5px; content: ""; height: 1px; left: 10%; position: absolute; right: 10%; }
+.js-estate-section-header__marker { align-items: center; background: rgba(255, 248, 232, .88); border: 1px solid rgba(165, 123, 58, .55); border-radius: 50%; display: flex; height: 68px; justify-content: center; width: 68px; }
+.js-estate-section-header h2 { color: #46563b; font: italic clamp(28px, 3.3vw, 40px)/1.05 Baskerville, Georgia, serif; margin: 4px 0; }
+.js-estate-section-header > div > span { color: #716758; font: 14px/1.45 Georgia, serif; }
+.js-estate-section-header > strong { align-items: center; background: #6b7956; border: 3px double #dfc892; border-radius: 50%; box-shadow: 0 6px 14px rgba(61, 54, 35, .16); color: #fffaf0; display: flex; font: 700 20px Georgia, serif; height: 48px; justify-content: center; width: 48px; }
+
+.js-estate-data-card {
+  background:
+    radial-gradient(circle at 90% 8%, color-mix(in srgb, var(--estate-card-accent), transparent 82%), transparent 28%),
+    repeating-linear-gradient(3deg, rgba(106, 79, 42, .018) 0 1px, transparent 1px 5px),
+    linear-gradient(145deg, #fffaf0, #f1dfc2);
+  border: 1px solid color-mix(in srgb, var(--estate-card-accent), #b88a42 44%);
+  border-radius: 12px 30px 12px 30px;
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .48), 0 18px 38px rgba(62, 45, 26, .13);
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.js-estate-data-card::after { border: 1px solid rgba(179, 135, 67, .24); border-radius: 8px 25px 8px 25px; content: ""; inset: 7px; pointer-events: none; position: absolute; }
+.js-estate-data-card__corner { border-color: var(--estate-gold); border-style: solid; height: 16px; opacity: .75; pointer-events: none; position: absolute; top: 13px; width: 16px; z-index: 2; }
+.js-estate-data-card__corner--left { border-width: 1px 0 0 1px; left: 13px; }
+.js-estate-data-card__corner--right { border-width: 1px 1px 0 0; right: 13px; }
+
+.js-estate-action {
+  align-items: center;
+  background: linear-gradient(#fff9eb, #eaddc2);
+  border: 1px solid #aa7d3a;
+  border-radius: 999px;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .8), 0 8px 18px rgba(68, 49, 27, .12);
+  color: #4c5e3f;
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 800;
+  gap: 8px;
+  justify-content: center;
+  padding: 11px 17px;
+  text-decoration: none;
+}
+
+.js-estate-action--gate,
+.js-estate-action--primary { background: linear-gradient(145deg, #73835e, #4f623f); border-color: #3f5134; color: #fffaf0; }
+.js-estate-action--ledger { background: linear-gradient(#f9ead3, #ead2af); color: #72512d; }
+.js-estate-action--quiet { background: rgba(255, 250, 238, .65); box-shadow: none; }
+.js-estate-action:focus-visible { outline: 3px solid rgba(181, 132, 54, .65); outline-offset: 3px; }
+
+.js-botanical-status-seal {
+  background: color-mix(in srgb, var(--estate-seal-accent), #fff 15%);
+  border: 3px double rgba(255, 251, 236, .8);
+  border-radius: 999px;
+  box-shadow: 0 5px 12px color-mix(in srgb, var(--estate-seal-accent), transparent 72%);
+  color: #fff;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .07em;
+  padding: 7px 11px;
+  text-transform: uppercase;
+}
+
+.js-estate-form-section {
+  background: linear-gradient(135deg, rgba(255, 251, 241, .9), rgba(239, 224, 197, .82));
+  border: 1px solid rgba(164, 120, 53, .5);
+  border-radius: 12px 28px 12px 28px;
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .45);
+  display: grid;
+  gap: 17px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 22px 0;
+  padding: clamp(20px, 3vw, 30px);
+}
+
+.js-estate-form-section legend { color: #526242; font: italic 26px/1 Baskerville, Georgia, serif; padding: 0 12px; }
+.js-estate-form-section legend span { color: #b08442; font-size: 12px; padding: 0 8px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .js-estate-action,
+  .js-estate-data-card { transition: box-shadow .22s ease, transform .22s ease; }
+  .js-estate-action:hover { transform: translateY(-2px); }
+  .js-estate-data-card:hover { box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .52), 0 24px 48px rgba(62, 45, 26, .18); transform: translateY(-4px); }
+}
+
+@media (max-width: 900px) {
+  .js-estate-shell { margin-bottom: -18px; margin-top: -76px; padding-top: 98px; }
+  body:has(.js-estate-shell) .js-global-menu-trigger { margin-left: 18px; }
+  .js-estate-shell__hero { grid-template-columns: auto minmax(0, 1fr); }
+  .js-estate-shell__actions { flex-direction: row; grid-column: 1 / -1; justify-content: center; }
+}
+
+@media (max-width: 650px) {
+  .js-estate-shell { padding-inline: 12px; }
+  .js-estate-shell__hero { display: block; }
+  .js-estate-shell__crest { margin: 0 auto 14px; }
+  .js-estate-title-plaque { clip-path: none; padding-inline: 20px; }
+  .js-estate-title-plaque h1 { font-size: clamp(36px, 11vw, 50px); }
+  .js-estate-shell__actions { margin-top: 14px; }
+  .js-estate-section-header { grid-template-columns: auto 1fr; }
+  .js-estate-section-header > strong { grid-column: 1; grid-row: 2; height: 40px; width: 40px; }
+  .js-estate-form-section { grid-template-columns: 1fr; }
+}

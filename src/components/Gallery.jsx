@@ -34,7 +34,7 @@ const albums = [
   }
 ];
 
-export default function Gallery() {
+export default function Gallery({onNavigate}) {
   const { photos } = useGarden();
 
   return (
@@ -121,8 +121,8 @@ export default function Gallery() {
                   marginTop: "20px"
                 }}
               >
-                <button>📸 View Photos</button>
-                <button>⬆️ Upload</button>
+                <button type="button" onClick={()=>onNavigate?.("Photo Manager")}>📸 View Photos</button>
+                <button type="button" onClick={()=>onNavigate?.("Photo Manager")}>⬆️ Upload</button>
               </div>
 
               <div

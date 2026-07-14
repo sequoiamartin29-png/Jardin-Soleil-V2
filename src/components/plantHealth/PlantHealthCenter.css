@@ -1,0 +1,116 @@
+.js-plant-health { --health-burgundy:#75434d; --health-brass:#a97d39; --health-ink:#405039; --health-paper:#fff9ea; }
+.js-plant-health input,.js-plant-health select,.js-plant-health textarea { background:rgba(255,253,245,.92); border:1px solid #c9b186; border-radius:12px; color:#46443c; font:inherit; padding:11px 12px; width:100%; }
+.js-plant-health button { cursor:pointer; }
+.js-plant-health button:focus-visible,.js-plant-health input:focus-visible,.js-plant-health select:focus-visible,.js-plant-health textarea:focus-visible { outline:3px solid rgba(173,127,57,.55); outline-offset:3px; }
+.js-plant-health__local-nav { background:linear-gradient(90deg,transparent,rgba(255,250,238,.86) 8% 92%,transparent); display:flex; flex-wrap:wrap; gap:9px; justify-content:center; margin:-8px 0 30px; padding:14px; }
+.js-plant-health__local-nav button,.js-diagnosis-history__back button { background:transparent; border:0; color:#596947; font-weight:850; padding:8px 10px; text-decoration:underline; text-decoration-color:rgba(169,125,57,.45); text-underline-offset:4px; }
+.js-plant-health__overview,.js-estate-health-review__states,.js-estate-health-review__summary { display:grid; gap:15px; grid-template-columns:repeat(3,minmax(0,1fr)); margin-bottom:26px; }
+.js-plant-health__overview article,.js-estate-health-review__states article,.js-estate-health-review__summary article { background:linear-gradient(145deg,rgba(255,252,242,.95),rgba(239,225,199,.92)); border:1px solid rgba(165,121,54,.45); border-radius:10px 24px 10px 24px; box-shadow:inset 0 0 0 4px rgba(255,255,255,.38),0 12px 26px rgba(69,50,28,.09); padding:20px; text-align:center; }
+.js-plant-health__overview span,.js-estate-health-review__states span,.js-estate-health-review__summary span { color:#8b6532; font-size:10px; font-weight:850; letter-spacing:.14em; text-transform:uppercase; }
+.js-plant-health__overview strong,.js-estate-health-review__states strong,.js-estate-health-review__summary strong { color:#4f623f; display:block; font:italic clamp(26px,3vw,38px)/1 Georgia,serif; margin:8px 0; }
+.js-plant-health__overview p,.js-estate-health-review__states p { color:#756c5e; font:13px/1.45 Georgia,serif; margin:0; }
+.js-plant-health__modes { display:grid; gap:24px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.js-plant-health__modes .js-estate-data-card { display:flex; flex-direction:column; padding:30px; text-align:center; }
+.js-plant-health__modes .botanical-icon { margin:0 auto; }
+.js-plant-health__modes p,.js-health-ledger>header p,.js-health-results header p,.js-diagnosis-history header p,.js-estate-health-review__records>header p { color:#946d35; font-size:10px; font-weight:850; letter-spacing:.17em; margin:12px 0 5px; text-transform:uppercase; }
+.js-plant-health__modes h2 { color:#46583b; font:italic 31px/1.05 Baskerville,Georgia,serif; margin:4px 0 12px; }
+.js-plant-health__modes>article>span { color:#6e6659; flex:1; font:14px/1.55 Georgia,serif; }
+.js-plant-health__modes button,.js-health-primary,.js-estate-health-review__records article>button { background:linear-gradient(145deg,#6f815d,#4f633f); border:1px solid #405234; border-radius:999px; color:#fffaf0; font-weight:850; margin-top:20px; padding:11px 16px; }
+
+.js-health-ledger,.js-health-results__case,.js-health-results__assessment,.js-health-results__safe-actions,.js-health-results__save,.js-health-treatment,.js-diagnosis-history__summary,.js-diagnosis-history__grid>article,.js-diagnosis-history__photos,.js-diagnosis-history__timeline,.js-diagnosis-history__follow-up,.js-estate-health-review__filters,.js-estate-health-review__records { background:repeating-linear-gradient(2deg,rgba(104,76,39,.018) 0 1px,transparent 1px 5px),linear-gradient(145deg,rgba(255,252,243,.97),rgba(238,223,196,.94)); border:1px solid rgba(166,121,53,.5); border-radius:13px 30px 13px 30px; box-shadow:inset 0 0 0 5px rgba(255,255,255,.4),0 18px 40px rgba(63,46,25,.12); margin:0 auto 26px; padding:clamp(20px,3.3vw,36px); position:relative; }
+.js-health-ledger>header,.js-health-results__assessment>header,.js-health-treatment>header,.js-diagnosis-history__timeline>header,.js-diagnosis-history__follow-up>header { border-bottom:1px solid rgba(166,121,53,.3); margin-bottom:23px; padding-bottom:18px; }
+.js-health-ledger h2,.js-health-results h2,.js-health-treatment h2,.js-diagnosis-history h2,.js-estate-health-review h2 { color:var(--health-ink); font:italic clamp(28px,3.6vw,42px)/1.05 Baskerville,Georgia,serif; margin:4px 0 8px; }
+.js-health-ledger>header span,.js-health-results header>span { color:#6d6558; font:15px/1.5 Georgia,serif; }
+.js-health-ledger label,.js-health-results__save label,.js-diagnosis-history__follow-up label,.js-estate-health-review__filters label { color:#596248; display:flex; flex-direction:column; font-size:12px; font-weight:800; gap:7px; }
+.js-health-disclaimer { background:#fff2d8; border:1px solid #be9149; border-radius:14px; color:#654f34; font:13px/1.55 Georgia,serif; margin:26px auto 0; max-width:1050px; padding:15px 18px; text-align:center; }
+.js-health-empty { background:rgba(255,250,238,.82); border:1px dashed #ad884e; border-radius:18px; color:#716756; padding:30px; text-align:center; }
+
+.js-health-photo { display:grid; gap:18px; grid-template-columns:repeat(2,minmax(0,1fr)); max-width:980px; }
+.js-health-photo>header,.js-health-photo .js-plant-combobox,.js-health-photo figure,.js-health-photo__provider,.js-health-photo>p,.js-health-photo>button { grid-column:1/-1; }
+.js-health-photo__upload { background:rgba(255,250,238,.7); border:1px dashed #aa8245; border-radius:16px; padding:16px; }
+.js-health-photo figure { background:#f3e2c6; border:1px solid #b88a43; border-radius:18px; margin:0; overflow:hidden; }
+.js-health-photo figure img { display:block; max-height:460px; object-fit:contain; width:100%; }
+.js-health-photo figcaption { align-items:center; display:flex; justify-content:space-between; padding:12px 15px; }
+.js-health-photo figcaption button { background:transparent; border:0; color:#8c3f47; font-weight:800; }
+.js-health-photo__provider { background:rgba(226,233,211,.7); border:1px solid #a2b184; border-radius:16px; padding:17px; }
+.js-health-photo__provider p { color:#686b5a; line-height:1.5; margin:6px 0 0; }
+.js-health-primary:disabled { cursor:not-allowed; filter:grayscale(.6); opacity:.55; }
+
+.js-health-wizard { max-width:1120px; }
+.js-health-wizard__notice { background:#fff1d4; border:1px solid #bf9146; border-radius:15px; color:#685033; margin-bottom:18px; padding:14px 16px; }
+.js-health-wizard__progress { display:grid; gap:8px; grid-template-columns:repeat(6,minmax(0,1fr)); list-style:none; margin:0 0 28px; padding:0; }
+.js-health-wizard__progress li { color:#8a806f; font-size:11px; text-align:center; }
+.js-health-wizard__progress li span { align-items:center; background:#eee2c9; border:1px solid #c5a66d; border-radius:50%; display:flex; height:32px; justify-content:center; margin:0 auto 6px; width:32px; }
+.js-health-wizard__progress li.is-current { color:#4f613f; font-weight:850; }
+.js-health-wizard__progress li.is-current span,.js-health-wizard__progress li.is-complete span { background:#657953; color:white; }
+.js-health-wizard__step { min-height:270px; }
+.js-health-choice-grid { border:0; margin:0; padding:0; }
+.js-health-choice-grid legend { color:#4c5e3f; font:italic 29px Georgia,serif; margin-bottom:7px; }
+.js-health-choice-grid>p { color:#756c5d; font:14px/1.5 Georgia,serif; }
+.js-health-choice-grid>div { display:grid; gap:10px; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:20px; }
+.js-health-choice-grid label { align-items:center; background:rgba(255,252,244,.76); border:1px solid #d1bc96; border-radius:13px; cursor:pointer; flex-direction:row; font-weight:750; min-height:48px; padding:11px 13px; text-transform:capitalize; }
+.js-health-choice-grid label.is-selected { background:#e4ead9; border-color:#71865c; box-shadow:inset 0 0 0 2px rgba(110,132,88,.18); }
+.js-health-choice-grid input { accent-color:#637952; flex:0 0 auto; height:18px; width:18px; }
+.js-health-wizard__validation { color:#91434a; font-weight:800; }
+.js-health-wizard__actions { display:flex; gap:10px; justify-content:flex-end; margin-top:24px; }
+.js-health-wizard__actions>button:not(.js-health-primary),.js-health-results__save-actions button,.js-diagnosis-history__actions button { background:#f7ead4; border:1px solid #b58b4b; border-radius:999px; color:#536342; font-weight:800; padding:11px 16px; }
+
+.js-health-results__plant,.js-diagnosis-history__summary { align-items:center; display:grid; gap:18px; grid-template-columns:auto 1fr auto; }
+.js-health-results__plant p,.js-diagnosis-history__summary p { color:#936b34; font-size:10px; font-weight:850; letter-spacing:.15em; margin:0; text-transform:uppercase; }
+.js-health-results__plant h2,.js-diagnosis-history__summary h2 { margin:4px 0; }
+.js-health-results__plant>strong { border:3px double #d6bc82; border-radius:999px; color:white; padding:8px 12px; }
+.js-health-results__plant>strong.is-low { background:#98646a; }.js-health-results__plant>strong.is-moderate { background:#9a783e; }.js-health-results__plant>strong.is-high { background:#637953; }
+.js-health-results__case dl,.js-diagnosis-history__grid dl { display:grid; gap:0; grid-template-columns:repeat(2,minmax(0,1fr)); margin:22px 0 0; }
+.js-health-results__case dl>div,.js-diagnosis-history__grid dl>div { border-top:1px solid rgba(165,122,58,.25); padding:13px; }
+.js-health-results dt,.js-diagnosis-history dt { color:#8e6834; font-size:10px; font-weight:850; letter-spacing:.11em; text-transform:uppercase; }
+.js-health-results dd,.js-diagnosis-history dd { color:#555248; font:14px/1.4 Georgia,serif; margin:5px 0 0; }
+.js-health-results__possibilities { display:grid; gap:18px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.js-health-results__possibilities article { background:rgba(255,252,244,.72); border:1px solid #d4bd94; border-radius:16px; padding:20px; }
+.js-health-results__possibilities article.is-most-likely { border:2px solid #798b64; box-shadow:0 10px 24px rgba(71,83,57,.1); }
+.js-health-results__possibilities article>div { align-items:center; display:flex; justify-content:space-between; }
+.js-health-results__possibilities article>div span { color:#7d5d30; font-size:10px; font-weight:850; letter-spacing:.13em; text-transform:uppercase; }
+.js-health-results__possibilities article>div strong { color:#71815d; font-size:11px; }
+.js-health-results__possibilities h3 { color:#4c5e3f; font:italic 27px/1.1 Georgia,serif; }
+.js-health-results__possibilities h4 { color:#7c5c32; font-size:11px; letter-spacing:.08em; margin:18px 0 5px; text-transform:uppercase; }
+.js-health-results__possibilities p,.js-health-results__possibilities li { color:#666055; font:13px/1.5 Georgia,serif; }
+.js-health-results__safe-actions ul { columns:2; gap:40px; }
+.js-health-results__safe-actions li { break-inside:avoid; margin:10px 0; }
+.js-health-treatment ol { display:grid; gap:12px; list-style:none; padding:0; }
+.js-health-treatment li { background:rgba(255,253,246,.65); border-left:3px solid #a77d3c; padding:14px 17px; }
+.js-health-treatment li strong { color:#526342; }.js-health-treatment li p { color:#696257; line-height:1.5; margin:5px 0 0; }
+.js-health-treatment aside { background:#f8e5d8; border:1px solid #cc9e84; border-radius:14px; color:#6c5145; padding:15px; }
+.js-health-results__save,.js-diagnosis-history__follow-up { display:grid; gap:14px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.js-health-results__save>div:first-child,.js-health-results__save .is-wide,.js-health-results__save-actions,.js-diagnosis-history__follow-up header,.js-diagnosis-history__follow-up .is-wide,.js-diagnosis-history__actions { grid-column:1/-1; }
+.js-health-results__save-actions,.js-diagnosis-history__actions { display:flex; flex-wrap:wrap; gap:9px; justify-content:flex-end; }
+.js-health-results__save-actions .is-primary { background:#5c714b; color:white; }
+
+.js-diagnosis-history__back { margin-bottom:12px; }
+.js-diagnosis-history__grid { display:grid; gap:22px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.js-diagnosis-history__grid h3,.js-diagnosis-history__photos h3 { color:#4e603f; font:italic 28px Georgia,serif; margin-top:0; }
+.js-diagnosis-history__grid ol { padding-left:20px; }.js-diagnosis-history__grid li { margin:13px 0; }.js-diagnosis-history__grid li span { color:#8e6b38; display:block; font-size:11px; }
+.js-diagnosis-history__photos>div { display:grid; gap:15px; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); }
+.js-diagnosis-history__photos figure { background:#fff; border:1px solid #d6c3a0; border-radius:15px; margin:0; overflow:hidden; }.js-diagnosis-history__photos img { aspect-ratio:1; object-fit:cover; width:100%; }.js-diagnosis-history__photos figcaption { padding:9px; }
+.js-diagnosis-history__timeline article { display:grid; gap:18px; grid-template-columns:150px 1fr; padding:0 0 25px; position:relative; }
+.js-diagnosis-history__timeline article::before { background:#a67a3b; border-radius:999px; bottom:0; content:""; left:160px; position:absolute; top:8px; width:2px; }
+.js-diagnosis-history__timeline time { color:#8a7149; font-size:12px; }.js-diagnosis-history__timeline article>div { padding-left:28px; }.js-diagnosis-history__timeline article h3 { color:#4e603f; margin:0 0 8px; }
+.js-diagnosis-history__timeline-photos { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+.js-diagnosis-history__timeline-photos figure { background:#fffaf0; border:1px solid #d6c3a0; border-radius:12px; margin:0; overflow:hidden; width:min(150px,100%); }
+.js-diagnosis-history__timeline-photos img { aspect-ratio:4/3; display:block; object-fit:cover; width:100%; }
+.js-diagnosis-history__timeline-photos figcaption { color:#746957; font-size:11px; padding:7px 9px; }
+.js-health-status { background:#7b7d69; border:3px double rgba(255,255,255,.72); border-radius:999px; color:white; display:inline-block; font-size:10px; font-weight:850; letter-spacing:.08em; padding:6px 10px; text-transform:uppercase; }
+.js-health-status--monitoring { background:#95743e; }.js-health-status--treating { background:#8b5156; }.js-health-status--improving { background:#64805b; }.js-health-status--resolved { background:#557361; }.js-health-status--recurring { background:#7a597d; }.js-health-status--unconfirmed { background:#8a7963; }
+
+.js-estate-health-review__states { grid-template-columns:repeat(5,minmax(0,1fr)); }
+.js-estate-health-review__summary { grid-template-columns:repeat(5,minmax(0,1fr)); }
+.js-estate-health-review__summary strong { font-size:clamp(18px,2vw,28px); }
+.js-estate-health-review__filters { display:grid; gap:13px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.js-estate-health-review__records>header { align-items:center; display:flex; justify-content:space-between; margin-bottom:20px; }
+.js-estate-health-review__records>header h2 { margin:3px 0; }
+.js-estate-health-review__records>header button { margin:0; }
+.js-estate-health-review__records>article { align-items:center; background:rgba(255,253,246,.68); border:1px solid #dac7a7; border-radius:15px; display:grid; gap:14px; grid-template-columns:auto 1fr auto auto; margin:10px 0; padding:14px; }
+.js-estate-health-review__records article p { color:#946d36; font-size:10px; letter-spacing:.08em; margin:0; text-transform:uppercase; }.js-estate-health-review__records article h3 { color:#4b5d3e; font:italic 23px Georgia,serif; margin:4px 0; }.js-estate-health-review__records article span { color:#70685a; }
+.js-estate-health-review__records article>button { margin:0; }
+
+@media(max-width:1080px){.js-plant-health__modes,.js-health-results__possibilities{grid-template-columns:1fr}.js-estate-health-review__states,.js-estate-health-review__summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:800px){.js-plant-health__overview,.js-diagnosis-history__grid{grid-template-columns:1fr}.js-health-choice-grid>div,.js-estate-health-review__filters,.js-health-results__save,.js-diagnosis-history__follow-up{grid-template-columns:repeat(2,minmax(0,1fr))}.js-health-results__save>div:first-child,.js-health-results__save .is-wide,.js-health-results__save-actions,.js-diagnosis-history__follow-up header,.js-diagnosis-history__follow-up .is-wide,.js-diagnosis-history__actions{grid-column:1/-1}.js-estate-health-review__records>article{grid-template-columns:auto 1fr}.js-estate-health-review__records article>.js-health-status,.js-estate-health-review__records article>button{grid-column:2}.js-health-wizard__progress{grid-template-columns:repeat(3,1fr);row-gap:14px}}
+@media(max-width:560px){.js-health-photo,.js-health-choice-grid>div,.js-estate-health-review__states,.js-estate-health-review__summary,.js-estate-health-review__filters,.js-health-results__save,.js-diagnosis-history__follow-up{grid-template-columns:1fr}.js-health-photo>header,.js-health-photo .js-plant-combobox,.js-health-photo figure,.js-health-photo__provider,.js-health-photo>p,.js-health-photo>button,.js-health-results__save>div:first-child,.js-health-results__save .is-wide,.js-health-results__save-actions,.js-diagnosis-history__follow-up header,.js-diagnosis-history__follow-up .is-wide,.js-diagnosis-history__actions{grid-column:auto}.js-health-results__plant,.js-diagnosis-history__summary{grid-template-columns:1fr;text-align:center}.js-health-results__plant .botanical-icon,.js-diagnosis-history__summary .botanical-icon{margin:auto}.js-health-results__case dl{grid-template-columns:1fr}.js-health-results__safe-actions ul{columns:1}.js-diagnosis-history__timeline article{grid-template-columns:1fr}.js-diagnosis-history__timeline article::before{display:none}.js-diagnosis-history__timeline article>div{padding-left:0}.js-health-wizard__actions,.js-health-results__save-actions,.js-diagnosis-history__actions{align-items:stretch;flex-direction:column}.js-health-wizard__actions button,.js-health-results__save-actions button,.js-diagnosis-history__actions button{width:100%}}

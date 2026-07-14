@@ -24,7 +24,7 @@ export default function PlantMoveForm({plant,onCancel,onSaved}){
   const change=(field,value)=>{setForm((current)=>({...current,[field]:value}));setErrors((current)=>({...current,[field]:undefined}));setAcknowledgedDuplicate(false);};
   const save=(event)=>{event.preventDefault();const result=validatePlantMove(form,plant,plants);setErrors(result.errors);if(!result.valid||result.duplicates.length&&!acknowledgedDuplicate)return;const removing=["Archived","Removed"].includes(result.updates.status);updatePlant(plant.id,removing?{...result.updates,status:plant.status||"Active"}:result.updates);if(removing)archivePlant(plant.id,result.updates.status);onSaved?.({...plant,...result.updates,archived:removing||plant.archived});};
   const duplicateResult=validatePlantMove(form,plant,plants);
-  return <section className="js-plant-management" aria-labelledby="move-plant-title">
+  return <section className="js-plant-management js-estate-page" aria-labelledby="move-plant-title">
     <header><p>Estate placement</p><h1 id="move-plant-title">Move / Reclassify {plant.name}</h1><span>The stable plant record and all linked history will remain unchanged.</span></header>
     <form onSubmit={save} noValidate>
       <label>Collection<select value={form.collection} onChange={(event)=>change("collection",event.target.value)}>{plantCollections.map((item)=><option key={item}>{item}</option>)}</select></label>

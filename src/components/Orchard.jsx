@@ -1,19 +1,41 @@
 import React, { useMemo } from "react";
 import { useGarden } from "../context/GardenContext";
 import BotanicalIcon from "./icons/BotanicalIcon";
+import {
+  BotanicalStatusSeal,
+  EstateActionButton,
+  EstateDataCard,
+  EstatePageShell,
+  EstateSectionHeader,
+} from "./EstatePageSystem";
 import { getPlantDirectoryGroup, isOrchardFruitTree, orchardDirectoryGroups } from "../utils/plantClassification";
+import "./Orchard.css";
 
 const badgeColors = {
-  Healthy: "#6BA368",
-  Growing: "#8FA06A",
-  Producing: "#D9A441",
-  Fruiting: "#D9A441",
-  Monitoring: "#C98F48",
-  Recovering: "#C46C6C",
-  "New Arrival": "#6C9EC4"
+  Healthy: "#6b845b",
+  Growing: "#78905d",
+  Producing: "#b4863d",
+  Fruiting: "#a96e43",
+  Monitoring: "#a76e44",
+  Recovering: "#9a5b5e",
+  "New Arrival": "#66869d",
 };
 
-export default function Orchard({ onSelectPlant, onAddPlant }) {
+const groveDetails = {
+  Apples: { icon: "apple", accent: "#a85b5e", description: "Heritage apples and espaliered estate favorites." },
+  Pears: { icon: "pear", accent: "#9a9149", description: "Elegant pear trees trained for blossom and harvest." },
+  Plums: { icon: "plum", accent: "#715673", description: "Plum-rich branches gathered in the purple-fruit grove." },
+  Cherries: { icon: "cherry", accent: "#a94e5e", description: "Spring blossom and jewel-toned cherry harvests." },
+  "Citrus Trees": { icon: "orange", accent: "#c17a36", display: "Citrus", description: "The warm citrus court of lemons, mandarins, and rare fruits." },
+  Figs: { icon: "fig", accent: "#765870", description: "Sun-warmed figs held in a sheltered estate corner." },
+  "Peach / Stone Fruit": { icon: "peach", accent: "#c98069", description: "Peaches and stone fruits in the golden orchard walk." },
+  "Other Fruit Trees": { icon: "generic-fruit-tree", accent: "#6c7c55", description: "Distinctive fruiting trees with their own estate character." },
+};
+
+const slugify = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+const recordedValue = (value, fallback = "Not recorded") => value || fallback;
+
+export default function Orchard({ onSelectPlant, onEditPlant, onAddPlant }) {
   const { activePlants } = useGarden();
   const orchardPlants = activePlants.filter(isOrchardFruitTree);
   const groupedPlants = useMemo(() => {
@@ -26,184 +48,100 @@ export default function Orchard({ onSelectPlant, onAddPlant }) {
         group,
         plants: groups[group].sort((a, b) =>
           (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" })
-        )
+        ),
       }))
       .filter(({ plants: grouped }) => grouped.length > 0);
   }, [orchardPlants]);
 
   return (
-    <section style={{ marginTop: "40px" }}>
-      <h1
-        style={{
-          color: "#5D6B46",
-          fontSize: "46px",
-          marginBottom: "10px"
-        }}
-      >
-        🌳 Jardin Soleil Orchard
-      </h1>
+    <EstatePageShell
+      id="orchard-title"
+      eyebrow="Jardin Soleil · Fruiting Estate"
+      title="Jardin Soleil Orchard"
+      subtitle="The fruiting groves of the estate"
+      icon="generic-fruit-tree"
+      className="js-orchard-estate"
+      actions={<EstateActionButton variant="gate" onClick={onAddPlant}>Add New Plant</EstateActionButton>}
+    >
+      <div className="js-orchard-estate__welcome">
+        <p>Orchard Ledger</p>
+        <strong>{orchardPlants.length}</strong>
+        <span>{orchardPlants.length === 1 ? "fruit tree" : "fruit trees"} growing across {groupedPlants.length} {groupedPlants.length === 1 ? "grove" : "groves"}</span>
+      </div>
 
-      <p
-        style={{
-          color: "#777",
-          marginBottom: "35px",
-          fontSize: "18px"
-        }}
-      >
-        Every fruit tree and citrus currently growing in Jardin Soleil.
-      </p>
-      <button type="button" onClick={onAddPlant} style={{background:"#61764F",border:"1px solid #4D603E",borderRadius:"16px",color:"white",cursor:"pointer",fontWeight:800,margin:"0 0 28px",padding:"13px 20px"}}>Add New Plant</button>
+      {groupedPlants.length === 0 && (
+        <EstateDataCard className="js-orchard-estate__empty">
+          <BotanicalIcon type="generic-fruit-tree" size="lg" decorative />
+          <h2>The orchard ledger is ready</h2>
+          <p>Add the estate’s first fruit tree to begin a new grove.</p>
+          <EstateActionButton variant="gate" onClick={onAddPlant}>Add New Plant</EstateActionButton>
+        </EstateDataCard>
+      )}
 
       {groupedPlants.map(({ group, plants: grouped }) => {
-        const headingId = `orchard-group-${group.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+        const details = groveDetails[group] || groveDetails["Other Fruit Trees"];
+        const headingId = `orchard-group-${slugify(group)}`;
 
         return (
-          <section key={group} aria-labelledby={headingId} style={{ marginBottom: "42px" }}>
-            <h2
-              id={headingId}
-              style={{
-                borderBottom: "1px solid rgba(200,169,91,.48)",
-                color: "#53633F",
-                fontFamily: 'Baskerville, "Palatino Linotype", Georgia, serif',
-                fontSize: "30px",
-                fontWeight: 500,
-                margin: "0 0 20px",
-                paddingBottom: "11px"
-              }}
-            >
-              {group}
-            </h2>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit,minmax(340px,1fr))",
-                gap: "22px"
-              }}
-            >
-              {grouped.map((plant) => (
-          <article
-            key={plant.id}
-            style={{
-              background: "#FFFDF9",
-              borderRadius: "28px",
-              overflow: "hidden",
-              border: "1px solid #ECE4D8",
-              boxShadow: "0 10px 24px rgba(0,0,0,.08)"
-            }}
+          <section
+            className="js-orchard-grove"
+            key={group}
+            aria-labelledby={headingId}
+            style={{ "--grove-accent": details.accent }}
           >
-            <div
-              style={{
-                height: "170px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "72px",
-                background:
-                  "linear-gradient(135deg,#F9E6EB,#EEF3E3)"
-              }}
-            >
-              <BotanicalIcon plant={plant} size="xl" decorative />
-            </div>
+            <EstateSectionHeader
+              id={headingId}
+              title={details.display || group}
+              icon={details.icon}
+              count={grouped.length}
+              description={details.description}
+            />
 
-            <div style={{ padding: "24px" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "10px"
-                }}
-              >
-                <div>
-                  <h2
-                    style={{
-                      margin: 0,
-                      color: "#53633F"
-                    }}
-                  >
-                    {plant.name}
-                  </h2>
+            <div className="js-orchard-grove__grid">
+              {grouped.map((plant) => {
+                const location = plant.gardenZone || plant.location;
+                const health = plant.health === 0 || plant.health ? `${plant.health}%` : "Not recorded";
+                const variety = plant.variety || plant.botanicalName || plant.type;
 
-                  {plant.nickname && (
-                    <p style={{ color: "#8A6F45", margin: "6px 0 0" }}>
-                      {plant.nickname}
-                    </p>
-                  )}
+                return (
+                  <EstateDataCard className="js-orchard-card" key={plant.id} accent={details.accent}>
+                    <div className="js-orchard-card__illustration" aria-hidden="true">
+                      <span className="js-orchard-card__branch" />
+                      <BotanicalIcon plant={plant} size="xl" decorative />
+                    </div>
 
-                  <p
-                    style={{
-                      marginTop: "6px",
-                      color: "#777"
-                    }}
-                  >
-                    {plant.type}
-                  </p>
-                </div>
+                    <div className="js-orchard-card__body">
+                      <div className="js-orchard-card__heading">
+                        <div>
+                          <p>{plant.nickname || "Estate Plant Dossier"}</p>
+                          <h3>{plant.name}</h3>
+                          <span>{recordedValue(variety)}</span>
+                        </div>
+                        <BotanicalStatusSeal accent={badgeColors[plant.status] || badgeColors.Growing}>
+                          {plant.status || "Established"}
+                        </BotanicalStatusSeal>
+                      </div>
 
-                <span
-                  style={{
-                    background:
-                      badgeColors[plant.status] ||
-                      "#8FA06A",
-                    color: "white",
-                    padding: "8px 12px",
-                    borderRadius: "999px",
-                    fontSize: "13px",
-                    height: "fit-content"
-                  }}
-                >
-                  {plant.status}
-                </span>
-              </div>
+                      <dl className="js-orchard-card__facts">
+                        <div><dt>Health</dt><dd>{health}</dd></div>
+                        <div><dt>Estate location</dt><dd>{recordedValue(location, "Unassigned")}</dd></div>
+                        <div><dt>Sunlight</dt><dd>{recordedValue(plant.sun)}</dd></div>
+                        <div><dt>Watering</dt><dd>{recordedValue(plant.water)}</dd></div>
+                      </dl>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2,1fr)",
-                  gap: "12px",
-                  marginTop: "20px"
-                }}
-              >
-                <div className="card">
-                  ❤️ {plant.health}%
-                </div>
-
-                <div className="card">
-                  📍 {plant.location}
-                </div>
-
-                <div className="card">
-                  ☀️ {plant.sun}
-                </div>
-
-                <div className="card">
-                  💧 {plant.water}
-                </div>
-              </div>
-
-              <button
-                onClick={() => onSelectPlant(plant)}
-                style={{
-                  marginTop: "22px",
-                  width: "100%",
-                  padding: "14px",
-                  borderRadius: "16px",
-                  border: "none",
-                  background: "#8FA06A",
-                  color: "white",
-                  fontWeight: "bold",
-                  cursor: "pointer"
-                }}
-              >
-                🌿 Open Plant Profile
-              </button>
-            </div>
-                </article>
-              ))}
+                      <div className="js-orchard-card__actions">
+                        <EstateActionButton variant="primary" onClick={() => onSelectPlant(plant)}>Open Plant Profile</EstateActionButton>
+                        {onEditPlant && <EstateActionButton variant="ledger" onClick={() => onEditPlant(plant)}>Edit Plant</EstateActionButton>}
+                        {onEditPlant && <EstateActionButton variant="quiet" onClick={() => onEditPlant(plant)}>Move / Reclassify</EstateActionButton>}
+                      </div>
+                    </div>
+                  </EstateDataCard>
+                );
+              })}
             </div>
           </section>
         );
       })}
-    </section>
+    </EstatePageShell>
   );
 }

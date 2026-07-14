@@ -9,6 +9,8 @@ import Garden from "./components/Garden";
 import Logbook from "./components/Logbook";
 import Gallery from "./components/Gallery";
 import Inventory from "./components/Inventory";
+import Tasks from "./components/Tasks";
+import Calendar from "./components/Calendar";
 import Weather from "./components/Weather";
 import Learning from "./components/Learning";
 import WordSearch from "./components/WordSearch";
@@ -26,12 +28,14 @@ import Conservatory from "./components/conservatory/Conservatory";
 import ArchivedPlants from "./components/ArchivedPlants";
 import PlantDeletionSnackbar from "./components/PlantDeletionSnackbar";
 import EstateMenuDrawer from "./components/EstateMenuDrawer";
+import PlantHealthCenter from "./components/plantHealth/PlantHealthCenter";
 
 import "./styles/app.css";
 
 function GardenApp() {
   const [page, setPage] = useState("Dashboard");
   const [conservatoryLaunch, setConservatoryLaunch] = useState({ companion: null, scopePlant: null, settingsOpen:false, launchId:0 });
+  const [healthCenterLaunch, setHealthCenterLaunch] = useState({ plantId:"", diagnosisId:"", mode:"", launchId:0 });
   const [menuOpen,setMenuOpen]=useState(false);
   const menuTriggerRef=useRef(null);
   const closeMenu=useCallback(()=>setMenuOpen(false),[]);
@@ -45,15 +49,24 @@ function GardenApp() {
 
   const openPlant = (plant) => {
     setSelectedPlant(plant);
-    setPage("Plant Profile");
+    navigate("Plant Profile");
   };
-  const startAddPlant = () => { setSelectedPlant(null); setPage("Plant Editor"); };
+  const startAddPlant = () => { setSelectedPlant(null); navigate("Plant Editor"); };
+  const editPlant = (plant) => { setSelectedPlant(plant); navigate("Plant Editor"); };
   const openConservatory = (companion = null, scopePlant = null, settingsOpen = false) => {
     setConservatoryLaunch({ companion, scopePlant, settingsOpen, launchId:Date.now() });
+    setMenuOpen(false);
     setPage("The Conservatory");
   };
+  const openHealthCenter = ({ plantId = "", diagnosisId = "", mode = "" } = {}) => {
+    setHealthCenterLaunch({ plantId, diagnosisId, mode, launchId:Date.now() });
+    setMenuOpen(false);
+    setPage("Plant Health Center");
+  };
   const navigate = (nextPage) => {
+    setMenuOpen(false);
     if (nextPage === "The Conservatory") setConservatoryLaunch({ companion: null, scopePlant: null, settingsOpen:false, launchId:Date.now() });
+    if (nextPage === "Plant Health Center") setHealthCenterLaunch({ plantId:"", diagnosisId:"", mode:"", launchId:Date.now() });
     setPage(nextPage);
   };
 
@@ -63,41 +76,53 @@ function GardenApp() {
         return <Dashboard journalEntries={journalEntries} onNavigate={navigate} menuOpen={menuOpen} onToggleMenu={()=>setMenuOpen((open)=>!open)} menuTriggerRef={menuTriggerRef} />;
 
       case "Orchard":
-        return <Orchard onSelectPlant={openPlant} onAddPlant={startAddPlant} />;
+        return <Orchard onSelectPlant={openPlant} onEditPlant={editPlant} onAddPlant={startAddPlant} />;
 
       case "Plant Directory":
-        return <PlantDirectory onSelectPlant={openPlant} onAddPlant={startAddPlant} onViewArchived={() => setPage("Archived Plants")} />;
+        return <PlantDirectory onSelectPlant={openPlant} onEditPlant={editPlant} onAddPlant={startAddPlant} onViewArchived={() => navigate("Archived Plants")} />;
 
       case "Archived Plants":
-        return <ArchivedPlants onBack={() => setPage("Plant Directory")} />;
+        return <ArchivedPlants onBack={() => navigate("Plant Directory")} />;
 
       case "Plant Profile":
         return (
           <PlantProfile
             plant={selectedPlant}
             journalEntries={journalEntries}
-            onEdit={() => setPage("Plant Editor")}
-            onExit={() => setPage("Plant Directory")}
+            onEdit={() => navigate("Plant Editor")}
+            onExit={() => navigate("Plant Directory")}
             onConsult={(plant) => openConservatory("gardener", plant)}
+            onDiagnose={(plant) => openHealthCenter({ plantId:plant.id, mode:"wizard" })}
+            onOpenDiagnosis={(diagnosis) => openHealthCenter({ plantId:diagnosis.plantId, diagnosisId:diagnosis.id })}
           />
         );
 
+      case "Plant Health Center":
+        return <PlantHealthCenter key={healthCenterLaunch.launchId} initialPlantId={healthCenterLaunch.plantId} initialDiagnosisId={healthCenterLaunch.diagnosisId} initialMode={healthCenterLaunch.mode} onConsult={(plant) => openConservatory("gardener", plant)} />;
+
       case "Plant Editor":
-        return <PlantEditor plant={selectedPlant} onCancel={() => setPage(selectedPlant ? "Plant Profile" : "Plant Directory")} onSaved={(plant) => { setSelectedPlant(plant); setPage("Plant Profile"); }} onOpenExisting={openPlant} />;
+        return <PlantEditor plant={selectedPlant} onCancel={() => navigate(selectedPlant ? "Plant Profile" : "Plant Directory")} onSaved={(plant) => { setSelectedPlant(plant); navigate("Plant Profile"); }} onOpenExisting={openPlant} />;
 
       case "Add New Plant":
-        return <PlantEditor plant={null} onCancel={() => setPage("Dashboard")} onSaved={(plant) => { setSelectedPlant(plant); setPage("Plant Profile"); }} onOpenExisting={openPlant} />;
+        return <PlantEditor plant={null} onCancel={() => navigate("Dashboard")} onSaved={(plant) => { setSelectedPlant(plant); navigate("Plant Profile"); }} onOpenExisting={openPlant} />;
 
-      case "Garden":
-        return <Garden onAddPlant={startAddPlant} />;
+      case "Garden Collections":
+        return <Garden onAddPlant={startAddPlant} onSelectPlant={openPlant} onEditPlant={editPlant} />;
+
+      case "Tasks":
+        return <Tasks onNavigate={navigate} />;
+
+      case "Calendar":
+        return <Calendar onNavigate={navigate} />;
 
       case "Logbook":
-        return <Logbook />;
+        return <Logbook onNavigate={navigate} />;
 
       case "New Journal Entry":
         return (
           <JournalEntry
             onSaveEntry={addJournalEntry}
+            onNavigate={navigate}
           />
         );
 
@@ -112,7 +137,7 @@ function GardenApp() {
         return <PhotoManager />;
 
       case "Gallery":
-        return <Gallery />;
+        return <Gallery onNavigate={navigate} />;
 
       case "Inventory":
         return <Inventory />;
@@ -127,22 +152,22 @@ function GardenApp() {
         return <TeaApothecary onNavigate={navigate} onConsultHerbalist={() => openConservatory("herbalist")} />;
 
       case "Garden Challenges":
-        return <GardenChallenges onNavigate={setPage} />;
+        return <GardenChallenges onNavigate={navigate} />;
 
       case "Word Search":
         return <WordSearch />;
 
       case "Buddy's Garden Journal":
-        return <BuddyJournal onBack={() => setPage("Dashboard")} onOpenConservatory={() => openConservatory("buddy")} />;
+        return <BuddyJournal onBack={() => navigate("Dashboard")} onOpenConservatory={() => openConservatory("buddy")} onOpenHealthCenter={(diagnosisId) => openHealthCenter({ diagnosisId })} />;
 
       case "The Conservatory":
         return <Conservatory key={conservatoryLaunch.launchId} onNavigate={navigate} initialCompanion={conservatoryLaunch.companion} scopePlant={conservatoryLaunch.scopePlant} initialSettingsOpen={conservatoryLaunch.settingsOpen} />;
 
       case "Estate Environment":
-        return <EstateEnvironmentSettings onBack={() => setPage("Dashboard")} />;
+        return <EstateEnvironmentSettings onBack={() => navigate("Dashboard")} />;
 
       default:
-        return <Dashboard journalEntries={journalEntries} onNavigate={setPage} />;
+        return <Dashboard journalEntries={journalEntries} onNavigate={navigate} />;
     }
   };
 
