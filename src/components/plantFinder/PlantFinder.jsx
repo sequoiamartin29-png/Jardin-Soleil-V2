@@ -1,0 +1,71 @@
+import React, { useState } from "react";
+import { useGarden } from "../../context/GardenContext";
+import BotanicalIcon from "../icons/BotanicalIcon";
+import { EstateActionButton, EstateDataCard, EstatePageShell } from "../EstatePageSystem";
+import { buildIdentificationContext } from "../../utils/buildIdentificationContext";
+import { plantFinderFieldKey } from "../../utils/plantFinderRules";
+import { rankPlantMatches, searchPlantFieldKey } from "../../utils/rankPlantMatches";
+import CandidateResults from "./CandidateResults";
+import IdentificationWizard from "./IdentificationWizard";
+import PhotoIdentifier from "./PhotoIdentifier";
+import "./PlantFinder.css";
+
+const normalize = (value) => String(value || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+export default function PlantFinder({ onNavigate, onAddToEstate, onOpenHealthCenter, onConsultHeadGardener }) {
+  const garden = useGarden();
+  const [mode, setMode] = useState("home");
+  const [wizardSeed, setWizardSeed] = useState({});
+  const [notice, setNotice] = useState("");
+  const [session, setSession] = useState(null);
+  const [knownQuery, setKnownQuery] = useState("");
+
+  const prepareResults = (context, matches, sourceLabel = "Local deterministic field key", sourceNotice = "") => {
+    setSession({ context, matches:matches.slice(0, 5), sourceLabel, sourceNotice });
+    setMode("results");
+  };
+  const completeWizard = (context) => prepareResults(context, rankPlantMatches(context), "Local deterministic field key", notice);
+  const continuePhoto = ({ photoId, subject, analysis }) => {
+    const photoIds = [...new Set([...(wizardSeed.photoIds || []), photoId])];
+    if (!analysis.analyzed) {
+      setWizardSeed({ ...wizardSeed, subject, photoIds, sourceMode:"Photo fallback + Manual Wizard" });
+      setNotice(analysis.message);
+      setMode("wizard");
+      return;
+    }
+    const externalMatches = (analysis.matches || []).slice(0, 5).map((match, index) => {
+      const keyMatch = plantFinderFieldKey.find((item) => normalize(item.commonName) === normalize(match.commonName) || normalize(item.botanicalName) === normalize(match.botanicalName));
+      return { ...(keyMatch || {}), ...match, id:keyMatch?.id || `external-photo-match-${index}`, commonName:match.commonName || keyMatch?.commonName || "Possible visual match", botanicalName:match.botanicalName || keyMatch?.botanicalName || "Unknown", confidence:match.confidence || "Low", why:Array.isArray(match.why) ? match.why : ["External visual similarity was reported."], conflicts:Array.isArray(match.conflicts) ? match.conflicts : [], inspectNext:match.inspectNext || "Compare several structures with a regional key before confirming." };
+    });
+    prepareResults(buildIdentificationContext({ ...wizardSeed, subject, photoIds, sourceMode:"Secure photo analysis" }), externalMatches, "External photo analysis · possible matches", analysis.limitation);
+  };
+  const searchKnown = (event) => {
+    event.preventDefault();
+    const context = buildIdentificationContext({ notes:knownQuery, sourceMode:"Known Trait Search" });
+    prepareResults(context, searchPlantFieldKey(knownQuery), "Known-trait field-key search", "Text search narrows the read-only field key. Continue the Manual Wizard to test structural traits.");
+  };
+  const restart = () => { setMode("home"); setSession(null); setNotice(""); setWizardSeed({}); setKnownQuery(""); };
+  const continueIdentifying = () => { setWizardSeed(session?.context || {}); setNotice("Review uncertain traits and add more observations before comparing again."); setMode("wizard"); };
+
+  const actions = <><EstateActionButton variant="ledger" onClick={() => onNavigate("Plant Finder History")}>History ({garden.plantIdentifications.length})</EstateActionButton><EstateActionButton variant="gate" onClick={() => setMode("wizard")}>Begin Manual Wizard</EstateActionButton></>;
+  return (
+    <EstatePageShell id="plant-finder-title" eyebrow="Jardin Soleil · Field Botany Desk" title="Plant Finder" subtitle="Identify an unknown plant without adding it to the estate until you confirm the record" icon="herb" actions={actions} className="js-plant-finder">
+      {mode === "home" && <>
+        <section className="js-finder-intro"><div><span aria-hidden="true">⌕</span><div><p>Expedition notebook</p><h2>Observe before you name</h2><strong>Plant Finder is separate from the Plant Directory.</strong><p>Use photographs and visible field traits to prepare cautious possibilities. Confirmed estate plants are created only through the existing Add New Plant workflow.</p></div></div></section>
+        <section className="js-finder-modes" aria-label="Plant identification modes">
+          <EstateDataCard accent="#836b8d"><BotanicalIcon type="flower" size="lg" decorative /><p>Specimen plate</p><h2>Photo Identification</h2><span>Take or upload a photograph, choose its subject, and preserve it in the existing photo collection.</span><button type="button" onClick={() => setMode("photo")}>Begin with a photo</button></EstateDataCard>
+          <EstateDataCard accent="#627a55"><BotanicalIcon type="herb" size="lg" decorative /><p>Eight-part field key</p><h2>Manual Wizard</h2><span>Compare form, leaves, flowers, fruit, stems, habitat, season, and region through a deterministic local key.</span><button type="button" onClick={() => setMode("wizard")}>Open the wizard</button></EstateDataCard>
+          <EstateDataCard accent="#a17a3e"><BotanicalIcon type="generic-plant" size="lg" decorative /><p>Known observations</p><h2>Search by Known Traits</h2><span>Start with a remembered name, family, habitat, or trait, then continue into the complete field key.</span><button type="button" onClick={() => setMode("known")}>Search known traits</button></EstateDataCard>
+        </section>
+        <aside className="js-finder-expert-prompt"><div><p>Field verification</p><h2>Prepare a useful expert question</h2><span>Save your traits, ranked possibilities, photographs, and conflicts for a local extension office, certified arborist, botanist, or regional field guide.</span></div><button type="button" onClick={onConsultHeadGardener}>Ask the Head Gardener to summarize observations</button></aside>
+      </>}
+
+      {mode === "photo" && <PhotoIdentifier onContinue={continuePhoto} onCancel={() => setMode("home")} />}
+      {mode === "wizard" && <IdentificationWizard key={JSON.stringify(wizardSeed.photoIds || [])} initialData={wizardSeed} notice={notice} onComplete={completeWizard} onCancel={() => setMode("home")} />}
+      {mode === "known" && <form className="js-finder-ledger js-finder-known" onSubmit={searchKnown}><header><p>Brass index & specimen key</p><h2>Search by Known Traits</h2><span>Use concrete observations such as “opposite aromatic square stem purple flowers” or “tree lobed leaves nut woodland.”</span></header><label><span>Known name or traits</span><input autoFocus value={knownQuery} onChange={(event) => setKnownQuery(event.target.value)} placeholder="Enter a common name, family, leaf trait, flower, fruit, or habitat" /></label><p>This broad search is not a confirmation. Structural observations in the Manual Wizard produce a more useful ranking.</p><div className="js-finder-actions"><button type="button" className="is-quiet" onClick={() => setMode("home")}>Back</button><button type="button" onClick={() => { setWizardSeed({ notes:knownQuery, sourceMode:"Known Trait Search + Manual Wizard" }); setMode("wizard"); }}>Continue in Manual Wizard</button><button type="submit" className="is-primary" disabled={!knownQuery.trim()}>Search field key</button></div></form>}
+      {mode === "results" && session && <CandidateResults {...session} onRestart={restart} onContinueIdentifying={continueIdentifying} onAddPhoto={() => { setWizardSeed(session.context); setMode("photo"); }} onSaveRecord={garden.addPlantIdentification} onUpdateRecord={garden.updatePlantIdentification} onAddToEstate={onAddToEstate} onOpenHealthCenter={(payload) => onOpenHealthCenter({ ...payload, traits:session.context })} />}
+
+      {mode !== "results" && <p className="js-finder-safety">Never eat, brew, or medically use a wild plant based only on an app identification. Confirm with a qualified local expert.</p>}
+    </EstatePageShell>
+  );
+}

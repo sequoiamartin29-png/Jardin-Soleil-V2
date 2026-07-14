@@ -36,7 +36,7 @@ const dashboardHotspots = [
   { label: "Harvest", page: "Logbook", area: [77.7, 96.2, 20.4, 2.7] },
 ];
 
-export default function Dashboard({ onNavigate, menuOpen, onToggleMenu, menuTriggerRef }) {
+export default function Dashboard({ onNavigate }) {
   const { stats } = useGarden();
   const environment = useEstateEnvironment();
   const [localNow, setLocalNow] = useState(() => new Date());
@@ -72,7 +72,6 @@ export default function Dashboard({ onNavigate, menuOpen, onToggleMenu, menuTrig
       </p>
 
       <div className="js-dashboard-artwork__viewport">
-        <button ref={menuTriggerRef} className="js-dashboard-artwork__menu" type="button" aria-expanded={menuOpen} aria-controls="estate-navigation-drawer" onClick={onToggleMenu}><span aria-hidden="true">☰</span><strong>Menu</strong></button>
       <div className="js-dashboard-artwork__canvas" aria-describedby="dashboard-garden-summary">
         <div className="js-dashboard-artwork__pieces">
           <div className="js-dashboard-artwork__upper">

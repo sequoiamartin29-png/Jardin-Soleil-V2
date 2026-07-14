@@ -6,29 +6,20 @@
   --estate-lavender: #88779a;
   --estate-paper: #f6ead4;
   --estate-sage: #647652;
-  background:
-    radial-gradient(circle at 9% 4%, rgba(150, 108, 137, .23), transparent 22%),
-    radial-gradient(circle at 91% 8%, rgba(99, 128, 79, .22), transparent 24%),
-    repeating-linear-gradient(3deg, rgba(108, 84, 50, .025) 0 1px, transparent 1px 6px),
-    linear-gradient(135deg, #e8dfc9 0%, #faf0dd 24%, #f3e7d1 68%, #e5ddc7 100%);
+  background: transparent;
   color: #50493e;
-  margin-bottom: -32px;
-  margin-left: 0;
-  margin-top: -88px;
+  margin: 0;
   max-width: 100%;
-  min-height: 100vh;
-  overflow: hidden;
-  padding: clamp(106px, 10vw, 136px) clamp(16px, 4vw, 68px) clamp(64px, 8vw, 108px);
+  min-height: 0;
+  overflow: visible;
+  padding: 0;
   position: relative;
   width: 100%;
 }
 
-body:has(.js-estate-shell) .app { max-width: none; padding-left: 0; padding-right: 0; }
-body:has(.js-estate-shell) .js-global-menu-trigger { margin-left: 32px; }
-
 .js-estate-shell::before,
 .js-estate-shell::after {
-  content: "";
+  content: none;
   pointer-events: none;
   position: absolute;
 }
@@ -61,17 +52,13 @@ body:has(.js-estate-shell) .js-global-menu-trigger { margin-left: 32px; }
 
 .js-estate-shell__inner {
   margin: 0 auto;
-  max-width: 1560px;
+  max-width: none;
   position: relative;
   z-index: 1;
 }
 
 .js-estate-shell__canopy {
-  height: 250px;
-  inset: 0 0 auto;
-  overflow: hidden;
-  pointer-events: none;
-  position: absolute;
+  display: none;
 }
 
 .js-estate-shell__canopy::before,
@@ -283,14 +270,13 @@ body:has(.js-estate-shell) .js-global-menu-trigger { margin-left: 32px; }
 }
 
 @media (max-width: 900px) {
-  .js-estate-shell { margin-bottom: -18px; margin-top: -76px; padding-top: 98px; }
-  body:has(.js-estate-shell) .js-global-menu-trigger { margin-left: 18px; }
+  .js-estate-shell { margin: 0; padding: 0; }
   .js-estate-shell__hero { grid-template-columns: auto minmax(0, 1fr); }
   .js-estate-shell__actions { flex-direction: row; grid-column: 1 / -1; justify-content: center; }
 }
 
 @media (max-width: 650px) {
-  .js-estate-shell { padding-inline: 12px; }
+  .js-estate-shell { padding: 0; }
   .js-estate-shell__hero { display: block; }
   .js-estate-shell__crest { margin: 0 auto 14px; }
   .js-estate-title-plaque { clip-path: none; padding-inline: 20px; }

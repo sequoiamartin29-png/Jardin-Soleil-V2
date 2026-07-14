@@ -12,9 +12,9 @@
   position: relative;
 }
 .js-plant-editor::before,
-.js-plant-editor::after { color: rgba(165, 122, 56, .55); content: "❦"; font: 28px Georgia, serif; position: absolute; top: 14px; }
-.js-plant-editor::before { left: 22px; }
-.js-plant-editor::after { right: 22px; transform: scaleX(-1); }
+.js-plant-editor::after { background: radial-gradient(ellipse at 30% 28%, rgba(105,133,83,.52) 0 21%, transparent 23%), radial-gradient(ellipse at 70% 62%, rgba(173,118,139,.4) 0 18%, transparent 20%), linear-gradient(105deg,transparent 47%,rgba(165,122,56,.5) 48% 52%,transparent 53%); content: ""; height: 30px; position: absolute; top: 14px; width: 25px; }
+.js-plant-editor::before { left: 22px; transform: rotate(-24deg); }
+.js-plant-editor::after { right: 22px; transform: scaleX(-1) rotate(-24deg); }
 .js-plant-editor label { color: #585e4c; display: flex; flex-direction: column; font-weight: 750; gap: 7px; min-width: 0; }
 .js-plant-editor label.is-wide { grid-column: 1 / -1; }
 .js-plant-editor label > span { color: #59664a; font-size: 12px; letter-spacing: .04em; }
@@ -25,6 +25,10 @@
 .js-plant-editor input:focus-visible,
 .js-plant-editor select:focus-visible,
 .js-plant-editor textarea:focus-visible { outline: 3px solid rgba(181, 135, 57, .43); outline-offset: 2px; }
+.js-plant-editor__finder-photo { background:#ead9bb; border:1px solid #b98b45; border-radius:13px; margin:6px 0 0; overflow:hidden; }
+.js-plant-editor__finder-photo img { display:block; max-height:230px; object-fit:contain; width:100%; }
+.js-plant-editor__finder-photo figcaption { align-items:center; color:#615847; display:flex; font-size:11px; justify-content:space-between; padding:8px 10px; }
+.js-plant-editor__finder-photo button { background:transparent; border:0; color:#8e4249; cursor:pointer; font-weight:800; }
 
 .js-plant-editor__duplicates { background: linear-gradient(135deg, #fff4df, #f4dfbd); border: 1px solid #bf8d42; border-radius: 18px; box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .4); margin: 22px 0; padding: 22px; }
 .js-plant-editor__duplicates h2 { color: #725233; font: italic 28px Georgia, serif; margin: 0 0 7px; }

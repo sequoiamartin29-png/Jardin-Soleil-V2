@@ -23,6 +23,9 @@
 .js-health-ledger>header span,.js-health-results header>span { color:#6d6558; font:15px/1.5 Georgia,serif; }
 .js-health-ledger label,.js-health-results__save label,.js-diagnosis-history__follow-up label,.js-estate-health-review__filters label { color:#596248; display:flex; flex-direction:column; font-size:12px; font-weight:800; gap:7px; }
 .js-health-disclaimer { background:#fff2d8; border:1px solid #be9149; border-radius:14px; color:#654f34; font:13px/1.55 Georgia,serif; margin:26px auto 0; max-width:1050px; padding:15px 18px; text-align:center; }
+.js-health-finder-handoff { background:linear-gradient(120deg,#f7e8cf,#e4ead8); border:1px solid #ac8a4f; border-radius:14px; color:#615a4f; margin:0 0 22px; padding:15px 18px; }
+.js-health-finder-handoff strong { color:#4d613f; font:italic 20px Georgia,serif; }
+.js-health-finder-handoff p { font:13px/1.5 Georgia,serif; margin:5px 0 0; }
 .js-health-empty { background:rgba(255,250,238,.82); border:1px dashed #ad884e; border-radius:18px; color:#716756; padding:30px; text-align:center; }
 
 .js-health-photo { display:grid; gap:18px; grid-template-columns:repeat(2,minmax(0,1fr)); max-width:980px; }

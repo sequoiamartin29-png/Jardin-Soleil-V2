@@ -1,5 +1,3 @@
-.js-dashboard-artwork__menu[aria-expanded="true"]{z-index:2101}
-
 .js-dashboard-artwork {
   margin: 0 auto;
   max-width: 1024px;
@@ -21,9 +19,6 @@
   transform-origin:top left;
   width:118.765%;
 }
-.js-dashboard-artwork__menu{align-items:center;background:linear-gradient(145deg,rgba(255,250,239,.98),rgba(235,220,194,.98));border:2px solid #b98b42;border-radius:15px;box-shadow:0 8px 22px rgba(54,42,26,.22),inset 0 0 0 3px rgba(255,253,247,.72);color:#505b3d;cursor:pointer;display:grid;font-family:Georgia,"Times New Roman",serif;gap:2px;left:1.4%;line-height:1;min-height:62px;min-width:70px;padding:8px;position:absolute;text-align:center;top:1.15%;z-index:10}.js-dashboard-artwork__menu span{font-size:25px}.js-dashboard-artwork__menu strong{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.js-dashboard-artwork__menu:hover,.js-dashboard-artwork__menu:focus-visible{box-shadow:0 0 0 3px rgba(255,247,218,.85),0 8px 24px rgba(83,57,24,.3);outline:2px solid #9d7332;outline-offset:2px}
-.js-dashboard-artwork__menu[aria-expanded="true"]{z-index:2101}
-
 .js-dashboard-artwork__pieces{line-height:0;width:100%}.js-dashboard-artwork__pieces img{display:block;height:auto;max-width:none;width:100%}.js-dashboard-artwork__upper{aspect-ratio:1024/381;overflow:hidden}.js-dashboard-artwork__stat-strip{aspect-ratio:1024/123;display:grid;grid-template-columns:178fr 680fr 166fr;overflow:hidden}.js-dashboard-artwork__strip-side{overflow:hidden;position:relative}.js-dashboard-artwork__strip-side img{position:absolute;top:0}.js-dashboard-artwork__strip-side--left img{transform:translateY(-24.8047%);width:575.281%}.js-dashboard-artwork__strip-side--right img{transform:translate(-83.7891%,-24.8047%);width:616.867%}.js-dashboard-artwork__lower{aspect-ratio:1024/1032;overflow:hidden}.js-dashboard-artwork__lower img{transform:translateY(-32.8125%)}
 
 .js-garden-motion {
@@ -228,8 +223,6 @@
   outline: none;
 }
 
-.js-dashboard-artwork__menu{left:max(12px,calc((100vw - 1024px)/2 + 12px));position:fixed;top:12px}
-
 .js-dashboard-artwork__summary {
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
@@ -243,7 +236,6 @@
 }
 
 @media (max-width: 600px) {
-  .js-dashboard-artwork__menu{border-radius:11px;min-height:49px;min-width:54px;padding:6px}.js-dashboard-artwork__menu span{font-size:19px}.js-dashboard-artwork__menu strong{font-size:8px}
   .js-dashboard-artwork__hotspot {
     border-radius: 5px;
   }

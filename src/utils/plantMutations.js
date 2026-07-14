@@ -26,6 +26,7 @@ export function validateAndNormalizePlant(input, existingPlants=[], editingId=nu
   const usedIds=new Set(existingPlants.filter((plant)=>plant.id!==editingId).map((plant)=>plant.id)); let id=editingId||`plant-${slug(name)}`; let suffix=2; while(usedIds.has(id))id=`plant-${slug(name)}-${suffix++}`;
   const record={id,name,type,category,group:String(input.group||suggestPlantGroup({type,category})).trim(),createdAt:input.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
   ["nickname","variety","botanicalName","collection","gardenZone","location","status","sun","water","plantingDate","acquisitionDate","source","notes","iconType"].forEach((field)=>{const value=String(input[field]||"").trim();if(value)record[field]=value;});
+  ["identifiedAt","identificationConfidence","plantFinderIdentificationId"].forEach((field)=>{const value=String(input[field]||"").trim();if(value)record[field]=value;});
   if(input.health!==""&&input.health!==undefined)record.health=Number(input.health);
   const tags=Array.isArray(input.tags)?input.tags:String(input.tags||"").split(","); record.tags=[...new Set(tags.map((tag)=>tag.trim()).filter(Boolean))];
   return {valid:Object.keys(errors).length===0,errors,duplicates,record};

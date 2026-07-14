@@ -12,7 +12,7 @@ const filters = [
   "Flowers"
 ];
 
-export default function PlantDirectory({ onSelectPlant, onEditPlant, onAddPlant, onViewArchived }) {
+export default function PlantDirectory({ onSelectPlant, onEditPlant, onAddPlant, onOpenPlantFinder, onViewArchived }) {
   const { plants, activePlants, stats } = useGarden();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
@@ -83,7 +83,7 @@ export default function PlantDirectory({ onSelectPlant, onEditPlant, onAddPlant,
       >
         Browse every plant growing in Jardin Soleil.
       </p>
-      <div style={{display:"flex",flexWrap:"wrap",gap:"10px",margin:"0 0 22px"}}><button type="button" onClick={onAddPlant} style={{background:"#61764F",border:"1px solid #4D603E",borderRadius:"16px",color:"white",cursor:"pointer",fontWeight:800,padding:"13px 20px"}}>Add New Plant</button><button type="button" onClick={onViewArchived} style={{background:"#F8F1E4",border:"1px solid #BFA267",borderRadius:"16px",color:"#53633F",cursor:"pointer",fontWeight:800,padding:"13px 20px"}}>Archived Plants ({plants.filter((plant)=>plant.archived||String(plant.status).toLocaleLowerCase()==="archived").length})</button></div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:"10px",margin:"0 0 22px"}}><button type="button" onClick={onAddPlant} style={{background:"#61764F",border:"1px solid #4D603E",borderRadius:"16px",color:"white",cursor:"pointer",fontWeight:800,padding:"13px 20px"}}>Add New Plant</button><button type="button" onClick={onOpenPlantFinder} style={{background:"#EEE7D5",border:"1px solid #A97D39",borderRadius:"16px",color:"#53633F",cursor:"pointer",fontWeight:800,padding:"13px 20px"}}>Identify an Unknown Plant</button><button type="button" onClick={onViewArchived} style={{background:"#F8F1E4",border:"1px solid #BFA267",borderRadius:"16px",color:"#53633F",cursor:"pointer",fontWeight:800,padding:"13px 20px"}}>Archived Plants ({plants.filter((plant)=>plant.archived||String(plant.status).toLocaleLowerCase()==="archived").length})</button></div>
 
       <input
         placeholder="Search plants..."

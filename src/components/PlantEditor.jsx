@@ -4,17 +4,18 @@ import { plantCategories, plantGroups, suggestPlantGroup, validateAndNormalizePl
 import { EstateActionButton, EstateFormSection, EstatePageShell } from "./EstatePageSystem";
 import "./PlantEditor.css";
 
-const editableFields = ["name", "nickname", "type", "category", "group", "variety", "botanicalName", "gardenZone", "location", "status", "health", "sun", "water", "plantingDate", "acquisitionDate", "source", "notes", "iconType", "tags"];
-const blank = { name:"", nickname:"", type:"", category:"", group:"", variety:"", botanicalName:"", gardenZone:"", location:"", status:"", health:"", sun:"", water:"", plantingDate:"", acquisitionDate:"", source:"", notes:"", iconType:"", tags:"" };
+const editableFields = ["name", "nickname", "type", "category", "group", "variety", "botanicalName", "gardenZone", "location", "status", "health", "sun", "water", "plantingDate", "acquisitionDate", "source", "notes", "iconType", "tags", "identifiedAt", "identificationConfidence", "plantFinderIdentificationId"];
+const blank = { name:"", nickname:"", type:"", category:"", group:"", variety:"", botanicalName:"", gardenZone:"", location:"", status:"", health:"", sun:"", water:"", plantingDate:"", acquisitionDate:"", source:"", notes:"", iconType:"", tags:"", identifiedAt:"", identificationConfidence:"", plantFinderIdentificationId:"" };
 const initialFor = (plant) => plant ? { ...blank, ...plant, health:plant.health ?? "", tags:(plant.tags || []).join(", ") } : blank;
 
-export default function PlantEditor({ plant, onCancel, onSaved, onOpenExisting }) {
+export default function PlantEditor({ plant, initialValues, initialPhoto, onCancel, onSaved, onOpenExisting, onOpenPlantFinder }) {
   const { plants, addPlant, updatePlant, addPhotos } = useGarden();
-  const [form, setForm] = useState(() => initialFor(plant));
+  const [form, setForm] = useState(() => initialFor(plant || initialValues));
   const [errors, setErrors] = useState({});
   const [duplicates, setDuplicates] = useState([]);
   const [allowDuplicate, setAllowDuplicate] = useState(false);
   const [photo, setPhoto] = useState(null);
+  const [keepInitialPhoto, setKeepInitialPhoto] = useState(Boolean(initialPhoto?.url));
 
   const change = (field, value) => {
     setForm((current) => {
@@ -52,6 +53,8 @@ export default function PlantEditor({ plant, onCancel, onSaved, onOpenExisting }
         reader.readAsDataURL(photo);
       });
       addPhotos([{ id:`plant-photo-${Date.now()}`, plantId:saved.id, name:photo.name, date:new Date().toISOString(), url }]);
+    } else if (!plant && keepInitialPhoto && initialPhoto?.url) {
+      addPhotos([{ id:`plant-photo-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, plantId:saved.id, name:initialPhoto.name || "Plant Finder specimen", date:new Date().toISOString(), url:initialPhoto.url, source:"Plant Finder", stage:"Estate plant profile" }]);
     }
     onSaved(saved);
   };
@@ -64,6 +67,7 @@ export default function PlantEditor({ plant, onCancel, onSaved, onOpenExisting }
       subtitle={plant ? "Refine this estate record without disturbing its history." : "Register a plant in the canonical Jardin Soleil collection."}
       icon={plant?.iconType || "generic-plant"}
       className="js-plant-editor-shell"
+      actions={!plant && onOpenPlantFinder ? <EstateActionButton variant="ledger" onClick={onOpenPlantFinder}>Identify an Unknown Plant</EstateActionButton> : null}
     >
       <form className="js-plant-editor" onSubmit={save} noValidate>
         <EstateFormSection legend="Identity">
@@ -88,7 +92,7 @@ export default function PlantEditor({ plant, onCancel, onSaved, onOpenExisting }
           <Field label="Acquisition date" error={errors.acquisitionDate}><input type="date" value={form.acquisitionDate} onChange={(event) => change("acquisitionDate", event.target.value)} /></Field>
           <Field label="Source or nursery"><input value={form.source} onChange={(event) => change("source", event.target.value)} /></Field>
           <Field label="Tags"><input value={form.tags} onChange={(event) => change("tags", event.target.value)} placeholder="comma separated" /></Field>
-          <Field label="Photo"><input type="file" accept="image/*" onChange={(event) => setPhoto(event.target.files?.[0] || null)} /></Field>
+          <Field label="Photo"><input type="file" accept="image/*" onChange={(event) => { setPhoto(event.target.files?.[0] || null); if (event.target.files?.[0]) setKeepInitialPhoto(false); }} />{keepInitialPhoto && initialPhoto?.url && <figure className="js-plant-editor__finder-photo"><img src={initialPhoto.url} alt="Plant Finder specimen selected for this new estate record" /><figcaption>Plant Finder specimen<button type="button" onClick={() => setKeepInitialPhoto(false)}>Remove</button></figcaption></figure>}</Field>
           <Field label="Notes" wide><textarea rows="4" value={form.notes} onChange={(event) => change("notes", event.target.value)} /></Field>
         </EstateFormSection>
 

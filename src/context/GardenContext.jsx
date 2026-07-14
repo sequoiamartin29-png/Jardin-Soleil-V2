@@ -50,6 +50,26 @@ const canonicalGardenMetadata = {
 
 const createStableId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const diagnosisArray = (value) => Array.isArray(value) ? value : [];
+const normalizePlantIdentification = (identification) => {
+  const createdAt = identification.createdAt || identification.date || new Date().toISOString();
+  return {
+    ...identification,
+    id:identification.id || createStableId("plant-identification"),
+    date:identification.date || createdAt.slice(0, 10),
+    photoIds:diagnosisArray(identification.photoIds),
+    traits:identification.traits && typeof identification.traits === "object" ? identification.traits : {},
+    matches:diagnosisArray(identification.matches).slice(0, 5),
+    selectedMatch:identification.selectedMatch || null,
+    confidence:identification.confidence || identification.selectedMatch?.confidence || "Low",
+    notes:identification.notes || "",
+    location:identification.location && typeof identification.location === "object" ? identification.location : {},
+    verificationStatus:identification.verificationStatus || "Unconfirmed",
+    expertReview:identification.expertReview && typeof identification.expertReview === "object" ? identification.expertReview : {},
+    sourceMode:identification.sourceMode || "Local deterministic field key",
+    createdAt,
+    updatedAt:identification.updatedAt || createdAt,
+  };
+};
 const normalizePlantDiagnosis = (diagnosis) => {
   const createdAt = diagnosis.createdAt || diagnosis.date || new Date().toISOString();
   return {
@@ -388,6 +408,10 @@ export function GardenProvider({ children }) {
     ))
   );
 
+  const [plantIdentifications, setPlantIdentifications] = useState(() =>
+    load("jardinSoleilPlantIdentifications", []).map(normalizePlantIdentification)
+  );
+
   const [teaWorkflows, setTeaWorkflows] = useState(() =>
     load("jardinSoleilTeaWorkflows", []).map((workflow) => plantLegacyIdMap.has(workflow.plantId) ? { ...workflow, plantId:plantLegacyIdMap.get(workflow.plantId) } : workflow)
   );
@@ -427,6 +451,10 @@ export function GardenProvider({ children }) {
   useEffect(() => {
     localStorage.setItem("jardinSoleilPlantDiagnoses", JSON.stringify(plantDiagnoses));
   }, [plantDiagnoses]);
+
+  useEffect(() => {
+    localStorage.setItem("jardinSoleilPlantIdentifications", JSON.stringify(plantIdentifications));
+  }, [plantIdentifications]);
 
   useEffect(() => {
     localStorage.setItem("jardinSoleilTeaWorkflows", JSON.stringify(teaWorkflows));
@@ -508,6 +536,38 @@ export function GardenProvider({ children }) {
   };
 
   const deletePlantDiagnosis = (diagnosisId) => setPlantDiagnoses((current) => current.filter((diagnosis) => diagnosis.id !== diagnosisId));
+
+  const addPlantIdentification = (identification) => {
+    const next = normalizePlantIdentification({
+      ...identification,
+      id:createStableId("plant-identification"),
+      createdAt:new Date().toISOString(),
+      updatedAt:new Date().toISOString(),
+    });
+    setPlantIdentifications((current) => [next, ...current]);
+    return next;
+  };
+
+  const updatePlantIdentification = (identificationId, updates) => {
+    let updated = null;
+    setPlantIdentifications((current) => current.map((identification) => {
+      if (identification.id !== identificationId) return identification;
+      const patch = typeof updates === "function" ? updates(identification) : updates;
+      updated = normalizePlantIdentification({
+        ...identification,
+        ...patch,
+        id:identification.id,
+        createdAt:identification.createdAt,
+        updatedAt:new Date().toISOString(),
+      });
+      return updated;
+    }));
+    return updated;
+  };
+
+  const deletePlantIdentification = (identificationId) => {
+    setPlantIdentifications((current) => current.filter((identification) => identification.id !== identificationId));
+  };
 
   const addTeaWorkflow = (workflow) => {
     const newWorkflow = {
@@ -748,6 +808,10 @@ export function GardenProvider({ children }) {
     updatePlantDiagnosis,
     addDiagnosisFollowUp,
     deletePlantDiagnosis,
+    plantIdentifications,
+    addPlantIdentification,
+    updatePlantIdentification,
+    deletePlantIdentification,
     teaWorkflows,
     addTeaWorkflow,
     updateTeaWorkflow,

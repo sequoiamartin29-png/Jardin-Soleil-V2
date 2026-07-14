@@ -12,11 +12,15 @@ import PhotoDiagnosis from "./PhotoDiagnosis";
 import SymptomWizard from "./SymptomWizard";
 import "./PlantHealthCenter.css";
 
-export default function PlantHealthCenter({ initialPlantId = "", initialDiagnosisId = "", initialMode = "", onConsult }) {
+export default function PlantHealthCenter({ initialPlantId = "", initialDiagnosisId = "", initialMode = "", initialFinderContext = null, onConsult, onOpenPlantFinder }) {
   const garden = useGarden();
   const environment = useEstateEnvironment();
   const [view, setView] = useState(initialDiagnosisId ? "history" : initialMode || "home");
-  const [draft, setDraft] = useState(initialPlantId ? { plantId:initialPlantId } : {});
+  const [draft, setDraft] = useState({
+    ...(initialPlantId ? { plantId:initialPlantId } : {}),
+    ...(initialFinderContext || {}),
+    ...(initialFinderContext ? { notice:"Plant Finder field evidence was carried into this separate health review. Choose an existing estate plant before preparing a diagnosis; the possible species match is not treated as a diagnosis." } : {}),
+  });
   const [result, setResult] = useState(null);
   const [selectedDiagnosisId, setSelectedDiagnosisId] = useState(initialDiagnosisId);
   const selectedDiagnosis = garden.plantDiagnoses.find((item) => item.id === selectedDiagnosisId);
@@ -48,11 +52,13 @@ export default function PlantHealthCenter({ initialPlantId = "", initialDiagnosi
 
   const openHistory = (diagnosisId) => { setSelectedDiagnosisId(diagnosisId); setView("history"); };
   const startWizard = (nextDraft = draft) => { setDraft(nextDraft); setResult(null); setView("wizard"); };
-  const actions = <><EstateActionButton variant="ledger" onClick={() => setView("review")}>Estate Health Review</EstateActionButton>{selectedPlant && <EstateActionButton variant="gate" onClick={() => onConsult?.(selectedPlant)}>Consult the Head Gardener</EstateActionButton>}</>;
+  const actions = <><EstateActionButton variant="quiet" onClick={onOpenPlantFinder}>Identify an Unknown Plant</EstateActionButton><EstateActionButton variant="ledger" onClick={() => setView("review")}>Estate Health Review</EstateActionButton>{selectedPlant && <EstateActionButton variant="gate" onClick={() => onConsult?.(selectedPlant)}>Consult the Head Gardener</EstateActionButton>}</>;
 
   return (
     <EstatePageShell id="plant-health-center-title" eyebrow="Jardin Soleil · Botanical Infirmary" title="Estate Plant Health Center" subtitle="Thoughtful disease, pest, and stress assessment grounded in saved estate records" icon="herb" className="js-plant-health" actions={actions}>
       {view !== "home" && <nav className="js-plant-health__local-nav" aria-label="Plant Health Center sections"><button type="button" onClick={() => setView("home")}>Health Center Home</button><button type="button" onClick={() => startWizard(initialPlantId ? { plantId:initialPlantId } : {})}>Symptom Wizard</button><button type="button" onClick={() => setView("photo")}>Photo Diagnosis</button><button type="button" onClick={() => setView("review")}>Estate Health Review</button></nav>}
+
+      {initialFinderContext && <aside className="js-health-finder-handoff" role="status"><strong>Plant Finder evidence received</strong><p>{initialFinderContext.notes || "A field image or trait record is available."} Identification and health diagnosis remain separate; choose an existing estate plant before saving a health case.</p></aside>}
 
       {view === "home" && <>
         <section className="js-plant-health__overview"><article><span>Active case files</span><strong>{activeCount}</strong><p>Monitoring, treating, improving, recurring, or unconfirmed</p></article><article><span>Resolved</span><strong>{garden.plantDiagnoses.filter((item) => item.status === "Resolved").length}</strong><p>Completed estate health records</p></article><article><span>Weather source</span><strong>{environment.sourceStatus}</strong><p>{environment.sourceStatus === "Live" ? "Current estate conditions available" : "No live-weather claim will be made"}</p></article></section>
@@ -74,4 +80,3 @@ export default function PlantHealthCenter({ initialPlantId = "", initialDiagnosi
     </EstatePageShell>
   );
 }
-
