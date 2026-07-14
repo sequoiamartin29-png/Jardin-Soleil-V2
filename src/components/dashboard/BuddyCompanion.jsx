@@ -19,7 +19,7 @@ export const buddyPathPoints = [
 
 const localDateKey = (date = new Date()) => `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 
-export default function BuddyCompanion({ onOpenJournal, weatherMode="clear", paused=false }) {
+export default function BuddyCompanion({ onOpenJournal, onOpenLogger, weatherMode="clear", paused=false }) {
   const garden = useGarden();
   const [pointIndex, setPointIndex] = useState(0);
   const [bubble, setBubble] = useState("");
@@ -67,6 +67,7 @@ export default function BuddyCompanion({ onOpenJournal, weatherMode="clear", pau
         <button className="js-buddy-button" type="button" aria-label="Open Buddy’s Garden Journal" onClick={onOpenJournal}>
           <BuddyIllustration />
         </button>
+        <button className="js-buddy-log-action" type="button" onClick={onOpenLogger}>Log My Garden Day</button>
         {bubble && <div className="js-buddy-bubble" role="status"><span>{bubble}</span><button type="button" aria-label="Dismiss Buddy’s update" onClick={() => setBubble("")}>×</button></div>}
       </div>
       {DEBUG_BUDDY && <div className="js-buddy-debug" aria-hidden="true">{buddyPathPoints.map((pathPoint, index) => <i className={index === pointIndex ? "is-current" : ""} key={pathPoint.name} style={{ left:`${pathPoint.x}%`, top:`${pathPoint.y}%` }}>{pathPoint.name}</i>)}</div>}

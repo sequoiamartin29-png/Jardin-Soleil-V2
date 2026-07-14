@@ -32,6 +32,7 @@ import EstateAppShell from "./components/EstateAppShell";
 import PlantHealthCenter from "./components/plantHealth/PlantHealthCenter";
 import PlantFinder from "./components/plantFinder/PlantFinder";
 import PlantFinderHistory from "./components/plantFinder/PlantFinderHistory";
+import BuddyDailyLogger from "./components/buddy/BuddyDailyLogger";
 
 import "./styles/app.css";
 
@@ -61,6 +62,7 @@ const estatePagePresentation = {
   "Garden Challenges":{ theme:"learning", accent:"gold", title:"Garden Challenges" },
   "Word Search":{ theme:"learning", accent:"sage", title:"Botanical Word Search" },
   "Buddy's Garden Journal":{ theme:"journal", accent:"sage", title:"Buddy’s Garden Journal" },
+  "Buddy Garden Day":{ theme:"journal", accent:"sage", title:"Log My Garden Day" },
   "The Conservatory":{ theme:"conservatory", accent:"plum", title:"The Conservatory" },
   "Estate Environment":{ theme:"conservatory", accent:"powder-blue", title:"Estate Environment" },
 };
@@ -217,10 +219,13 @@ function GardenApp() {
         return <WordSearch />;
 
       case "Buddy's Garden Journal":
-        return <BuddyJournal onBack={() => navigate("Dashboard")} onOpenConservatory={() => openConservatory("buddy")} onOpenHealthCenter={(diagnosisId) => openHealthCenter({ diagnosisId })} />;
+        return <BuddyJournal onBack={() => navigate("Dashboard")} onOpenLogger={() => navigate("Buddy Garden Day")} onOpenConservatory={() => openConservatory("buddy")} onOpenHealthCenter={(diagnosisId) => openHealthCenter({ diagnosisId })} />;
+
+      case "Buddy Garden Day":
+        return <BuddyDailyLogger onNavigate={navigate} />;
 
       case "The Conservatory":
-        return <Conservatory key={conservatoryLaunch.launchId} onNavigate={navigate} initialCompanion={conservatoryLaunch.companion} scopePlant={conservatoryLaunch.scopePlant} initialSettingsOpen={conservatoryLaunch.settingsOpen} />;
+        return <Conservatory key={conservatoryLaunch.launchId} onNavigate={navigate} onOpenLogger={() => navigate("Buddy Garden Day")} initialCompanion={conservatoryLaunch.companion} scopePlant={conservatoryLaunch.scopePlant} initialSettingsOpen={conservatoryLaunch.settingsOpen} />;
 
       case "Estate Environment":
         return <EstateEnvironmentSettings onBack={() => navigate("Dashboard")} />;

@@ -12,6 +12,7 @@ export const estateDrawerSections=[
     {label:"Plant Finder History",page:"Plant Finder History",icon:"lavender"},
   ]},
   {title:"Journal & Planning",items:[
+    {label:"Log My Garden Day",page:"Buddy Garden Day",icon:"tree"},
     {label:"Daily Logs",page:"Logbook",icon:"lavender"},
     {label:"New Journal Entry",page:"New Journal Entry",icon:"rose"},
     {label:"Journal Timeline",page:"Journal Timeline",icon:"herb"},

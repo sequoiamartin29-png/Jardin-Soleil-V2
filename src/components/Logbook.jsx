@@ -1,4 +1,5 @@
 import React from "react";
+import { useGarden } from "../context/GardenContext";
 
 const todaysLogs = [
   {
@@ -58,6 +59,9 @@ const todaysLogs = [
 ];
 
 export default function Logbook({onNavigate}) {
+  const { journalEntries, plants } = useGarden();
+  const recent = [...journalEntries].sort((a,b) => new Date(b.createdAt || b.date || 0) - new Date(a.createdAt || a.date || 0)).slice(0, 8);
+  const plantName = (entry) => plants.find((plant) => plant.id === entry.plantId)?.nickname || plants.find((plant) => plant.id === entry.plantId)?.name || (entry.affectedPlantIds?.length ? `${entry.affectedPlantIds.length} linked plants` : "Jardin Soleil");
   return (
     <section className="js-estate-page"
       style={{
@@ -82,6 +86,12 @@ export default function Logbook({onNavigate}) {
       >
         Beginning July 1, every action in Jardin Soleil will be recorded here.
       </p>
+      <button type="button" onClick={()=>onNavigate?.("Buddy Garden Day")} style={{marginBottom:"24px",background:"linear-gradient(#748562,#576c49)",border:"1px solid #a77c39",borderRadius:"999px",color:"white",fontWeight:800,padding:"12px 20px"}}>Log My Garden Day with Buddy</button>
+
+      <section aria-labelledby="recent-estate-activity" style={{background:"linear-gradient(145deg,#fffaf0,#efe2cc)",border:"1px solid #b88d4a",borderRadius:"24px",boxShadow:"0 12px 28px rgba(70,52,30,.1)",marginBottom:"28px",padding:"24px"}}>
+        <h3 id="recent-estate-activity" style={{color:"#526242",fontFamily:"Georgia,serif",fontSize:"28px",marginTop:0}}>Recent Confirmed Estate Activity</h3>
+        {recent.length ? <div style={{display:"grid",gap:"12px"}}>{recent.map((entry) => <article key={entry.id} style={{background:"rgba(255,253,247,.72)",border:"1px solid rgba(180,139,72,.35)",borderRadius:"15px",padding:"15px"}}><small style={{color:"#936b33",fontWeight:800,letterSpacing:".08em",textTransform:"uppercase"}}>{entry.source || entry.type || "Garden entry"}</small><h4 style={{color:"#536441",fontFamily:"Georgia,serif",fontSize:"19px",margin:"5px 0"}}>{entry.type || "Garden note"} · {plantName(entry)}</h4><p style={{margin:"5px 0"}}>{entry.notes || "No notes added."}</p><time style={{color:"#756b5b",fontSize:"12px"}}>{new Date(entry.createdAt || entry.date).toLocaleString()}</time></article>)}</div> : <p>No confirmed garden activity has been saved yet.</p>}
+      </section>
 
       <div
         style={{

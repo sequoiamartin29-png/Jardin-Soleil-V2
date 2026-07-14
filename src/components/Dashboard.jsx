@@ -127,7 +127,7 @@ export default function Dashboard({ onNavigate }) {
           </div>}
         </div>
 
-        {environment.settings.buddy&&<BuddyCompanion onOpenJournal={() => onNavigate?.("Buddy's Garden Journal")} paused={animationsPaused} weatherMode={environment.buddyMode} />}
+        {environment.settings.buddy&&<BuddyCompanion onOpenJournal={() => onNavigate?.("Buddy's Garden Journal")} onOpenLogger={() => onNavigate?.("Buddy Garden Day")} paused={animationsPaused} weatherMode={environment.buddyMode} />}
 
         <section className="js-dashboard-artwork__clock" aria-label={`Local date and time in ${localTimeZone}`}>
           <span className="js-dashboard-artwork__weekday">{localNow.toLocaleDateString(undefined, { weekday:"long" })}</span>

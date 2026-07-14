@@ -5,6 +5,7 @@ import { teaBlends as starterTeaRecipes } from "../data/teaBlends";
 import { starterInventoryItems } from "../data/inventory";
 import { countUniquePlants, getMintVarietyNames, getUniqueGardenBeds, isEdibleOrHerbPlant, isOrchardFruitTree } from "../utils/plantClassification";
 import { preserveDeletedPlantReference } from "../utils/plantMutations";
+import { buildBuddyJournalEntry, careActionTypes, isTeaHarvestPlant } from "../utils/buildBulkCareEvents";
 
 const GardenContext = createContext(null);
 
@@ -419,6 +420,9 @@ export function GardenProvider({ children }) {
     load("jardinSoleilGardenCollections", gardenZones).map((collection) => ({ ...collection }))
   );
   const [tasks, setTasks] = useState(() => load("jardinSoleilTasks", starterTaskRecords).map((task) => plantLegacyIdMap.has(task.plantId) ? { ...task, plantId:plantLegacyIdMap.get(task.plantId) } : task));
+  const [buddyGardenLogs, setBuddyGardenLogs] = useState(() =>
+    load("jardinSoleilBuddyGardenLogs", []).map((record) => ({ ...record, source:record.source || "Buddy Natural-Language Logger" }))
+  );
   const [inventoryItems, setInventoryItems] = useState(() =>
     load("jardinSoleilInventory", starterInventoryItems).map(normalizeInventoryItem)
   );
@@ -462,6 +466,7 @@ export function GardenProvider({ children }) {
 
   useEffect(() => { localStorage.setItem("jardinSoleilGardenCollections", JSON.stringify(gardenCollections)); }, [gardenCollections]);
   useEffect(() => { localStorage.setItem("jardinSoleilTasks", JSON.stringify(tasks)); }, [tasks]);
+  useEffect(() => { localStorage.setItem("jardinSoleilBuddyGardenLogs", JSON.stringify(buddyGardenLogs)); }, [buddyGardenLogs]);
   useEffect(() => { localStorage.setItem("jardinSoleilInventory", JSON.stringify(inventoryItems)); }, [inventoryItems]);
   useEffect(() => { localStorage.setItem("jardinSoleilTeaRecipes", JSON.stringify(teaRecipes)); }, [teaRecipes]);
   useEffect(() => { localStorage.setItem("jardinSoleilCalendarEvents", JSON.stringify(calendarEntries)); }, [calendarEntries]);
@@ -624,6 +629,119 @@ export function GardenProvider({ children }) {
   ));
   const deleteTask = (taskId) => setTasks((current) => current.filter((task) => task.id !== taskId));
 
+  const applyBuddyGardenLog = ({ originalText, parsedActions = [], confirmedActions = [], date, time = "", photos:attachments = [], taskCompletionIds = [] }) => {
+    const now = new Date();
+    const localEvent = new Date(`${date || now.toISOString().slice(0, 10)}T${time || "12:00"}:00`);
+    const eventTimestamp = Number.isNaN(localEvent.getTime()) ? now.toISOString() : localEvent.toISOString();
+    const recordId = createStableId("buddy-log");
+    const normalizedActions = confirmedActions.map((action) => {
+      const affected = [...new Set((action.targetIds || []).filter((id) => activePlants.some((plant) => plant.id === id)))];
+      const linkedDiagnosisIds = ["treated-pests", "treated-disease", "inspected"].includes(action.type)
+        ? plantDiagnoses.filter((diagnosis) => affected.includes(diagnosis.plantId) && diagnosis.status !== "Resolved").map((diagnosis) => diagnosis.id)
+        : [];
+      return { ...action, targetIds:affected, linkedDiagnosisIds };
+    });
+    const photoRecords = attachments.map((photo, index) => ({
+      id:createStableId(`buddy-photo-${index + 1}`),
+      plantId:normalizedActions.flatMap((action) => action.targetIds || []).length === 1 ? normalizedActions.flatMap((action) => action.targetIds || [])[0] : null,
+      name:photo.name || `Buddy garden-day photo ${index + 1}`,
+      date:eventTimestamp,
+      url:photo.url || photo.src,
+      source:"Buddy Natural-Language Logger",
+      buddyLogId:recordId,
+    }));
+    const baseRecord = {
+      id:recordId,
+      originalText:String(originalText || "").trim(),
+      parsedActions,
+      confirmedActions:normalizedActions,
+      affectedPlantIds:[...new Set(normalizedActions.flatMap((action) => action.targetIds || []))],
+      date:date || now.toISOString().slice(0, 10),
+      time,
+      eventTimestamp,
+      createdAt:now.toISOString(),
+      updatedAt:now.toISOString(),
+      source:"Buddy Natural-Language Logger",
+      status:"saved",
+    };
+    const journalRecords = normalizedActions.map((action) => ({
+      ...buildBuddyJournalEntry(action, baseRecord, activePlants, createStableId),
+      photoIds:photoRecords.map((photo) => photo.id),
+    }));
+    const calendarRecords = normalizedActions.filter((action) => action.nextDueDate).map((action) => ({
+      id:createStableId("calendar"),
+      title:`${action.label || action.type} follow-up — ${action.scopeLabel || "Jardin Soleil"}`,
+      date:action.nextDueDate,
+      plantId:action.targetIds?.length === 1 ? action.targetIds[0] : "",
+      affectedPlantIds:action.targetIds || [],
+      source:"Buddy Natural-Language Logger",
+      buddyLogId:recordId,
+      createdAt:now.toISOString(),
+    }));
+    const teaHarvestWorkflows = normalizedActions
+      .filter((action) => action.type === "harvested")
+      .flatMap((action) => (action.targetIds || []).map((plantId) => ({ action, plant:activePlants.find((plant) => plant.id === plantId) })))
+      .filter(({ plant }) => isTeaHarvestPlant(plant))
+      .map(({ action, plant }) => ({
+        id:createStableId("tea-workflow"),
+        plantId:plant.id,
+        currentStage:"Harvested",
+        harvestDate:baseRecord.date,
+        gardenLocation:plant.location || plant.gardenZone || plant.collection || "",
+        personalNotes:action.notes || `Harvest recorded by Buddy for ${plant.name}.`,
+        stagePhotos:photoRecords.length ? { Harvested:photoRecords.map((photo) => photo.id) } : {},
+        source:"Buddy Natural-Language Logger",
+        buddyLogId:recordId,
+        createdAt:now.toISOString(),
+        updatedAt:now.toISOString(),
+      }));
+    const selectedTaskIds = [...new Set(taskCompletionIds)].filter((taskId) => tasks.some((task) => task.id === taskId && !task.completed));
+    const taskSnapshots = tasks.filter((task) => selectedTaskIds.includes(task.id)).map((task) => ({ id:task.id, completed:task.completed, completedAt:task.completedAt || null }));
+    const careActions = normalizedActions.filter((action) => careActionTypes.has(action.type) && !action.recordOnly);
+    const carePlantIds = [...new Set(careActions.flatMap((action) => action.targetIds || []))];
+    const plantCareSnapshots = activePlants.filter((plant) => carePlantIds.includes(plant.id)).map((plant) => ({ id:plant.id, lastCareAt:plant.lastCareAt, lastCareType:plant.lastCareType, updatedAt:plant.updatedAt }));
+    const latestCareByPlant = new Map();
+    careActions.forEach((action) => (action.targetIds || []).forEach((plantId) => latestCareByPlant.set(plantId, action.type)));
+    const record = {
+      ...baseRecord,
+      journalEntryIds:journalRecords.map((entry) => entry.id),
+      photoIds:photoRecords.map((photo) => photo.id),
+      calendarEntryIds:calendarRecords.map((entry) => entry.id),
+      teaWorkflowIds:teaHarvestWorkflows.map((workflow) => workflow.id),
+      completedTaskIds:selectedTaskIds,
+      taskSnapshots,
+      plantCareSnapshots,
+    };
+
+    setJournalEntries((current) => [...journalRecords, ...current]);
+    if (carePlantIds.length) setPlants((current) => current.map((plant) => latestCareByPlant.has(plant.id) ? { ...plant, lastCareAt:eventTimestamp, lastCareType:latestCareByPlant.get(plant.id), updatedAt:now.toISOString() } : plant));
+    if (photoRecords.length) setPhotos((current) => [...photoRecords, ...current]);
+    if (calendarRecords.length) setCalendarEntries((current) => [...calendarRecords, ...current]);
+    if (teaHarvestWorkflows.length) setTeaWorkflows((current) => [...teaHarvestWorkflows, ...current]);
+    if (selectedTaskIds.length) setTasks((current) => current.map((task) => selectedTaskIds.includes(task.id) ? { ...task, completed:true, completedAt:now.toISOString(), updatedAt:now.toISOString() } : task));
+    setBuddyGardenLogs((current) => [record, ...current]);
+    return record;
+  };
+
+  const undoBuddyGardenLog = (recordId) => {
+    const record = buddyGardenLogs.find((item) => item.id === recordId);
+    if (!record || record.status === "undone") return false;
+    const journalIds = new Set(record.journalEntryIds || []);
+    const photoIds = new Set(record.photoIds || []);
+    const calendarIds = new Set(record.calendarEntryIds || []);
+    const teaWorkflowIds = new Set(record.teaWorkflowIds || []);
+    const snapshots = new Map((record.taskSnapshots || []).map((snapshot) => [snapshot.id, snapshot]));
+    const plantSnapshots = new Map((record.plantCareSnapshots || []).map((snapshot) => [snapshot.id, snapshot]));
+    setJournalEntries((current) => current.filter((entry) => !journalIds.has(entry.id)));
+    setPhotos((current) => current.filter((photo) => !photoIds.has(photo.id)));
+    setCalendarEntries((current) => current.filter((entry) => !calendarIds.has(entry.id)));
+    setTeaWorkflows((current) => current.filter((workflow) => !teaWorkflowIds.has(workflow.id)));
+    setTasks((current) => current.map((task) => snapshots.has(task.id) ? { ...task, ...snapshots.get(task.id), updatedAt:new Date().toISOString() } : task));
+    setPlants((current) => current.map((plant) => plantSnapshots.has(plant.id) ? { ...plant, ...plantSnapshots.get(plant.id) } : plant));
+    setBuddyGardenLogs((current) => current.map((item) => item.id === recordId ? { ...item, status:"undone", undoneAt:new Date().toISOString(), updatedAt:new Date().toISOString() } : item));
+    return true;
+  };
+
   const addInventoryItem = (item) => {
     const normalizedName = normalizePlantName(item.name);
     if (inventoryItems.some((current) => normalizePlantName(current.name) === normalizedName && normalizePlantName(current.category) === normalizePlantName(item.category))) {
@@ -748,7 +866,7 @@ export function GardenProvider({ children }) {
     plants.find((plant) => plant.id === plantId);
 
   const getEntriesForPlant = (plantId) =>
-    journalEntries.filter((entry) => entry.plantId === plantId);
+    journalEntries.filter((entry) => entry.plantId === plantId || entry.affectedPlantIds?.includes(plantId));
 
   const getPhotosForPlant = (plantId) =>
     photos.filter((photo) => photo.plantId === plantId);
@@ -823,6 +941,9 @@ export function GardenProvider({ children }) {
     addTask,
     updateTask,
     deleteTask,
+    buddyGardenLogs,
+    applyBuddyGardenLog,
+    undoBuddyGardenLog,
     inventoryItems,
     addInventoryItem,
     updateInventoryItem,

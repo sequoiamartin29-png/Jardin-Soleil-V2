@@ -11,7 +11,7 @@ const sections = [
   ["Buddy Tips", "tips"],
 ];
 
-export default function BuddyJournal({ onBack, onOpenConservatory, onOpenHealthCenter }) {
+export default function BuddyJournal({ onBack, onOpenLogger, onOpenConservatory, onOpenHealthCenter }) {
   const garden = useGarden();
   const journal = useMemo(
     () => buildBuddyJournal({ ...garden, plants:garden.activePlants }),
@@ -20,7 +20,7 @@ export default function BuddyJournal({ onBack, onOpenConservatory, onOpenHealthC
 
   return <section className="js-buddy-journal" aria-labelledby="buddy-journal-title">
     <header className="js-buddy-journal__hero">
-      <div className="js-buddy-journal__actions"><button type="button" onClick={onOpenConservatory}>Talk with Buddy</button><button type="button" onClick={() => onOpenHealthCenter?.()}>Plant Health Center</button><button type="button" onClick={onBack}>Back to Dashboard</button></div>
+      <div className="js-buddy-journal__actions"><button type="button" onClick={onOpenLogger}>Log My Garden Day</button><button type="button" onClick={onOpenConservatory}>Talk with Buddy</button><button type="button" onClick={() => onOpenHealthCenter?.()}>Plant Health Center</button><button type="button" onClick={onBack}>Back to Dashboard</button></div>
       <div><p>Jardin Soleil · Estate Companion</p><h1 id="buddy-journal-title">Buddy’s Garden Journal</h1><span>Real observations gathered from the estate’s saved garden records.</span></div>
       <span className="js-buddy-journal__seal" aria-hidden="true">JS</span>
     </header>

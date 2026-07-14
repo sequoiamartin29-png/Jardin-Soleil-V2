@@ -71,6 +71,7 @@ export default function EstateAppShell({
         <div><span>Current estate room</span><strong>{pageTitle}</strong></div>
         <nav aria-label="Estate quick actions">
           <button type="button" onClick={() => onNavigate?.("Dashboard")}>Return to Dashboard</button>
+          <button type="button" onClick={() => onNavigate?.("Buddy Garden Day")}>Log My Garden Day</button>
           <button type="button" onClick={() => onNavigate?.("New Journal Entry")}>Quick Journal Entry</button>
         </nav>
       </footer>}
