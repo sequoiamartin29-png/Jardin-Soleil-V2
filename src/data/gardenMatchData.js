@@ -1,8 +1,12 @@
-const tierForIndex = (index) => index < 6 ? "sprout" : index < 10 ? "bloom" : "master-gardener";
+const tierForIndex = (index) => index < 6 ? "sprout" : index < 8 ? "bloom" : index < 10 ? "estate" : "master-gardener";
 
 const createCategoryCards = (category, pairStyle, pairs) => pairs.flatMap((pair, index) => {
   const pairId = `${category}-${pair.id}`;
   const difficultyTier = tierForIndex(index);
+  const pairName = pair.name || pair.first.title;
+  const pairIcon = pair.icon || pair.first.emoji || "🌿";
+  const shortFact = pair.shortFact || pair.first.description || pair.second.description || "";
+  const rarity = pair.rarity || (index > 9 ? "heirloom" : index > 5 ? "uncommon" : "common");
 
   return [pair.first, pair.second].map((face, faceIndex) => ({
     id: `${pairId}-${faceIndex === 0 ? "a" : "b"}`,
@@ -15,22 +19,43 @@ const createCategoryCards = (category, pairStyle, pairs) => pairs.flatMap((pair,
     cardType: face.cardType || (faceIndex === 0 ? "botanical" : "match"),
     pairStyle: pair.pairStyle || pairStyle,
     difficultyTier,
+    name: pairName,
+    icon: pairIcon,
+    shortFact,
+    rarity,
+    collectionId: category,
+    season: pair.season || "all",
   }));
 });
 
-export const gardenMatchCategories = [
-  { id:"orchard", label:"Orchard", emoji:"🍎", description:"Pair orchard trees with their fruit, blossoms, and harvest clues." },
-  { id:"herbs", label:"Herbs", emoji:"🌿", description:"Match fragrant herbs with their scents, kitchen uses, and tea traditions." },
-  { id:"vegetables", label:"Vegetables", emoji:"🥕", description:"Connect garden plants with the vegetables they bring to the table." },
-  { id:"flowers", label:"Flowers", emoji:"🌹", description:"Pair estate flowers with their blooms, features, and favorite visitors." },
-  { id:"garden-pests", label:"Garden Pests", emoji:"🐞", description:"Match common garden visitors with gentle, practical responses." },
-  { id:"garden-vocabulary", label:"Garden Vocabulary", emoji:"📖", description:"Connect useful botanical terms with their plain-language meanings." },
+export const gardenMatchModes = [
+  { id:"classic", label:"Classic", icon:"♟", description:"Unhurried memory matching with moves and time recorded.", badge:"Estate Favorite" },
+  { id:"timed", label:"Timed", icon:"⌛", description:"Gather every pair before the estate sundial expires.", badge:"Sundial Trial" },
+  { id:"limited-moves", label:"Limited Moves", icon:"✦", description:"Finish the garden within a carefully measured move allowance.", badge:"Precision Play" },
+  { id:"daily-garden", label:"Daily Garden", icon:"☀", description:"One date-seeded challenge shared by every play today.", badge:"Daily Bloom" },
 ];
 
 export const gardenMatchDifficulties = [
-  { id:"sprout", label:"Sprout", pairCount:6, description:"A welcoming 6-pair garden stroll." },
-  { id:"bloom", label:"Bloom", pairCount:10, description:"A lively 10-pair botanical challenge." },
-  { id:"master-gardener", label:"Master Gardener", pairCount:15, description:"The complete 15-pair estate collection." },
+  { id:"sprout", label:"Sprout", pairCount:6, description:"A welcoming 6-pair garden stroll with a short preview.", previewMs:2600, hintLimit:3, timeLimitSeconds:90, moveLimit:14, multiplier:1 },
+  { id:"bloom", label:"Bloom", pairCount:8, description:"An 8-pair botanical challenge with lighter assistance.", previewMs:1500, hintLimit:2, timeLimitSeconds:105, moveLimit:18, multiplier:1.25 },
+  { id:"estate", label:"Estate", pairCount:10, description:"A 10-pair estate round with no preview by default.", previewMs:0, hintLimit:1, timeLimitSeconds:120, moveLimit:22, multiplier:1.55 },
+  { id:"master-gardener", label:"Master Gardener", pairCount:12, description:"The 12-pair flagship challenge with minimal assistance.", previewMs:0, hintLimit:1, timeLimitSeconds:135, moveLimit:26, multiplier:2 },
+];
+
+export const gardenMatchCollectionCatalog = [
+  { id:"herbs", title:"Herbs", subtitle:"Aromatic leaves of the Herb Walk", description:"Match fragrant herbs with their scents, kitchen uses, and tea traditions.", emoji:"🌿", unlockRequirement:{ type:"always", value:0, label:"Open from the first garden stroll" }, badge:"Herb Walk Sprig", completionFact:"Many culinary herbs are most aromatic shortly before flowering.", themeLabel:"Herb Walk", areaId:"herb-walk" },
+  { id:"tea-garden", title:"Tea Garden", subtitle:"Infusions from the Tea Corridor", description:"Pair estate tea herbs with the cups, aromas, and traditions they inspire.", emoji:"🍵", unlockRequirement:{ type:"always", value:0, label:"Open from the first garden stroll" }, badge:"Tea Corridor Cup", completionFact:"Tea blends can be built in layers: a base note, a bright note, and an aromatic accent.", themeLabel:"Tea Corridor", areaId:"tea-corridor" },
+  { id:"orchard", title:"Orchard Fruit", subtitle:"Treasures along the Orchard Path", description:"Pair orchard trees with their fruit, blossoms, and harvest clues.", emoji:"🍎", unlockRequirement:{ type:"always", value:0, label:"Open from the first garden stroll" }, badge:"Orchard Path Bough", completionFact:"Many orchard fruits form on short-lived fruiting spurs or carefully renewed wood.", themeLabel:"Orchard Path", areaId:"orchard-path" },
+  { id:"flowers", title:"Flowers", subtitle:"The estate's flowering borders", description:"Pair estate flowers with their blooms, features, and favorite visitors.", emoji:"🌸", unlockRequirement:{ type:"always", value:0, label:"Open from the first garden stroll" }, badge:"Border Bloom", completionFact:"Layered bloom times keep an estate border lively across the seasons.", themeLabel:"Rose Court", areaId:"rose-court" },
+  { id:"roses", title:"Roses", subtitle:"Heirloom blooms of the Rose Court", description:"Match treasured roses with color, form, fragrance, and garden character.", emoji:"🌹", unlockRequirement:{ type:"completed", value:1, label:"Complete 1 collection" }, badge:"Rose Court Rosette", completionFact:"Rose fragrance changes with temperature, humidity, and time of day.", themeLabel:"Rose Court", areaId:"rose-court" },
+  { id:"pollinators", title:"Pollinators", subtitle:"Winged guests of the meadow", description:"Meet the bees, butterflies, moths, and other visitors that move pollen through the garden.", emoji:"🦋", unlockRequirement:{ type:"completed", value:2, label:"Complete 2 collections" }, badge:"Pollinator Crest", completionFact:"Different flower shapes welcome different pollinators.", themeLabel:"Pollinator Meadow", areaId:"pollinator-meadow" },
+  { id:"vegetables", title:"Vegetables", subtitle:"Harvests from the kitchen garden", description:"Connect garden plants with the vegetables they bring to the table.", emoji:"🥕", unlockRequirement:{ type:"always", value:0, label:"Open from the first garden stroll" }, badge:"Kitchen Garden Basket", completionFact:"Harvesting young vegetables often encourages the plant to keep producing.", themeLabel:"Kitchen Garden", areaId:"pollinator-meadow" },
+  { id:"moon-garden", title:"Moon Garden", subtitle:"Silver foliage after dusk", description:"Pair pale flowers, fragrant evening blooms, and moonlit garden details.", emoji:"🌙", unlockRequirement:{ type:"completed", value:3, label:"Complete 3 collections" }, badge:"Moon Garden Seal", completionFact:"White flowers and silver foliage remain visible after sunset by reflecting available light.", themeLabel:"Moon Garden", areaId:"moon-garden" },
+  { id:"garden-tools", title:"Garden Tools", subtitle:"The estate gardener's cabinet", description:"Match well-loved tools with the task each performs in the garden.", emoji:"🧰", unlockRequirement:{ type:"completed", value:1, label:"Complete 1 collection" }, badge:"Gardener's Key", completionFact:"Clean, sharp tools make more precise cuts and are easier on plants and hands.", themeLabel:"Orchard Workshop", areaId:"orchard-path" },
+  { id:"birds", title:"Birds of Jardin Soleil", subtitle:"Songs above the garden paths", description:"Pair familiar estate birds with their markings, songs, and garden habits.", emoji:"🐦", unlockRequirement:{ type:"completed", value:2, label:"Complete 2 collections" }, badge:"Songbird Crest", completionFact:"A garden with layered shrubs, water, and seed-bearing plants offers birds more places to feed and shelter.", themeLabel:"Pollinator Meadow", areaId:"pollinator-meadow" },
+  { id:"seasonal-garden", title:"Seasonal Garden", subtitle:"The estate through the turning year", description:"Gather seasonal flowers, harvests, weather signs, and conservatory treasures.", emoji:"🍂", unlockRequirement:{ type:"seasonal", value:0, label:"Available in its season once discovered" }, badge:"Four Seasons Seal", completionFact:"Seasonal observation helps gardeners time planting, pruning, harvest, and habitat care.", themeLabel:"Seasonal Estate", areaId:"moon-garden", seasonal:true },
+  { id:"garden-pests", title:"Garden Pests", subtitle:"Clues from the plant-health ledger", description:"Match common garden visitors with gentle, practical responses.", emoji:"🐞", unlockRequirement:{ type:"always", value:0, label:"Open from the first garden stroll" }, badge:"Garden Guardian", completionFact:"Regular inspection makes it easier to notice changes before they become widespread.", themeLabel:"Herb Walk", areaId:"herb-walk" },
+  { id:"garden-vocabulary", title:"Garden Vocabulary", subtitle:"Language from the botanical journal", description:"Connect useful botanical terms with their plain-language meanings.", emoji:"📖", unlockRequirement:{ type:"always", value:0, label:"Open from the first garden stroll" }, badge:"Botanical Lexicon", completionFact:"Shared vocabulary helps gardeners describe plant growth and care more precisely.", themeLabel:"Tea Corridor", areaId:"tea-corridor" },
 ];
 
 const orchardCards = createCategoryCards("orchard", "plant-to-harvest", [
@@ -141,13 +166,191 @@ const vocabularyCards = createCategoryCards("garden-vocabulary", "term-to-defini
   { id:"stratification", first:{ title:"Stratification", emoji:"❄️", description:"A seed-preparation method", cardType:"term" }, second:{ title:"Moist Cold Treatment", emoji:"🌰", description:"Imitates winter to help certain seeds sprout", cardType:"definition" } },
 ]);
 
+const createEstatePairCards = (category, pairStyle, entries) => createCategoryCards(
+  category,
+  pairStyle,
+  entries.map(({ id, name, icon, match, matchIcon, fact, cardType = "botanical", matchType = "feature", rarity, season }) => ({
+    id,
+    name,
+    icon,
+    shortFact:fact,
+    rarity,
+    season,
+    first:{ title:name, emoji:icon, description:fact, cardType },
+    second:{ title:match, emoji:matchIcon, description:fact, cardType:matchType },
+  })),
+);
+
+const teaGardenCards = createEstatePairCards("tea-garden", "herb-to-cup", [
+  { id:"mint-cup", name:"Garden Mint", icon:"🌿", match:"Fresh Green Cup", matchIcon:"🍵", fact:"Mint leaves release their brightest aroma when gently bruised." },
+  { id:"chamomile-cup", name:"Chamomile", icon:"🌼", match:"Golden Floral Cup", matchIcon:"☕", fact:"Chamomile's small flower heads carry a soft apple-like aroma." },
+  { id:"lemon-balm-cup", name:"Lemon Balm", icon:"🍃", match:"Citrus Garden Cup", matchIcon:"🍋", fact:"Lemon balm belongs to the mint family and has square stems." },
+  { id:"lavender-cup", name:"Lavender", icon:"🪻", match:"Fragrant Accent", matchIcon:"💜", fact:"A small amount of lavender adds a distinctly floral aroma to a blend." },
+  { id:"rose-cup", name:"Rose Petals", icon:"🌹", match:"Blush Infusion", matchIcon:"🫖", fact:"Fragrant rose petals are often used as a delicate aromatic accent." },
+  { id:"bee-balm-cup", name:"Bee Balm", icon:"🌺", match:"Ruby Garden Cup", matchIcon:"🍵", fact:"Bee balm's tufted flowers are a familiar sight in pollinator borders." },
+  { id:"sage-cup", name:"Garden Sage", icon:"🌿", match:"Silver Leaf Blend", matchIcon:"🫖", fact:"Sage leaves are softly textured and silvery green." },
+  { id:"thyme-cup", name:"Lemon Thyme", icon:"🌱", match:"Bright Herbal Note", matchIcon:"🍋", fact:"Lemon thyme combines tiny thyme leaves with a clear citrus scent." },
+  { id:"hibiscus-cup", name:"Hibiscus", icon:"🌺", match:"Crimson Cup", matchIcon:"🍷", fact:"Hibiscus calyces create a vivid ruby-colored infusion." },
+  { id:"jasmine-cup", name:"Jasmine", icon:"🌼", match:"Perfumed Tea Note", matchIcon:"✨", fact:"Jasmine flowers are prized for their intense evening fragrance." },
+  { id:"calendula-cup", name:"Calendula", icon:"🌼", match:"Golden Petal Accent", matchIcon:"☀️", fact:"Calendula petals add warm golden color to botanical blends." },
+  { id:"rosemary-cup", name:"Rosemary", icon:"🌿", match:"Woodland Aroma", matchIcon:"🌲", fact:"Rosemary's needle-like leaves carry a resinous evergreen scent." },
+]);
+
+const roseCards = createEstatePairCards("roses", "rose-to-character", [
+  { id:"damask", name:"Damask Rose", icon:"🌹", match:"Old Garden Fragrance", matchIcon:"💗", fact:"Damask roses are celebrated for their rich old-rose fragrance." },
+  { id:"tea", name:"Tea Rose", icon:"🌹", match:"High-Centered Bloom", matchIcon:"🏵️", fact:"Tea roses helped shape the elegant form of many modern roses." },
+  { id:"moss", name:"Moss Rose", icon:"🌹", match:"Mossy Bud", matchIcon:"🌿", fact:"Moss roses have resinous, moss-like growth around their buds." },
+  { id:"alba", name:"Alba Rose", icon:"🤍", match:"Pale Summer Bloom", matchIcon:"🌸", fact:"Alba roses are known for pale flowers and blue-green foliage." },
+  { id:"gallica", name:"Gallica Rose", icon:"🌹", match:"Crimson Heirloom", matchIcon:"♦️", fact:"Gallica roses are compact old garden roses with richly colored blooms." },
+  { id:"bourbon", name:"Bourbon Rose", icon:"🌹", match:"Repeating Fragrance", matchIcon:"🔄", fact:"Many Bourbon roses combine fragrance with repeat flowering." },
+  { id:"noisette", name:"Noisette Rose", icon:"🌸", match:"Climbing Clusters", matchIcon:"🏡", fact:"Noisette roses often carry graceful clusters on climbing canes." },
+  { id:"rugosa", name:"Rugosa Rose", icon:"🌹", match:"Textured Leaf", matchIcon:"🍃", fact:"Rugosa roses have strongly veined leaves and prominent hips." },
+  { id:"rambling", name:"Rambling Rose", icon:"🌸", match:"Arching Garland", matchIcon:"〰️", fact:"Ramblers send long flexible canes through arbours and old trees." },
+  { id:"miniature", name:"Miniature Rose", icon:"🌹", match:"Petite Bloom", matchIcon:"🤏", fact:"Miniature roses keep familiar rose form on a smaller scale." },
+  { id:"floribunda", name:"Floribunda Rose", icon:"🌹", match:"Bouquet Clusters", matchIcon:"💐", fact:"Floribundas carry multiple flowers together in generous clusters." },
+  { id:"climber", name:"Climbing Rose", icon:"🌹", match:"Estate Wall", matchIcon:"🏰", fact:"Climbing roses can be trained along walls, pillars, and pergolas." },
+]);
+
+const pollinatorCards = createEstatePairCards("pollinators", "visitor-to-flower", [
+  { id:"honeybee", name:"Honeybee", icon:"🐝", match:"Lavender Drift", matchIcon:"🪻", fact:"Honeybees communicate productive flower locations through movement." },
+  { id:"bumblebee", name:"Bumblebee", icon:"🐝", match:"Foxglove Bell", matchIcon:"🌺", fact:"Bumblebees can vibrate flowers to release pollen." },
+  { id:"monarch", name:"Monarch Butterfly", icon:"🦋", match:"Milkweed", matchIcon:"🌿", fact:"Milkweed is the host plant for monarch caterpillars." },
+  { id:"swallowtail", name:"Swallowtail", icon:"🦋", match:"Herb Umbel", matchIcon:"🌼", fact:"Swallowtail butterflies often visit broad, easy-to-land flower clusters." },
+  { id:"hummingbird", name:"Hummingbird", icon:"🐦", match:"Tubular Bloom", matchIcon:"🌺", fact:"Long tubular flowers suit a hummingbird's hovering feeding style." },
+  { id:"hoverfly", name:"Hoverfly", icon:"🪰", match:"Open Daisy", matchIcon:"🌼", fact:"Hoverflies resemble small bees but have one pair of wings." },
+  { id:"mason-bee", name:"Mason Bee", icon:"🐝", match:"Orchard Blossom", matchIcon:"🌸", fact:"Mason bees are active orchard pollinators in cool spring weather." },
+  { id:"hawk-moth", name:"Hawk Moth", icon:"🦋", match:"Evening Jasmine", matchIcon:"🌼", fact:"Some moths visit pale, fragrant flowers after dusk." },
+  { id:"ladybird", name:"Ladybird Beetle", icon:"🐞", match:"Aphid Colony", matchIcon:"🍃", fact:"Ladybird beetles and their larvae are familiar garden predators." },
+  { id:"leafcutter-bee", name:"Leafcutter Bee", icon:"🐝", match:"Neat Leaf Circle", matchIcon:"🟢", fact:"Leafcutter bees line their nests with carefully cut leaf pieces." },
+  { id:"painted-lady", name:"Painted Lady", icon:"🦋", match:"Zinnia Landing", matchIcon:"🌺", fact:"Flat zinnia blooms make convenient butterfly landing platforms." },
+  { id:"dragonfly", name:"Dragonfly", icon:"🪻", match:"Garden Pond", matchIcon:"💧", fact:"Dragonflies begin life underwater before patrolling the air." },
+]);
+
+const moonGardenCards = createEstatePairCards("moon-garden", "plant-to-night-clue", [
+  { id:"moonflower", name:"Moonflower", icon:"🤍", match:"Dusk-Opening Trumpet", matchIcon:"🌙", fact:"Moonflowers unfurl large pale blooms toward evening." },
+  { id:"lambs-ear", name:"Lamb's Ear", icon:"🍃", match:"Silver Velvet Leaf", matchIcon:"✨", fact:"Dense leaf hairs give lamb's ear its soft silver appearance." },
+  { id:"white-rose", name:"White Rose", icon:"🤍", match:"Moonlit Petals", matchIcon:"🌹", fact:"Pale petals remain visible longer as daylight fades." },
+  { id:"dusty-miller", name:"Dusty Miller", icon:"🌿", match:"Silver Border", matchIcon:"🌙", fact:"Dusty miller's divided leaves bring bright contrast to evening beds." },
+  { id:"night-phlox", name:"Night Phlox", icon:"🌸", match:"Evening Fragrance", matchIcon:"✨", fact:"Night phlox becomes especially fragrant after sunset." },
+  { id:"white-cosmos", name:"White Cosmos", icon:"🌼", match:"Starry Bloom", matchIcon:"⭐", fact:"Cosmos flowers rise on airy stems that move gently in a breeze." },
+  { id:"artemisia", name:"Artemisia", icon:"🌿", match:"Feathery Silver", matchIcon:"🪶", fact:"Many artemisias carry finely divided aromatic silver foliage." },
+  { id:"nicotiana", name:"Flowering Tobacco", icon:"🌸", match:"Twilight Trumpets", matchIcon:"🌙", fact:"Some flowering tobacco varieties release fragrance in the evening." },
+  { id:"white-hydrangea", name:"White Hydrangea", icon:"🤍", match:"Cloudlike Cluster", matchIcon:"☁️", fact:"Each hydrangea cluster is made of many small flowers." },
+  { id:"snowdrop", name:"Snowdrop", icon:"🤍", match:"Winter Lantern", matchIcon:"🏮", fact:"Snowdrops often bloom while the garden is still wintry." },
+  { id:"jasmine", name:"Star Jasmine", icon:"🌼", match:"Perfumed Vine", matchIcon:"〰️", fact:"Star jasmine combines glossy evergreen foliage with pale fragrant flowers." },
+  { id:"evening-primrose", name:"Evening Primrose", icon:"🌼", match:"Sunset Bloom", matchIcon:"🌅", fact:"Evening primrose flowers often open late in the day." },
+]);
+
+const toolCards = createEstatePairCards("garden-tools", "tool-to-task", [
+  { id:"secateurs", name:"Secateurs", icon:"✂️", match:"Precise Pruning", matchIcon:"🌿", fact:"Clean, sharp secateurs leave a smoother cut." },
+  { id:"trowel", name:"Hand Trowel", icon:"🛠️", match:"Planting Pocket", matchIcon:"🪴", fact:"A hand trowel is sized for planting and potting at close range." },
+  { id:"fork", name:"Garden Fork", icon:"🔱", match:"Loosen Soil", matchIcon:"🟤", fact:"A fork lifts and loosens soil with less slicing than a spade." },
+  { id:"watering-can", name:"Watering Can", icon:"🪣", match:"Gentle Watering", matchIcon:"💧", fact:"A rose fitting spreads water into a softer shower." },
+  { id:"dibber", name:"Dibber", icon:"🪵", match:"Seed Hole", matchIcon:"🌱", fact:"A dibber makes evenly measured planting holes." },
+  { id:"rake", name:"Garden Rake", icon:"🧹", match:"Level Seedbed", matchIcon:"〰️", fact:"A rake breaks small clods and levels prepared soil." },
+  { id:"spade", name:"Border Spade", icon:"♠️", match:"Crisp Edge", matchIcon:"✦", fact:"A border spade has a compact blade for controlled digging." },
+  { id:"hoe", name:"Draw Hoe", icon:"⛏️", match:"Young Weeds", matchIcon:"🌱", fact:"Hoeing on a dry day exposes small weeds to sun and air." },
+  { id:"twine", name:"Garden Twine", icon:"🧵", match:"Tie a Climber", matchIcon:"〰️", fact:"Soft ties leave room for stems to thicken." },
+  { id:"sieve", name:"Soil Sieve", icon:"🧺", match:"Fine Potting Mix", matchIcon:"🟤", fact:"A sieve separates coarse pieces from fine soil or compost." },
+  { id:"bell-jar", name:"Garden Cloche", icon:"🔔", match:"Shelter Seedling", matchIcon:"🌱", fact:"A cloche creates a small sheltered pocket around a plant." },
+  { id:"trug", name:"Garden Trug", icon:"🧺", match:"Carry the Harvest", matchIcon:"🥕", fact:"A shallow trug keeps garden harvests visible and easy to sort." },
+]);
+
+const birdCards = createEstatePairCards("birds", "bird-to-clue", [
+  { id:"robin", name:"Robin", icon:"🐦", match:"Rust-Red Breast", matchIcon:"🧡", fact:"Robins often forage close to freshly worked garden soil." },
+  { id:"bluebird", name:"Eastern Bluebird", icon:"🐦", match:"Blue Back", matchIcon:"💙", fact:"Bluebirds favor open garden edges with nearby perches." },
+  { id:"cardinal", name:"Cardinal", icon:"🐦", match:"Crimson Crest", matchIcon:"❤️", fact:"Male northern cardinals are recognizable by vivid red plumage." },
+  { id:"goldfinch", name:"Goldfinch", icon:"🐦", match:"Golden Finch", matchIcon:"💛", fact:"Goldfinches visit seed heads left standing in the garden." },
+  { id:"wren", name:"House Wren", icon:"🐦", match:"Bubbly Song", matchIcon:"🎵", fact:"Wrens are small birds with energetic, cascading songs." },
+  { id:"chickadee", name:"Chickadee", icon:"🐦", match:"Black Cap", matchIcon:"🖤", fact:"Chickadees inspect bark and twigs for small insects." },
+  { id:"mockingbird", name:"Mockingbird", icon:"🐦", match:"Borrowed Songs", matchIcon:"🎶", fact:"Mockingbirds weave imitated sounds into long performances." },
+  { id:"woodpecker", name:"Downy Woodpecker", icon:"🐦", match:"Tapping Trunk", matchIcon:"🪵", fact:"Woodpeckers brace against bark with stiff tail feathers." },
+  { id:"hummingbird", name:"Ruby-throated Hummingbird", icon:"🐦", match:"Hovering Visitor", matchIcon:"🌺", fact:"Hummingbirds can hover while feeding at tubular flowers." },
+  { id:"oriole", name:"Baltimore Oriole", icon:"🐦", match:"Orange-and-Black", matchIcon:"🧡", fact:"Orioles weave hanging nests high in deciduous trees." },
+  { id:"catbird", name:"Gray Catbird", icon:"🐦", match:"Slate Garden Singer", matchIcon:"🩶", fact:"Catbirds often shelter and forage in dense shrubs." },
+  { id:"sparrow", name:"Song Sparrow", icon:"🐦", match:"Striped Breast", matchIcon:"🤎", fact:"Song sparrows often sing from low, exposed garden perches." },
+]);
+
+const seasonalCards = createEstatePairCards("seasonal-garden", "season-to-estate-clue", [
+  { id:"spring-tulip", name:"Spring Tulips", icon:"🌷", match:"April Border", matchIcon:"🌦️", fact:"Tulip bulbs build their flower underground before spring.", season:"spring" },
+  { id:"spring-blossom", name:"Orchard Blossom", icon:"🌸", match:"Spring Branch", matchIcon:"🌿", fact:"Orchard bloom arrives before the leafy canopy is fully developed.", season:"spring" },
+  { id:"spring-nest", name:"Garden Nest", icon:"🪺", match:"New Season", matchIcon:"🐣", fact:"Dense hedges provide sheltered places for many garden birds.", season:"spring" },
+  { id:"summer-sunflower", name:"Summer Sunflower", icon:"🌻", match:"High Sun", matchIcon:"☀️", fact:"Sunflower heads track the sun while young.", season:"summer" },
+  { id:"summer-tomato", name:"Summer Tomato", icon:"🍅", match:"Kitchen Harvest", matchIcon:"🧺", fact:"Regular harvesting keeps the summer kitchen garden productive.", season:"summer" },
+  { id:"summer-lavender", name:"Lavender Drift", icon:"🪻", match:"Bee Season", matchIcon:"🐝", fact:"Lavender flower spikes are busy pollinator gathering places.", season:"summer" },
+  { id:"autumn-apple", name:"Autumn Apple", icon:"🍎", match:"Orchard Basket", matchIcon:"🧺", fact:"Different apple cultivars ripen across a long harvest season.", season:"autumn" },
+  { id:"autumn-leaf", name:"Turning Leaf", icon:"🍂", match:"Amber Path", matchIcon:"🍁", fact:"Leaf colors emerge as green chlorophyll fades.", season:"autumn" },
+  { id:"autumn-pumpkin", name:"Pumpkin", icon:"🎃", match:"Harvest Display", matchIcon:"🌾", fact:"Pumpkins develop their hard rind as they mature.", season:"autumn" },
+  { id:"winter-holly", name:"Winter Holly", icon:"🌿", match:"Evergreen Accent", matchIcon:"🔴", fact:"Evergreen foliage gives the winter garden lasting structure.", season:"winter" },
+  { id:"winter-snowdrop", name:"Snowdrop", icon:"🤍", match:"Late-Winter Bloom", matchIcon:"❄️", fact:"Snowdrops can emerge through very cold late-winter ground.", season:"winter" },
+  { id:"winter-conservatory", name:"Conservatory Citrus", icon:"🍋", match:"Winter Glasshouse", matchIcon:"🏡", fact:"A sheltered conservatory extends the estate's growing season.", season:"winter" },
+]);
+
 export const gardenMatchCards = [
   ...orchardCards,
   ...herbCards,
+  ...teaGardenCards,
   ...vegetableCards,
   ...flowerCards,
+  ...roseCards,
+  ...pollinatorCards,
+  ...moonGardenCards,
+  ...toolCards,
+  ...birdCards,
+  ...seasonalCards,
   ...pestCards,
   ...vocabularyCards,
+];
+
+export const gardenMatchPairs = [...gardenMatchCards.reduce((pairs, card) => {
+  if (!pairs.has(card.pairId)) {
+    pairs.set(card.pairId, {
+      id:card.pairId,
+      name:card.name,
+      icon:card.icon,
+      shortFact:card.shortFact,
+      category:card.category,
+      rarity:card.rarity,
+      collectionId:card.collectionId,
+      season:card.season,
+    });
+  }
+  return pairs;
+}, new Map()).values()];
+
+export const gardenMatchCollections = gardenMatchCollectionCatalog.map((collection) => ({
+  ...collection,
+  label:collection.title,
+  cards:gardenMatchPairs.filter((pair) => pair.collectionId === collection.id),
+}));
+
+// Compatibility export retained for the existing game route and saved score IDs.
+export const gardenMatchCategories = gardenMatchCollections;
+
+export const gardenMatchJourneyAreas = [
+  { id:"herb-walk", title:"Herb Walk", icon:"🌿", description:"A fragrant path of culinary leaves and garden remedies.", unlockCollections:["herbs","garden-pests"], rewardId:"lavender-linen" },
+  { id:"tea-corridor", title:"Tea Corridor", icon:"🍵", description:"An intimate passage from aromatic leaf to treasured cup.", unlockCollections:["tea-garden","garden-vocabulary"], rewardId:"tea-corridor-seal" },
+  { id:"orchard-path", title:"Orchard Path", icon:"🍎", description:"Fruit trees, trained branches, and the estate gardener's tools.", unlockCollections:["orchard","garden-tools"], rewardId:"orchard-gold" },
+  { id:"rose-court", title:"Rose Court", icon:"🌹", description:"Formal borders filled with heirloom color and fragrance.", unlockCollections:["flowers","roses"], rewardId:"botanical-frame" },
+  { id:"pollinator-meadow", title:"Pollinator Meadow", icon:"🦋", description:"A lively meadow of vegetables, birds, bees, and butterflies.", unlockCollections:["vegetables","pollinators","birds"], rewardId:"pollinator-crest" },
+  { id:"moon-garden", title:"Moon Garden", icon:"🌙", description:"Silver leaves and pale flowers gathered beneath the stars.", unlockCollections:["moon-garden","seasonal-garden"], rewardId:"moon-silver" },
+];
+
+export const gardenMatchRewards = [
+  { id:"lavender-linen", title:"Lavender Linen", type:"card-back", description:"A soft lavender card back from the Herb Walk." },
+  { id:"tea-corridor-seal", title:"Tea Corridor Seal", type:"seal", description:"A pressed-leaf seal for tea-garden study." },
+  { id:"orchard-gold", title:"Orchard Gold", type:"card-back", description:"A warm orchard-gold card back with espalier detail." },
+  { id:"botanical-frame", title:"Botanical Frame", type:"frame", description:"A watercolor flower frame for mastered collections." },
+  { id:"pollinator-crest", title:"Pollinator Crest", type:"crest", description:"A meadow crest for welcoming estate pollinators." },
+  { id:"moon-silver", title:"Moon Silver", type:"card-back", description:"A silver card back inspired by the Moon Garden." },
+  { id:"buddy-ribbon", title:"Buddy's Garden Ribbon", type:"buddy-ribbon", description:"A cheerful estate ribbon awarded for a daily streak." },
+];
+
+export const gardenMatchSeasons = [
+  { id:"spring", label:"Spring", months:[2,3,4], icon:"🌷" },
+  { id:"summer", label:"Summer", months:[5,6,7], icon:"☀️" },
+  { id:"autumn", label:"Autumn", months:[8,9,10], icon:"🍂" },
+  { id:"winter", label:"Winter", months:[11,0,1], icon:"❄️" },
 ];
 
 export const gardenMatchCardTypeLabels = {
@@ -169,4 +372,7 @@ export const gardenMatchCardTypeLabels = {
   care:"Care practice",
   purpose:"Why it helps",
   season:"Season",
+  "garden-tool":"Garden tool",
+  bird:"Estate bird",
+  pollinator:"Pollinator",
 };

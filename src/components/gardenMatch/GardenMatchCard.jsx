@@ -2,7 +2,7 @@ import React from "react";
 import { gardenMatchCardTypeLabels } from "../../data/gardenMatchData";
 import { activateGardenMatchFromKeyboard } from "../../utils/gardenMatchGame";
 
-export default function GardenMatchCard({ card, isFlipped, isMatched, disabled, onSelect }) {
+export default function GardenMatchCard({ card, isFlipped, isMatched, isHinted, disabled, reducedMotion, onSelect }) {
   const stateLabel = isMatched
     ? `${card.title}, matched`
     : isFlipped
@@ -11,11 +11,12 @@ export default function GardenMatchCard({ card, isFlipped, isMatched, disabled, 
 
   return (
     <button
-      className={`garden-match-card${isFlipped || isMatched ? " is-flipped" : ""}${isMatched ? " is-matched" : ""}`}
+      className={`garden-match-card${isFlipped || isMatched ? " is-flipped" : ""}${isMatched ? " is-matched" : ""}${isHinted ? " is-hinted" : ""}${reducedMotion ? " is-reduced-motion" : ""}`}
       type="button"
       aria-label={stateLabel}
       aria-pressed={isFlipped || isMatched}
       data-pair-id={card.pairId}
+      data-rarity={card.rarity}
       disabled={disabled || isMatched}
       onClick={() => onSelect(card)}
       onKeyDown={(event) => activateGardenMatchFromKeyboard(event, () => onSelect(card))}
