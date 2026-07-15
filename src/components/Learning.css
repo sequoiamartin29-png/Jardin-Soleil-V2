@@ -24,9 +24,9 @@
 .js-learning__feature { align-items:center; display:grid; gap:22px; grid-template-columns:auto 1fr auto; }
 .js-learning__feature span { color:#746f63; line-height:1.5; }
 .js-learning__feature--tea { background:linear-gradient(120deg,#eef1df,#fff8e9 60%,#e6dde9); }
-.js-learning__games > div:last-child { display:grid; gap:16px; grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:17px; }
+.js-learning__games > div:last-child { display:grid; gap:16px; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:17px; }
 .js-learning__games article > span { font-size:2rem; }
 .js-learning__empty { color:#7c7568; font-style:italic; }
 .js-learning button:focus-visible,.js-learning [role="tabpanel"]:focus-visible { outline:2px solid var(--learn-gold); outline-offset:3px; }
-@media(max-width:800px){.js-learning__layout{grid-template-columns:1fr}.js-learning__sections{display:flex;flex-wrap:wrap;gap:6px}.js-learning__sections h2{width:100%}.js-learning__sections button{border:1px solid #e1d3ba;width:auto}.js-learning__lessons{grid-template-columns:1fr}}
+@media(max-width:800px){.js-learning__layout{grid-template-columns:1fr}.js-learning__sections{display:flex;flex-wrap:wrap;gap:6px}.js-learning__sections h2{width:100%}.js-learning__sections button{border:1px solid #e1d3ba;width:auto}.js-learning__lessons{grid-template-columns:1fr}.js-learning__games>div:last-child{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.js-learning__hero{padding:27px 22px}.js-learning__feature{align-items:start;grid-template-columns:auto 1fr}.js-learning__feature button{grid-column:1/-1}.js-learning__games>div:last-child{grid-template-columns:1fr}.js-learning__panel-heading{align-items:flex-start;flex-direction:column;gap:7px}}

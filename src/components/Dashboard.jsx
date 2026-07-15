@@ -140,6 +140,17 @@ export default function Dashboard({ onNavigate }) {
 
         <button className="js-dashboard-artwork__health-action" type="button" onClick={() => onNavigate?.("Plant Health Center")}>Plant Health Center</button>
 
+        <button
+          className="js-dashboard-artwork__garden-match"
+          type="button"
+          aria-label="Open Garden Match memory game"
+          onClick={() => onNavigate?.("Garden Match")}
+        >
+          <span aria-hidden="true">✦</span>
+          <strong>Garden Match</strong>
+          <small>Botanical memory game</small>
+        </button>
+
         <nav className="js-dashboard-artwork__hotspots" aria-label="Interactive Jardin Soleil estate map">
           {dashboardHotspots.map(({ label, page, area: [left, top, width, height] }) => (
             <button

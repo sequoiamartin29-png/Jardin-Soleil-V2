@@ -16,6 +16,7 @@ import Learning from "./components/Learning";
 import WordSearch from "./components/WordSearch";
 import TeaApothecary from "./components/TeaApothecary";
 import GardenChallenges from "./components/GardenChallenges";
+import GardenMatch from "./components/gardenMatch/GardenMatch";
 import PlantDirectory from "./components/PlantDirectory";
 import PlantProfile from "./components/PlantProfile";
 import JournalEntry from "./components/JournalEntry";
@@ -60,6 +61,7 @@ const estatePagePresentation = {
   Learning:{ theme:"learning", accent:"sage", title:"Learning Center" },
   "Tea Apothecary":{ theme:"apothecary", accent:"lavender", title:"Tea Apothecary" },
   "Garden Challenges":{ theme:"learning", accent:"gold", title:"Garden Challenges" },
+  "Garden Match":{ theme:"learning", accent:"gold", title:"Garden Match" },
   "Word Search":{ theme:"learning", accent:"sage", title:"Botanical Word Search" },
   "Buddy's Garden Journal":{ theme:"journal", accent:"sage", title:"Buddy’s Garden Journal" },
   "Buddy Garden Day":{ theme:"journal", accent:"sage", title:"Log My Garden Day" },
@@ -216,6 +218,9 @@ function GardenApp() {
 
       case "Garden Challenges":
         return <GardenChallenges onNavigate={navigate} />;
+
+      case "Garden Match":
+        return <GardenMatch onNavigate={navigate} />;
 
       case "Word Search":
         return <WordSearch />;

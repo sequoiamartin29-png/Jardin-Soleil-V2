@@ -79,6 +79,7 @@ export default function Learning({ onNavigate }) {
         <div className="js-learning__section-title"><p>Interactive study</p><h2 id="games-title">Botanical Games</h2></div>
         <div>
           <article><span aria-hidden="true">🔎</span><h3>Word Search</h3><p>Play verified horticulture word-search puzzles at four difficulty levels.</p><button type="button" onClick={() => onNavigate?.("Word Search")}>Play Word Search</button></article>
+          <article><span aria-hidden="true">🌿</span><h3>Garden Match</h3><p>Pair collectible botanical cards from the orchard, gardens, and estate journal.</p><button type="button" onClick={() => onNavigate?.("Garden Match")}>Play Garden Match</button></article>
           <article><span aria-hidden="true">🏆</span><h3>Garden Challenges</h3><p>Complete daily and seasonal gardening challenges.</p><button type="button" onClick={() => onNavigate?.("Garden Challenges")}>Open Challenges</button></article>
         </div>
       </section>

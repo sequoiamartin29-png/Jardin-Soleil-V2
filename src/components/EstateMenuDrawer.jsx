@@ -32,6 +32,7 @@ export const estateDrawerSections=[
     {label:"Learning Center",page:"Learning",icon:"tree"},
     {label:"Tea Apothecary",page:"Tea Apothecary",icon:"tea"},
     {label:"Word Search",page:"Word Search",icon:"mint"},
+    {label:"Garden Match",page:"Garden Match",icon:"flower"},
     {label:"Garden Challenges",page:"Garden Challenges",icon:"apple"},
   ]},
   {title:"The Conservatory",items:[
