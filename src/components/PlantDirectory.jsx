@@ -12,10 +12,10 @@ const filters = [
   "Flowers"
 ];
 
-export default function PlantDirectory({ onSelectPlant, onEditPlant, onAddPlant, onOpenPlantFinder, onViewArchived }) {
+export default function PlantDirectory({ initialSearch = "", initialFilter = "All", onSelectPlant, onEditPlant, onAddPlant, onOpenPlantFinder, onViewArchived }) {
   const { plants, activePlants, stats } = useGarden();
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("All");
+  const [search, setSearch] = useState(() => String(initialSearch || "").trim());
+  const [filter, setFilter] = useState(() => filters.includes(initialFilter) ? initialFilter : "All");
 
   const filteredPlants = useMemo(() => {
     const normalizedSearch = normalizePlantText(search);

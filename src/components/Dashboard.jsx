@@ -9,12 +9,19 @@ import "./Dashboard.css";
 
 const DEBUG_ANIMATIONS = false;
 
+const activateFromKeyboard = (event, action) => {
+  if (event.key !== "Enter" && event.key !== " " && event.key !== "Spacebar") return;
+  event.preventDefault();
+  action();
+};
+
 const dashboardHotspots = [
   { label: "Orchard Gate", page: "Orchard", area: [38.2, 36.1, 18.1, 4.2] },
   { label: "Orchard garden area", page: "Orchard", area: [23.5, 40.3, 17.4, 5.2] },
   { label: "Flower and Perennials", page: "Garden Collections", area: [56.7, 40.1, 16.1, 5.7] },
   { label: "Tea and Herb Corridor", page: "Garden Collections", area: [17.2, 49.2, 16.3, 5.8] },
   { label: "Vegetable Garden", page: "Garden Collections", area: [61.5, 49.8, 16.7, 5.5] },
+  { label: "Open Buddy’s Garden games", page: "Garden Challenges", area: [41.2, 53.4, 13.4, 5.2] },
   { label: "Berry Zone", page: "Garden Collections", area: [20.5, 60.6, 16.8, 5.5] },
   { label: "Container Collection", page: "Garden Collections", area: [59.1, 60.7, 17.2, 5.4] },
   { label: "Nursery Shed", page: "Inventory", area: [39.1, 67.1, 18.8, 4.7] },
@@ -142,6 +149,7 @@ export default function Dashboard({ onNavigate }) {
               aria-label={label}
               title={label}
               onClick={() => onNavigate?.(page)}
+              onKeyDown={(event) => activateFromKeyboard(event, () => onNavigate?.(page))}
               style={{ left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` }}
             />
           ))}
@@ -155,11 +163,11 @@ export default function Dashboard({ onNavigate }) {
         tabIndex="0"
       >
         <div className="js-dashboard-stat-row">
-          <DashboardStatCard icon="fruitTree" value={stats.orchardCount} label="Fruit Trees" />
-          <DashboardStatCard icon="mint" value={stats.mintVarietyCount} label="Mint Varieties" subtext={`${stats.mintVarietyCount} Current`} />
-          <DashboardStatCard icon="edibles" value={stats.edibleHerbCount} label="Edibles & Herbs" />
-          <DashboardStatCard icon="zones" value={stats.gardenZoneCount} label="Garden Zones" />
-          <DashboardStatCard icon="photos" value={stats.photoCount} label="Photos Logged" />
+          <DashboardStatCard icon="fruitTree" value={stats.orchardCount} label="Fruit Trees" accessibleName={`Open Orchard — ${stats.orchardCount} Fruit Trees`} onClick={() => onNavigate?.("Orchard")} />
+          <DashboardStatCard icon="mint" value={stats.mintVarietyCount} label="Mint Varieties" subtext={`${stats.mintVarietyCount} Current`} accessibleName={`Open Mint Varieties in Plant Directory — ${stats.mintVarietyCount} varieties`} onClick={() => onNavigate?.("Plant Directory", { initialSearch:"Mint", initialFilter:"Herbs" })} />
+          <DashboardStatCard icon="edibles" value={stats.edibleHerbCount} label="Edibles & Herbs" accessibleName={`Open Edibles and Herbs in Garden Collections — ${stats.edibleHerbCount} plants`} onClick={() => onNavigate?.("Garden Collections")} />
+          <DashboardStatCard icon="zones" value={stats.gardenZoneCount} label="Garden Zones" accessibleName={`Open Garden Collections — ${stats.gardenZoneCount} Garden Zones`} onClick={() => onNavigate?.("Garden Collections")} />
+          <DashboardStatCard icon="photos" value={stats.photoCount} label="Photos Logged" accessibleName={`Open Garden Gallery — ${stats.photoCount} Photos Logged`} onClick={() => onNavigate?.("Gallery")} />
         </div>
       </div>
       </div>

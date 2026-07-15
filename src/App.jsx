@@ -73,6 +73,7 @@ function GardenApp() {
   const [healthCenterLaunch, setHealthCenterLaunch] = useState({ plantId:"", diagnosisId:"", mode:"", launchId:0 });
   const [plantEditorPrefill, setPlantEditorPrefill] = useState(null);
   const [plantEditorReturnPage, setPlantEditorReturnPage] = useState("Plant Directory");
+  const [navigationContext,setNavigationContext]=useState({page:"Dashboard",launchId:0});
   const [menuOpen,setMenuOpen]=useState(false);
   const menuTriggerRef=useRef(null);
   const closeMenu=useCallback(()=>setMenuOpen(false),[]);
@@ -102,8 +103,9 @@ function GardenApp() {
     setMenuOpen(false);
     setPage("Plant Health Center");
   };
-  const navigate = (nextPage) => {
+  const navigate = (nextPage, context = {}) => {
     setMenuOpen(false);
+    setNavigationContext({ page:nextPage, ...context, launchId:Date.now() });
     if (nextPage === "The Conservatory") setConservatoryLaunch({ companion: null, scopePlant: null, settingsOpen:false, launchId:Date.now() });
     if (nextPage === "Plant Health Center") setHealthCenterLaunch({ plantId:"", diagnosisId:"", mode:"", finderContext:null, launchId:Date.now() });
     setPage(nextPage);
@@ -118,7 +120,7 @@ function GardenApp() {
         return <Orchard onSelectPlant={openPlant} onEditPlant={editPlant} onAddPlant={startAddPlant} />;
 
       case "Plant Directory":
-        return <PlantDirectory onSelectPlant={openPlant} onEditPlant={editPlant} onAddPlant={startAddPlant} onOpenPlantFinder={() => navigate("Plant Finder")} onViewArchived={() => navigate("Archived Plants")} />;
+        return <PlantDirectory key={`plant-directory-${navigationContext.launchId}`} initialSearch={navigationContext.initialSearch || ""} initialFilter={navigationContext.initialFilter || "All"} onSelectPlant={openPlant} onEditPlant={editPlant} onAddPlant={startAddPlant} onOpenPlantFinder={() => navigate("Plant Finder")} onViewArchived={() => navigate("Archived Plants")} />;
 
       case "Archived Plants":
         return <ArchivedPlants onBack={() => navigate("Plant Directory")} />;

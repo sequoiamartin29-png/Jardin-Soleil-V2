@@ -7,11 +7,14 @@
 
 .js-dashboard-stat-card {
   align-items: center;
+  appearance: none;
   background: radial-gradient(circle at 50% 35%, rgba(255, 251, 240, .98), rgba(241, 226, 207, .97)), repeating-linear-gradient(12deg, rgba(92, 63, 32, .018) 0 1px, transparent 1px 5px);
+  border: 0;
   border-left: 1px solid #c5a368;
   border-right: 1px solid rgba(255, 255, 255, .68);
   box-shadow: inset 0 0 0 3px rgba(255, 250, 239, .62);
   color: #29261f;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   font-family: Georgia, "Times New Roman", serif;
@@ -23,6 +26,16 @@
   padding: 3% 2%;
   position: relative;
   text-align: center;
+  width: 100%;
+}
+
+.js-dashboard-stat-card:hover,
+.js-dashboard-stat-card:focus-visible {
+  background: radial-gradient(circle at 50% 35%, rgba(255, 253, 244, 1), rgba(241, 226, 207, .98));
+  box-shadow: inset 0 0 0 3px rgba(255, 250, 239, .78), inset 0 0 0 5px rgba(183, 141, 73, .22), 0 0 11px rgba(166, 120, 51, .34);
+  outline: 2px solid rgba(151, 106, 45, .9);
+  outline-offset: -3px;
+  z-index: 3;
 }
 
 .js-dashboard-stat-card:first-child {

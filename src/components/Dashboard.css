@@ -31,7 +31,7 @@
   height: 8.0078%;
   left: 1.879%;
   outline: none;
-  pointer-events: none;
+  pointer-events: auto;
   position: absolute;
   top: 24.8047%;
   width: 78.868%;
