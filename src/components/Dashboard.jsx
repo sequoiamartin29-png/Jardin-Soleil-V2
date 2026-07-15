@@ -79,13 +79,7 @@ export default function Dashboard({ onNavigate }) {
           </div>
           <div className="js-dashboard-artwork__stat-strip">
             <div className="js-dashboard-artwork__strip-side js-dashboard-artwork__strip-side--left" aria-hidden="true"><img src={dashboardArtwork} alt="" /></div>
-            <div className="js-dashboard-stat-row">
-              <DashboardStatCard icon="fruitTree" value={stats.orchardCount} label="Fruit Trees" />
-              <DashboardStatCard icon="mint" value={stats.mintVarietyCount} label="Mint Varieties" subtext={`${stats.mintVarietyCount} Current`} />
-              <DashboardStatCard icon="edibles" value={stats.edibleHerbCount} label="Edibles & Herbs" />
-              <DashboardStatCard icon="zones" value={stats.gardenZoneCount} label="Garden Zones" />
-              <DashboardStatCard icon="photos" value={stats.photoCount} label="Photos Logged" />
-            </div>
+            <div className="js-dashboard-artwork__stat-placeholder" aria-hidden="true" />
             <div className="js-dashboard-artwork__strip-side js-dashboard-artwork__strip-side--right" aria-hidden="true"><img src={dashboardArtwork} alt="" /></div>
           </div>
           <div className="js-dashboard-artwork__lower" aria-hidden="true"><img src={dashboardArtwork} alt="" /></div>
@@ -152,7 +146,23 @@ export default function Dashboard({ onNavigate }) {
             />
           ))}
         </nav>
-      </div></div>
+      </div>
+
+      <div
+        className="js-dashboard-stat-overlay"
+        role="region"
+        aria-label="Live garden statistics. Scroll horizontally on small screens."
+        tabIndex="0"
+      >
+        <div className="js-dashboard-stat-row">
+          <DashboardStatCard icon="fruitTree" value={stats.orchardCount} label="Fruit Trees" />
+          <DashboardStatCard icon="mint" value={stats.mintVarietyCount} label="Mint Varieties" subtext={`${stats.mintVarietyCount} Current`} />
+          <DashboardStatCard icon="edibles" value={stats.edibleHerbCount} label="Edibles & Herbs" />
+          <DashboardStatCard icon="zones" value={stats.gardenZoneCount} label="Garden Zones" />
+          <DashboardStatCard icon="photos" value={stats.photoCount} label="Photos Logged" />
+        </div>
+      </div>
+      </div>
     </section>
   );
 }

@@ -104,37 +104,57 @@
 }
 
 @media (max-width: 600px) {
+  .js-dashboard-stat-row {
+    grid-auto-columns: clamp(88px, 27vw, 112px);
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    min-width: 100%;
+    width: max-content;
+  }
+
   .js-dashboard-stat-card {
-    overflow: visible;
-    padding: 2% 1%;
+    overflow: hidden;
+    padding: 5px 4px 4px;
+    scroll-snap-align: start;
   }
 
   .js-dashboard-stat-card__icon {
-    height: 18%;
-    margin-bottom: 1%;
-    width: 29%;
+    height: 18px;
+    left: 7px;
+    margin: 0;
+    position: absolute;
+    top: 7px;
+    width: 18px;
   }
 
   .js-dashboard-stat-card__content {
+    height: 100%;
     justify-content: center;
+  }
+
+  .js-dashboard-stat-card strong {
+    font-size: clamp(20px, 5vw, 24px);
+    line-height: 1;
   }
 
   .js-dashboard-stat-card__label {
     align-items: center;
     display: flex;
-    font-size: clamp(.46rem, 2.25vw, .56rem);
+    font-size: clamp(11px, 2.8vw, 13px);
     justify-content: center;
-    letter-spacing: -.03em;
-    line-height: 1.06;
-    margin-top: 2%;
-    min-height: 2.12em;
-    padding: 0 1px;
+    letter-spacing: 0;
+    line-height: 1.12;
+    margin-top: 2px;
+    max-width: 100%;
+    min-height: 1.12em;
+    padding: 0 2px;
     white-space: normal;
   }
 
   .js-dashboard-stat-card small {
-    font-size: clamp(.3rem, 1.45vw, .34rem);
-    line-height: 1;
-    margin-top: 1%;
+    font-size: clamp(9px, 2.3vw, 11px);
+    line-height: 1.15;
+    margin-top: 2px;
+    white-space: normal;
   }
 }

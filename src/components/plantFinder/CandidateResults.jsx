@@ -15,7 +15,7 @@ const compactMatch = (match) => ({
   nativeStatus:match.nativeStatus, habit:match.habit, size:match.size, light:match.light, water:match.water, zones:match.zones,
   flowerSeason:match.flowerSeason, fruitSeason:match.fruitSeason, pollinatorValue:match.pollinatorValue,
   invasiveStatus:match.invasiveStatus, toxicity:match.toxicity, edibility:match.edibility, herbalUse:match.herbalUse,
-  conservationLegal:match.conservationLegal,
+  conservationLegal:match.conservationLegal, provider:match.provider, referenceImages:match.referenceImages,
 });
 
 export default function CandidateResults({ context, matches, sourceLabel, sourceNotice, photoBased = false, needsFocusedFollowUp = false, pendingPhoto = null, providerStatus = "", imageQuality = "", onRestart, onContinueIdentifying, onTakeAnotherPhoto, onAddPhoto, onPersistPhoto, onSaveRecord, onUpdateRecord, onAddToEstate, onOpenHealthCenter }) {
@@ -95,9 +95,9 @@ export default function CandidateResults({ context, matches, sourceLabel, source
 
   return (
     <section className="js-finder-results" aria-labelledby="plant-finder-results-title">
-      <header className="js-finder-results__header"><div><p>{sourceLabel}</p><h2 id="plant-finder-results-title">Possible Field Matches</h2><span>{matches.length ? `${matches.length} cautious ${matches.length === 1 ? "comparison" : "comparisons"}, ranked from the traits provided` : "The current observations are not specific enough for a reliable match"}</span></div><button type="button" onClick={onRestart}>Start over</button></header>
+      <header className="js-finder-results__header"><div><p>{sourceLabel}</p><h2 id="plant-finder-results-title">Possible Field Matches</h2><span>{matches.length ? `${matches.length} cautious ${matches.length === 1 ? "comparison" : "comparisons"}, ranked ${photoBased ? "by the photo-identification provider" : "from the traits provided"}` : "The current observations are not specific enough for a reliable match"}</span></div><button type="button" onClick={onRestart}>Start over</button></header>
       {photoBased && <ol className="js-finder-photo-flow is-results" aria-label="Photo identification progress">{photoFlowSteps.map((step, index) => <li key={step} className={index === photoFlowIndex ? "is-current" : index < photoFlowIndex ? "is-complete" : ""}><span>{index + 1}</span><small>{step}</small></li>)}</ol>}
-      {photoBased && providerStatus === "ready" && <aside className="js-finder-provider is-ready" role="status"><strong>Provider status · Ready</strong><p>Secure photo analysis completed{imageQuality ? ` with ${imageQuality} image quality` : ""}. Review the evidence before confirming a candidate.</p></aside>}
+      {photoBased && providerStatus === "ready" && <aside className="js-finder-provider is-ready" role="status"><strong>Provider status · Ready</strong><p>Secure photo analysis completed{imageQuality ? ` with ${imageQuality} image quality` : ""}. Review the evidence before confirming a candidate.</p><p className="js-finder-provider__attribution">Plant identification powered by <a href="https://plantnet.org/en/" target="_blank" rel="noreferrer" aria-label="Pl@ntNet (opens in a new tab)">Pl@ntNet</a>.</p></aside>}
       {sourceNotice && <aside className="js-finder-notice" role="status">{sourceNotice}</aside>}
 
       {!matches.length ? (

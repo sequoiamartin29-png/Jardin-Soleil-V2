@@ -14,12 +14,11 @@ npm run dev
 npx netlify dev
 ```
 
-Configure these server-side environment variables in Netlify (or in an uncommitted local Netlify environment):
+Configure this server-side environment variable in Netlify (or in an uncommitted local Netlify environment):
 
-- `OPENAI_API_KEY` — the server-only OpenAI API credential
-- `OPENAI_VISION_MODEL` — required image-capable Responses API model selected by the deployment; the browser never hard-codes or receives it
+- `PLANTNET_API_KEY` — the server-only Pl@ntNet API credential used by Plant Finder
 
-The browser calls `/.netlify/functions/identify-plant`. A safe `GET` diagnostic reports only whether the function is reachable and whether its credential and model settings are present. It never returns either environment variable. Selected Plant Finder images are resized to a maximum 1800-pixel edge, re-encoded as JPEG to remove embedded metadata, and held only in the current session until the user saves the identification, adds the plant to the estate, or explicitly saves the photo to Gallery.
+The browser calls `/.netlify/functions/identify-plant`. A safe `GET` diagnostic reports only whether the function is reachable, whether its server-side credential is present, and whether Pl@ntNet is reachable. It never returns the environment variable. Selected Plant Finder images are resized to a maximum 1800-pixel edge, re-encoded as JPEG to remove embedded metadata, and held only in the current session until the user saves the identification, adds the plant to the estate, or explicitly saves the photo to Gallery. OpenAI environment variables, when configured for other optional features, are not used by Plant Finder.
 
 ## Deploy on Netlify
 - Build command: `npm run build`

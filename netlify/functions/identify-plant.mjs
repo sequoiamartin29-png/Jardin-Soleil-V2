@@ -1,10 +1,12 @@
-const OPENAI_RESPONSES_ENDPOINT = "https://api.openai.com/v1/responses";
+const PLANTNET_ENDPOINT = "https://my-api.plantnet.org/v2/identify/k-world-flora";
+const PLANTNET_STATUS_ENDPOINT = "https://my-api.plantnet.org/v2/_status";
 const MAX_REQUEST_BYTES = 4.5 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_REQUESTS = 12;
 const PROVIDER_TIMEOUT_MS = 25_000;
-const SUPPORTED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const STATUS_TIMEOUT_MS = 5_000;
+const SUPPORTED_MIME_TYPES = new Set(["image/jpeg", "image/png"]);
 const requestBuckets = new Map();
 
 const responseHeaders = {
@@ -19,82 +21,35 @@ const json = (body, status = 200, headers = {}) => new Response(JSON.stringify(b
 });
 
 const publicErrors = {
-  NOT_CONFIGURED:"Photo identification credentials need attention.",
-  INVALID_API_KEY:"Photo identification credentials need attention.",
-  BILLING_OR_QUOTA:"Photo identification needs active API billing or available API credit.",
+  NOT_CONFIGURED:"Photo identification is not configured yet.",
+  INVALID_API_KEY:"The Pl@ntNet credentials are invalid.",
+  QUOTA_EXCEEDED:"The Pl@ntNet daily identification quota has been reached.",
   RATE_LIMITED:"Photo analysis is temporarily busy. Please try again shortly.",
-  MODEL_NOT_AVAILABLE:"The configured vision model is unavailable.",
-  INVALID_IMAGE:"This photograph could not be processed. Try JPEG, PNG, or WebP.",
+  INVALID_IMAGE:"This photograph could not be processed. Try a JPEG or PNG image.",
   IMAGE_TOO_LARGE:"This image is too large for photo analysis. Try a closer crop or smaller photograph.",
   PROVIDER_TIMEOUT:"Photo analysis took too long. Try a smaller or clearer photograph.",
+  NO_RELIABLE_MATCH:"Pl@ntNet did not return a reliable plant match for this photograph.",
   MALFORMED_PROVIDER_RESPONSE:"Photo analysis returned an unreadable result. No identification was generated.",
-  PROVIDER_UNAVAILABLE:"Photo identification is temporarily unavailable. Guided Identification is still available.",
   INVALID_REQUEST:"The photo request could not be processed.",
   INTERNAL_ERROR:"Photo identification encountered an internal error. Guided Identification is still available.",
   METHOD_NOT_ALLOWED:"Use POST for plant photo identification.",
 };
 
-const errorResponse = (code, status, requestId) => json({ status:"error", code, message:publicErrors[code] || publicErrors.INTERNAL_ERROR, requestId }, status);
-const cleanText = (value, limit) => String(value || "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, limit);
+const errorResponse = (code, status, requestId) => json({
+  status:"error",
+  provider:"plantnet",
+  code,
+  message:publicErrors[code] || publicErrors.INTERNAL_ERROR,
+  requestId,
+}, status);
+
+const cleanText = (value, limit) => String(value || "")
+  .replace(/[\u0000-\u001f\u007f]/g, " ")
+  .replace(/\s+/g, " ")
+  .trim()
+  .slice(0, limit);
 const requestId = () => globalThis.crypto?.randomUUID?.() || `plant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-const diagnosticLog = (event, details = {}) => console.info(JSON.stringify({ scope:"identify-plant", event, ...details }));
-
-function providerErrorCategory(status, payload) {
-  const providerCode = cleanText(payload?.error?.code, 100).toLocaleLowerCase();
-  const providerType = cleanText(payload?.error?.type, 100).toLocaleLowerCase();
-  const providerMessage = cleanText(payload?.error?.message, 300).toLocaleLowerCase();
-  const categoryText = `${providerCode} ${providerType} ${providerMessage}`;
-  if (status === 401 || /invalid.*api.*key|authentication/.test(categoryText)) return "INVALID_API_KEY";
-  if (/insufficient_quota|billing|credit|hard_limit|exceeded.*quota/.test(categoryText)) return "BILLING_OR_QUOTA";
-  if (status === 429) return "RATE_LIMITED";
-  if (status === 404 || /model.*not.*found|model.*does not support|unsupported.*model|image.*not.*supported|model_not_available/.test(categoryText)) return "MODEL_NOT_AVAILABLE";
-  if (status === 413) return "IMAGE_TOO_LARGE";
-  if (status === 408 || status === 504) return "PROVIDER_TIMEOUT";
-  if (status === 400 && /image|image_url|invalid_value/.test(categoryText)) return "INVALID_IMAGE";
-  if (status >= 500) return "PROVIDER_UNAVAILABLE";
-  return "INTERNAL_ERROR";
-}
-
-const providerStatusCode = (category) => ({
-  INVALID_API_KEY:401,
-  BILLING_OR_QUOTA:402,
-  RATE_LIMITED:429,
-  MODEL_NOT_AVAILABLE:503,
-  INVALID_IMAGE:400,
-  IMAGE_TOO_LARGE:413,
-  PROVIDER_TIMEOUT:504,
-  PROVIDER_UNAVAILABLE:503,
-  INTERNAL_ERROR:500,
-}[category] || 500);
-
-const outputSchema = {
-  type:"object",
-  additionalProperties:false,
-  properties:{
-    status:{ type:"string", enum:["success"] },
-    imageQuality:{ type:"string", enum:["good", "limited", "unusable"] },
-    candidates:{
-      type:"array",
-      maxItems:5,
-      items:{
-        type:"object",
-        additionalProperties:false,
-        properties:{
-          commonName:{ type:"string" },
-          botanicalName:{ type:"string" },
-          family:{ type:"string" },
-          confidence:{ type:"integer", minimum:0, maximum:100 },
-          visibleEvidence:{ type:"array", maxItems:8, items:{ type:"string" } },
-          conflictingEvidence:{ type:"array", maxItems:8, items:{ type:"string" } },
-          inspectNext:{ type:"array", maxItems:8, items:{ type:"string" } },
-        },
-        required:["commonName", "botanicalName", "family", "confidence", "visibleEvidence", "conflictingEvidence", "inspectNext"],
-      },
-    },
-    safetyNote:{ type:"string" },
-  },
-  required:["status", "imageQuality", "candidates", "safetyNote"],
-};
+const diagnosticLog = (event, details = {}) => console.info(JSON.stringify({ scope:"identify-plant", provider:"plantnet", event, ...details }));
 
 function getClientAddress(request) {
   return cleanText(
@@ -123,96 +78,191 @@ function consumeRateLimit(address) {
 function hasExpectedMagicBytes(bytes, mimeType) {
   if (mimeType === "image/jpeg") return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
   if (mimeType === "image/png") return bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
-  if (mimeType === "image/webp") return bytes.subarray(0, 4).toString("ascii") === "RIFF" && bytes.subarray(8, 12).toString("ascii") === "WEBP";
   return false;
 }
 
 function validateImage(dataUrl) {
-  const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(String(dataUrl || ""));
+  const match = /^data:(image\/(?:jpeg|png));base64,([A-Za-z0-9+/]+={0,2})$/.exec(String(dataUrl || ""));
   if (!match || !SUPPORTED_MIME_TYPES.has(match[1])) return { error:"unsupported-type" };
-  let bytes;
+  let buffer;
   try {
-    bytes = Buffer.from(match[2], "base64");
+    buffer = Buffer.from(match[2], "base64");
   } catch {
     return { error:"invalid-image" };
   }
-  if (!bytes.length || bytes.length > MAX_IMAGE_BYTES) return { error:bytes.length ? "oversized-image" : "invalid-image" };
-  if (!hasExpectedMagicBytes(bytes, match[1])) return { error:"invalid-image" };
-  return { dataUrl:`data:${match[1]};base64,${match[2]}`, mimeType:match[1], bytes:bytes.length };
-}
-
-function extractOutputText(payload) {
-  if (typeof payload?.output_text === "string") return payload.output_text;
-  for (const item of payload?.output || []) {
-    for (const content of item?.content || []) {
-      if (content?.type === "output_text" && typeof content.text === "string") return content.text;
-    }
-  }
-  return "";
-}
-
-function cleanList(value) {
-  return Array.isArray(value) ? value.map((item) => cleanText(item, 280)).filter(Boolean).slice(0, 8) : [];
-}
-
-function normalizeProviderResult(value) {
-  if (!value || value.status !== "success" || !["good", "limited", "unusable"].includes(value.imageQuality) || !Array.isArray(value.candidates)) return null;
-  const candidates = value.candidates.slice(0, 5).map((candidate) => ({
-    commonName:cleanText(candidate?.commonName, 160),
-    botanicalName:cleanText(candidate?.botanicalName, 180),
-    family:cleanText(candidate?.family, 140),
-    confidence:Math.max(0, Math.min(100, Math.round(Number(candidate?.confidence) || 0))),
-    visibleEvidence:cleanList(candidate?.visibleEvidence),
-    conflictingEvidence:cleanList(candidate?.conflictingEvidence),
-    inspectNext:cleanList(candidate?.inspectNext),
-  })).filter((candidate) => candidate.commonName && candidate.confidence > 0);
-
+  if (!buffer.length || buffer.length > MAX_IMAGE_BYTES) return { error:buffer.length ? "oversized-image" : "invalid-image" };
+  if (!hasExpectedMagicBytes(buffer, match[1])) return { error:"invalid-image" };
   return {
-    status:"success",
-    imageQuality:value.imageQuality,
-    candidates,
-    safetyNote:cleanText(value.safetyNote, 500) || "Do not eat, brew, or medicinally use a wild plant based only on image identification; confirm it with a qualified local expert.",
+    buffer,
+    mimeType:match[1],
+    bytes:buffer.length,
+    fileName:match[1] === "image/png" ? "plant-observation.png" : "plant-observation.jpg",
   };
 }
 
-function buildPrompt({ subject, region, season }) {
-  const observationContext = JSON.stringify({ visibleSubject:subject || "Unknown", region:region || "Not supplied", season:season || "Not supplied" });
-  return [
-    "Answer only this question: What plant might this be?",
-    "Return at most five cautious visual candidates. Never claim certainty and never invent a botanical name; use an empty string when a botanical name or family is not supportable.",
-    "Use only visible image evidence plus the minimal context below. If the image lacks identifying detail, set imageQuality to limited or unusable and return an empty candidates array.",
-    "Visible evidence must name structures actually visible. Conflicting evidence must describe visible mismatches or uncertainty. Inspect next must be concrete traits that can distinguish the candidates.",
-    "Do not diagnose pests, disease, deficiencies, or plant health. Always warn against eating, brewing, or medicinal use from image identification alone.",
-    `Minimal observation context: ${observationContext}`,
-  ].join("\n");
+const subjectToOrgan = new Map([
+  ["leaf", "leaf"],
+  ["flower", "flower"],
+  ["fruit", "fruit"],
+  ["bark", "bark"],
+  ["whole plant", "auto"],
+  ["tree shape", "auto"],
+  ["seed pod", "fruit"],
+  ["unknown", "auto"],
+]);
+
+function normalizeOrgan(subject) {
+  const normalized = cleanText(subject, 60).toLocaleLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+  return subjectToOrgan.get(normalized) || "auto";
+}
+
+function providerErrorCategory(status, payload) {
+  const providerCode = cleanText(payload?.error?.code || payload?.code, 100).toLocaleLowerCase();
+  const providerMessage = cleanText(payload?.error?.message || payload?.message, 300).toLocaleLowerCase();
+  const categoryText = `${providerCode} ${providerMessage}`;
+  if (status === 401 || status === 403 || /invalid.*api.*key|unauthorized|forbidden|authentication/.test(categoryText)) return "INVALID_API_KEY";
+  if (status === 429 && /daily|quota|exhaust|maximum.*request|limit.*reached/.test(categoryText)) return "QUOTA_EXCEEDED";
+  if (status === 429) return "RATE_LIMITED";
+  if (status === 413) return "IMAGE_TOO_LARGE";
+  if (status === 408 || status === 504) return "PROVIDER_TIMEOUT";
+  if ([400, 415, 422].includes(status)) return "INVALID_IMAGE";
+  if (status >= 500) return "INTERNAL_ERROR";
+  return "INTERNAL_ERROR";
+}
+
+const providerStatusCode = (category) => ({
+  INVALID_API_KEY:401,
+  QUOTA_EXCEEDED:429,
+  RATE_LIMITED:429,
+  INVALID_IMAGE:400,
+  IMAGE_TOO_LARGE:413,
+  PROVIDER_TIMEOUT:504,
+  NO_RELIABLE_MATCH:422,
+  MALFORMED_PROVIDER_RESPONSE:502,
+  INTERNAL_ERROR:500,
+}[category] || 500);
+
+const familyName = (family) => cleanText(
+  family?.scientificNameWithoutAuthor || family?.scientificName || family?.scientificNameAuthorship,
+  140,
+);
+
+function referenceImageUrl(image) {
+  const url = image?.url;
+  if (typeof url === "string") return cleanText(url, 800);
+  return cleanText(url?.m || url?.o || url?.s, 800);
+}
+
+function normalizeReferenceImages(images) {
+  if (!Array.isArray(images)) return [];
+  return images.slice(0, 3).map((image) => ({
+    url:referenceImageUrl(image),
+    author:cleanText(image?.author, 160),
+    license:cleanText(image?.license, 120),
+    citation:cleanText(image?.citation, 280),
+  })).filter((image) => /^https:\/\//i.test(image.url));
+}
+
+function normalizeCandidate(result) {
+  const species = result?.species;
+  if (!species || typeof species !== "object") return null;
+  const botanicalName = cleanText(species.scientificNameWithoutAuthor || species.scientificName, 180);
+  const commonNames = Array.isArray(species.commonNames) ? species.commonNames : [];
+  const commonName = cleanText(commonNames.find((name) => typeof name === "string") || botanicalName, 160);
+  const score = Number(result?.score);
+  const confidence = Number.isFinite(score) ? Math.max(0, Math.min(100, Math.round(score * 100))) : 0;
+  if (!commonName || !botanicalName || confidence <= 0) return null;
+  return {
+    commonName,
+    botanicalName,
+    family:familyName(species.family),
+    confidence,
+    visibleEvidence:[
+      "Image characteristics were consistent with this candidate.",
+      "Pl@ntNet ranked this among the closest matches.",
+    ],
+    conflictingEvidence:[],
+    inspectNext:["Leaf arrangement", "Flower structure", "Fruit", "Bark", "Whole-plant habit"],
+    referenceImages:normalizeReferenceImages(result.images),
+  };
+}
+
+function normalizeProviderResult(payload) {
+  if (!payload || !Array.isArray(payload.results)) return null;
+  const candidates = payload.results.slice(0, 5).map(normalizeCandidate).filter(Boolean);
+  return {
+    status:"success",
+    provider:"plantnet",
+    imageQuality:(candidates[0]?.confidence || 0) >= 65 ? "good" : "limited",
+    candidates,
+    safetyNote:"Never eat, brew, or medically use a wild plant based only on an app identification. Confirm with a qualified local expert.",
+    remainingIdentificationRequests:Number.isFinite(Number(payload.remainingIdentificationRequests))
+      ? Number(payload.remainingIdentificationRequests)
+      : null,
+  };
+}
+
+async function checkProviderStatus(apiKey, requestIdValue, startedAt) {
+  if (!apiKey) {
+    diagnosticLog("diagnostic-check", { requestId:requestIdValue, providerStatus:"NOT_CONFIGURED", apiKeyPresent:false, durationMs:Date.now() - startedAt });
+    return json({
+      status:"ok",
+      provider:"plantnet",
+      providerStatus:"NOT_CONFIGURED",
+      checks:{ functionReachable:true, apiKeyPresent:false, endpointReachable:false },
+    });
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), STATUS_TIMEOUT_MS);
+  try {
+    const statusUrl = new URL(PLANTNET_STATUS_ENDPOINT);
+    statusUrl.searchParams.set("api-key", apiKey);
+    const response = await fetch(statusUrl, {
+      method:"GET",
+      headers:{ accept:"application/json" },
+      signal:controller.signal,
+    });
+    let providerPayload = null;
+    if (!response.ok) {
+      try { providerPayload = await response.json(); }
+      catch { providerPayload = null; }
+    }
+    const endpointReachable = response.status > 0 && response.status < 500;
+    const errorCategory = response.ok ? null : providerErrorCategory(response.status, providerPayload);
+    const providerStatus = response.ok ? "READY"
+      : ["INVALID_API_KEY", "QUOTA_EXCEEDED", "RATE_LIMITED"].includes(errorCategory) ? errorCategory
+        : "TEMPORARILY_UNAVAILABLE";
+    diagnosticLog("diagnostic-check", { requestId:requestIdValue, providerStatus, apiKeyPresent:true, endpointReachable, providerHttpStatus:response.status, durationMs:Date.now() - startedAt });
+    return json({
+      status:"ok",
+      provider:"plantnet",
+      providerStatus,
+      checks:{ functionReachable:true, apiKeyPresent:true, endpointReachable },
+    });
+  } catch (error) {
+    const providerStatus = "TEMPORARILY_UNAVAILABLE";
+    diagnosticLog("diagnostic-check", { requestId:requestIdValue, providerStatus, apiKeyPresent:true, endpointReachable:false, timeout:error?.name === "AbortError", durationMs:Date.now() - startedAt });
+    return json({
+      status:"ok",
+      provider:"plantnet",
+      providerStatus,
+      checks:{ functionReachable:true, apiKeyPresent:true, endpointReachable:false },
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export default async function handler(request) {
   const startedAt = Date.now();
   const id = requestId();
-  const apiKey = String(process.env.OPENAI_API_KEY || "").trim();
-  const model = cleanText(process.env.OPENAI_VISION_MODEL, 120);
+  const apiKey = String(process.env.PLANTNET_API_KEY || "").trim();
   diagnosticLog("request-received", { requestId:id, method:request.method });
 
-  if (request.method === "GET") {
-    const providerStatus = !apiKey ? "CREDENTIALS_MISSING" : !model ? "MODEL_CONFIGURATION_ERROR" : "READY";
-    diagnosticLog("diagnostic-check", {
-      requestId:id,
-      providerStatus,
-      apiKeyPresent:Boolean(apiKey),
-      modelConfigured:Boolean(model),
-      durationMs:Date.now() - startedAt,
-    });
-    return json({
-      status:"ok",
-      providerStatus,
-      checks:{ functionReachable:true, apiKeyPresent:Boolean(apiKey), modelConfigured:Boolean(model) },
-    });
-  }
-
+  if (request.method === "GET") return checkProviderStatus(apiKey, id, startedAt);
   if (request.method !== "POST") return errorResponse("METHOD_NOT_ALLOWED", 405, id);
   if (!apiKey) return errorResponse("NOT_CONFIGURED", 503, id);
-  if (!model) return errorResponse("MODEL_NOT_AVAILABLE", 503, id);
   if (!consumeRateLimit(getClientAddress(request))) {
     diagnosticLog("request-rejected", { requestId:id, errorCategory:"RATE_LIMITED", source:"function", durationMs:Date.now() - startedAt });
     return errorResponse("RATE_LIMITED", 429, id);
@@ -222,13 +272,9 @@ export default async function handler(request) {
   try {
     rawBody = await request.text();
   } catch {
-    diagnosticLog("request-validation", { requestId:id, success:false, errorCategory:"INVALID_REQUEST", durationMs:Date.now() - startedAt });
     return errorResponse("INVALID_REQUEST", 400, id);
   }
-  if (!rawBody || Buffer.byteLength(rawBody, "utf8") > MAX_REQUEST_BYTES) {
-    diagnosticLog("request-validation", { requestId:id, success:false, errorCategory:"IMAGE_TOO_LARGE", durationMs:Date.now() - startedAt });
-    return errorResponse("IMAGE_TOO_LARGE", 413, id);
-  }
+  if (!rawBody || Buffer.byteLength(rawBody, "utf8") > MAX_REQUEST_BYTES) return errorResponse("IMAGE_TOO_LARGE", 413, id);
 
   let input;
   try {
@@ -248,50 +294,25 @@ export default async function handler(request) {
   if (image.error === "oversized-image") return errorResponse("IMAGE_TOO_LARGE", 413, id);
   if (image.error) return errorResponse("INVALID_IMAGE", image.error === "unsupported-type" ? 415 : 400, id);
 
-  diagnosticLog("image-validated", {
-    requestId:id,
-    imageMimeType:image.mimeType,
-    imageBytes:image.bytes,
-    model,
-  });
+  const organ = normalizeOrgan(input.subject);
+  diagnosticLog("image-validated", { requestId:id, imageMimeType:image.mimeType, imageBytes:image.bytes, organ });
 
-  const subject = cleanText(input.subject, 60);
-  const region = cleanText(input.context?.region, 120);
-  const season = cleanText(input.context?.season, 40);
+  const providerUrl = new URL(PLANTNET_ENDPOINT);
+  providerUrl.searchParams.set("api-key", apiKey);
+  providerUrl.searchParams.set("nb-results", "5");
+  providerUrl.searchParams.set("lang", "en");
+  providerUrl.searchParams.set("include-related-images", "true");
+  const form = new FormData();
+  form.append("images", new Blob([image.buffer], { type:image.mimeType }), image.fileName);
+  form.append("organs", organ);
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
   const providerStartedAt = Date.now();
-
   try {
-    const providerResponse = await fetch(OPENAI_RESPONSES_ENDPOINT, {
+    const providerResponse = await fetch(providerUrl, {
       method:"POST",
-      headers:{
-        authorization:`Bearer ${apiKey}`,
-        "content-type":"application/json",
-      },
-      body:JSON.stringify({
-        model,
-        store:false,
-        input:[
-          { role:"system", content:"You are a cautious botanical field-identification assistant. Follow the response schema exactly." },
-          {
-            role:"user",
-            content:[
-              { type:"input_text", text:buildPrompt({ subject, region, season }) },
-              { type:"input_image", image_url:image.dataUrl, detail:"high" },
-            ],
-          },
-        ],
-        text:{
-          format:{
-            type:"json_schema",
-            name:"plant_photo_identification",
-            strict:true,
-            schema:outputSchema,
-          },
-        },
-        max_output_tokens:2600,
-      }),
+      body:form,
       signal:controller.signal,
     });
 
@@ -302,46 +323,32 @@ export default async function handler(request) {
     } catch {
       providerJsonParsed = false;
     }
-
-    const providerCategory = providerResponse.ok
+    const category = providerResponse.ok
       ? providerJsonParsed ? "SUCCESS" : "MALFORMED_PROVIDER_RESPONSE"
       : providerErrorCategory(providerResponse.status, providerPayload);
     diagnosticLog("provider-response", {
       requestId:id,
-      model,
       providerHttpStatus:providerResponse.status,
-      providerErrorCategory:providerCategory,
+      providerErrorCategory:category,
       responseJsonParsed:providerJsonParsed,
       durationMs:Date.now() - providerStartedAt,
     });
 
-    if (!providerResponse.ok) return errorResponse(providerCategory, providerStatusCode(providerCategory), id);
+    if (!providerResponse.ok) return errorResponse(category, providerStatusCode(category), id);
     if (!providerJsonParsed) return errorResponse("MALFORMED_PROVIDER_RESPONSE", 502, id);
+    const result = normalizeProviderResult(providerPayload);
+    if (!result) return errorResponse("MALFORMED_PROVIDER_RESPONSE", 502, id);
+    if (!result.candidates.length) return errorResponse("NO_RELIABLE_MATCH", 422, id);
 
-    let parsed;
-    try {
-      const outputText = extractOutputText(providerPayload);
-      if (!outputText) throw new Error("missing-output-text");
-      parsed = JSON.parse(outputText);
-    } catch {
-      diagnosticLog("response-parsing", { requestId:id, success:false, errorCategory:"MALFORMED_PROVIDER_RESPONSE", durationMs:Date.now() - startedAt });
-      return errorResponse("MALFORMED_PROVIDER_RESPONSE", 502, id);
-    }
-    const result = normalizeProviderResult(parsed);
-    if (!result) {
-      diagnosticLog("response-parsing", { requestId:id, success:false, errorCategory:"MALFORMED_PROVIDER_RESPONSE", durationMs:Date.now() - startedAt });
-      return errorResponse("MALFORMED_PROVIDER_RESPONSE", 502, id);
-    }
-    diagnosticLog("response-parsing", {
+    diagnosticLog("response-mapped", {
       requestId:id,
-      success:true,
       candidateCount:result.candidates.length,
       imageQuality:result.imageQuality,
       durationMs:Date.now() - startedAt,
     });
     return json(result);
   } catch (error) {
-    const category = error?.name === "AbortError" ? "PROVIDER_TIMEOUT" : "PROVIDER_UNAVAILABLE";
+    const category = error?.name === "AbortError" ? "PROVIDER_TIMEOUT" : "INTERNAL_ERROR";
     diagnosticLog("provider-exception", { requestId:id, providerErrorCategory:category, durationMs:Date.now() - startedAt });
     return errorResponse(category, providerStatusCode(category), id);
   } finally {

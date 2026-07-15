@@ -62,7 +62,7 @@ export default function PlantFinder({ onNavigate, onAddToEstate, onOpenHealthCen
       analysis.safetyNote,
       needsFocusedFollowUp && externalMatches.length ? "Confidence is limited. Guided Follow-Up asks only the observations needed to separate these candidates." : "",
     ].filter(Boolean).join(" ");
-    prepareResults(finderContext, externalMatches, "Secure photo analysis · Provider Ready", sourceNotice, {
+    prepareResults(finderContext, externalMatches, "Secure photo analysis · Pl@ntNet", sourceNotice, {
       photoBased:true,
       needsFocusedFollowUp,
       pendingPhoto:photo,
@@ -108,7 +108,7 @@ export default function PlantFinder({ onNavigate, onAddToEstate, onOpenHealthCen
 
   const completePhotoFollowUp = (context) => {
     const refined = refinePhotoMatches(session?.matches || [], context);
-    prepareResults(context, refined, "Photo analysis + guided follow-up · Provider Ready", "Candidates were refined using only the focused observations you supplied; the image match remains unconfirmed.", {
+    prepareResults(context, refined, "Pl@ntNet photo analysis + guided follow-up", "Candidates were refined using only the focused observations you supplied; the image match remains unconfirmed.", {
       photoBased:true,
       needsFocusedFollowUp:false,
       pendingPhoto:session?.pendingPhoto || pendingPhoto,

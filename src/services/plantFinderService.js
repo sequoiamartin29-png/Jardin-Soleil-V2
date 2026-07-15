@@ -9,20 +9,16 @@ const friendlyErrors = {
     message:"Photo identification is not configured yet.",
   },
   INVALID_API_KEY:{
-    providerStatus:"credentials-missing",
-    message:"Photo identification credentials need attention.",
+    providerStatus:"invalid-credentials",
+    message:"The Pl@ntNet credentials are invalid.",
   },
-  BILLING_OR_QUOTA:{
-    providerStatus:"billing-quota",
-    message:"Photo identification needs active API billing or available API credit.",
+  QUOTA_EXCEEDED:{
+    providerStatus:"daily-quota",
+    message:"The Pl@ntNet daily identification quota has been reached.",
   },
   RATE_LIMITED:{
     providerStatus:"temporarily-unavailable",
     message:"Photo analysis is temporarily busy. Please try again shortly.",
-  },
-  MODEL_NOT_AVAILABLE:{
-    providerStatus:"model-error",
-    message:"The configured vision model is unavailable.",
   },
   INVALID_IMAGE:{
     providerStatus:"guided-only",
@@ -36,13 +32,13 @@ const friendlyErrors = {
     providerStatus:"temporarily-unavailable",
     message:"Photo analysis took too long. Try a smaller or clearer photograph.",
   },
+  NO_RELIABLE_MATCH:{
+    providerStatus:"guided-only",
+    message:"Pl@ntNet did not return a reliable plant match for this photograph.",
+  },
   MALFORMED_PROVIDER_RESPONSE:{
     providerStatus:"temporarily-unavailable",
     message:"Photo analysis returned an unreadable result. No identification was generated.",
-  },
-  PROVIDER_UNAVAILABLE:{
-    providerStatus:"temporarily-unavailable",
-    message:"Photo identification is temporarily unavailable. Guided Identification is still available.",
   },
   INTERNAL_ERROR:{
     providerStatus:"temporarily-unavailable",
@@ -63,7 +59,7 @@ const legacyErrorCodes = {
   "oversized-image":"IMAGE_TOO_LARGE",
   "provider-timeout":"PROVIDER_TIMEOUT",
   "malformed-response":"MALFORMED_PROVIDER_RESPONSE",
-  "provider-unavailable":"PROVIDER_UNAVAILABLE",
+  "provider-unavailable":"INTERNAL_ERROR",
   "invalid-request":"INVALID_IMAGE",
 };
 
@@ -75,11 +71,11 @@ const normalizeErrorCode = (value) => {
 
 export const plantPhotoProviderLabels = {
   ready:"Ready",
-  "credentials-missing":"Credentials Missing",
-  "billing-quota":"Billing/Quota Issue",
+  "credentials-missing":"Not configured",
+  "invalid-credentials":"Invalid credentials",
+  "daily-quota":"Daily quota reached",
   "temporarily-unavailable":"Provider Temporarily Unavailable",
-  "model-error":"Model Configuration Error",
-  "guided-only":"Guided Identification Only",
+  "guided-only":"Guided identification only",
   checking:"Checking provider status",
 };
 
@@ -117,6 +113,13 @@ const normalizeMatch = (match = {}, index) => {
     why:normalizeStringList(match.visibleEvidence),
     conflicts:normalizeStringList(match.conflictingEvidence),
     inspectNext:normalizeStringList(match.inspectNext),
+    referenceImages:Array.isArray(match.referenceImages) ? match.referenceImages.slice(0, 3).map((image) => ({
+      url:String(image?.url || "").trim(),
+      author:String(image?.author || "").trim(),
+      license:String(image?.license || "").trim(),
+      citation:String(image?.citation || "").trim(),
+    })).filter((image) => /^https:\/\//i.test(image.url)) : [],
+    provider:"plantnet",
   };
 };
 
@@ -126,6 +129,7 @@ const safeJson = async (response) => {
 };
 
 const isValidSuccess = (result) => result?.status === "success"
+  && result?.provider === "plantnet"
   && ["good", "limited", "unusable"].includes(result.imageQuality)
   && Array.isArray(result.candidates)
   && typeof result.safetyNote === "string";
@@ -140,28 +144,32 @@ export async function getPlantPhotoProviderStatus() {
       signal:controller.signal,
     });
     if (!response.headers.get("content-type")?.toLocaleLowerCase().includes("application/json")) {
-      return { providerStatus:"guided-only", label:getPlantPhotoProviderLabel("guided-only"), message:"The secure photo function is unavailable in this session." };
+      return { providerStatus:"guided-only", label:getPlantPhotoProviderLabel("guided-only"), message:"Photo analysis is unavailable in this local session." };
     }
     const result = await safeJson(response);
     const diagnosticStatus = {
       READY:"ready",
-      CREDENTIALS_MISSING:"credentials-missing",
-      MODEL_CONFIGURATION_ERROR:"model-error",
+      NOT_CONFIGURED:"credentials-missing",
+      INVALID_API_KEY:"invalid-credentials",
+      QUOTA_EXCEEDED:"daily-quota",
+      RATE_LIMITED:"temporarily-unavailable",
+      TEMPORARILY_UNAVAILABLE:"temporarily-unavailable",
     }[result?.providerStatus] || friendlyErrors[normalizeErrorCode(result?.code)]?.providerStatus || "guided-only";
+    const diagnosticMessage = {
+      ready:"The secure function can reach Pl@ntNet and its server-side credential is present.",
+      "credentials-missing":"The secure function is reachable, but PLANTNET_API_KEY is not configured.",
+      "invalid-credentials":"The secure function is reachable, but the Pl@ntNet credential is invalid.",
+      "daily-quota":"The Pl@ntNet daily identification quota has been reached.",
+      "temporarily-unavailable":"The secure function is reachable, but Pl@ntNet is temporarily unavailable or rate limited.",
+    }[diagnosticStatus] || "Photo analysis is unavailable in this local session. Guided Identification remains ready.";
     return {
       providerStatus:diagnosticStatus,
       label:getPlantPhotoProviderLabel(diagnosticStatus),
-      message:diagnosticStatus === "ready"
-        ? "The secure function, API credential, and vision-model setting are present."
-        : diagnosticStatus === "credentials-missing"
-          ? "The secure function is reachable, but its API credential needs attention."
-          : diagnosticStatus === "model-error"
-            ? "The secure function is reachable, but its vision-model setting needs attention."
-            : "Photo identification is unavailable here; Guided Identification remains ready.",
+      message:diagnosticMessage,
       checks:result?.checks || null,
     };
   } catch {
-    return { providerStatus:"guided-only", label:getPlantPhotoProviderLabel("guided-only"), message:"The secure provider check is unavailable; Guided Identification remains ready." };
+    return { providerStatus:"guided-only", label:getPlantPhotoProviderLabel("guided-only"), message:"Photo analysis is unavailable in this local session. Guided Identification remains ready." };
   } finally {
     clearTimeout(timeout);
   }
@@ -193,11 +201,10 @@ export async function identifyPlantPhoto({ image, subject, context = {} }) {
         ? normalizeErrorCode(result.code)
         : response.status === 404 ? "FUNCTION_UNAVAILABLE"
           : response.status === 401 ? "INVALID_API_KEY"
-            : response.status === 402 ? "BILLING_OR_QUOTA"
-              : response.status === 413 ? "IMAGE_TOO_LARGE"
-                : response.status === 429 ? "RATE_LIMITED"
-                  : response.status === 504 ? "PROVIDER_TIMEOUT"
-                    : "PROVIDER_UNAVAILABLE";
+            : response.status === 413 ? "IMAGE_TOO_LARGE"
+              : response.status === 429 ? "RATE_LIMITED"
+                : response.status === 504 ? "PROVIDER_TIMEOUT"
+                  : "INTERNAL_ERROR";
       return createFallback(reason);
     }
     if (!isValidSuccess(result)) return createFallback("MALFORMED_PROVIDER_RESPONSE");
@@ -207,6 +214,7 @@ export async function identifyPlantPhoto({ image, subject, context = {} }) {
     return {
       configured:true,
       analyzed:true,
+      provider:"plantnet",
       providerStatus:"ready",
       imageQuality:result.imageQuality,
       matches,
@@ -218,6 +226,7 @@ export async function identifyPlantPhoto({ image, subject, context = {} }) {
         ? "Try photographing a leaf, flower, fruit, or the whole plant in natural light."
         : "These are visual possibilities, not confirmed identifications.",
       safetyNote:result.safetyNote,
+      remainingIdentificationRequests:result.remainingIdentificationRequests ?? null,
     };
   } catch (error) {
     if (error?.name === "AbortError") return createFallback("PROVIDER_TIMEOUT");

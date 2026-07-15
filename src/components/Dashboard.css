@@ -21,6 +21,27 @@
 }
 .js-dashboard-artwork__pieces{line-height:0;width:100%}.js-dashboard-artwork__pieces img{display:block;height:auto;max-width:none;width:100%}.js-dashboard-artwork__upper{aspect-ratio:1024/381;overflow:hidden}.js-dashboard-artwork__stat-strip{aspect-ratio:1024/123;display:grid;grid-template-columns:178fr 680fr 166fr;overflow:hidden}.js-dashboard-artwork__strip-side{overflow:hidden;position:relative}.js-dashboard-artwork__strip-side img{position:absolute;top:0}.js-dashboard-artwork__strip-side--left img{transform:translateY(-24.8047%);width:575.281%}.js-dashboard-artwork__strip-side--right img{transform:translate(-83.7891%,-24.8047%);width:616.867%}.js-dashboard-artwork__lower{aspect-ratio:1024/1032;overflow:hidden}.js-dashboard-artwork__lower img{transform:translateY(-32.8125%)}
 
+.js-dashboard-artwork__stat-placeholder {
+  background: radial-gradient(circle at 50% 35%, rgba(255, 251, 240, .98), rgba(241, 226, 207, .97));
+}
+
+/* The artwork canvas is 118.765% wide and translated left to preserve the approved crop.
+   Live stat text sits in this viewport-relative layer so its type is never sized by that canvas. */
+.js-dashboard-stat-overlay {
+  height: 8.0078%;
+  left: 1.879%;
+  outline: none;
+  pointer-events: none;
+  position: absolute;
+  top: 24.8047%;
+  width: 78.868%;
+  z-index: 3;
+}
+
+.js-dashboard-stat-overlay:focus-visible {
+  box-shadow: 0 0 0 2px rgba(255, 248, 222, .92), 0 0 0 4px rgba(157, 112, 48, .72);
+}
+
 .js-garden-motion {
   inset: 0;
   overflow: hidden;
@@ -235,7 +256,24 @@
   width: 1px;
 }
 
+.js-dashboard-stat-overlay::-webkit-scrollbar {
+  display: none;
+}
+
 @media (max-width: 600px) {
+  .js-dashboard-stat-overlay {
+    background: linear-gradient(180deg, rgba(249, 240, 224, .98), rgba(239, 222, 200, .98));
+    border-block: 1px solid rgba(177, 137, 71, .64);
+    height: clamp(64px, 16.5vw, 72px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    pointer-events: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    touch-action: pan-x;
+  }
+
   .js-dashboard-artwork__hotspot {
     border-radius: 5px;
   }
