@@ -1,8 +1,9 @@
 const SUPPORTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-export const PLANT_IMAGE_ACCEPT = "image/jpeg,image/png,image/webp";
+export const PLANT_IMAGE_ACCEPT = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif";
 export const MAX_PLANT_IMAGE_INPUT_BYTES = 15 * 1024 * 1024;
-export const MAX_PLANT_IMAGE_OUTPUT_BYTES = 3 * 1024 * 1024;
+// Four processed case photos must remain comfortably below common local-storage quotas.
+export const MAX_PLANT_IMAGE_OUTPUT_BYTES = 700 * 1024;
 export const MAX_PLANT_IMAGE_DIMENSION = 1800;
 
 export class PlantImageError extends Error {
@@ -64,8 +65,12 @@ async function decodeImage(file) {
 
 export async function preparePlantImage(file) {
   if (!(file instanceof Blob)) throw new PlantImageError("missing-image", "Choose or take a plant photograph first.");
-  if (!SUPPORTED_IMAGE_TYPES.has(String(file.type || "").toLocaleLowerCase())) {
-    throw new PlantImageError("unsupported-type", "Choose a JPEG, PNG, or WebP photograph.");
+  const type = String(file.type || "").toLocaleLowerCase();
+  if (type === "image/heic" || type === "image/heif" || /\.(heic|heif)$/i.test(file.name || "")) {
+    throw new PlantImageError("unsupported-type", "This photo format could not be processed. Please choose JPEG, PNG, or WebP, or change your camera format.");
+  }
+  if (!SUPPORTED_IMAGE_TYPES.has(type)) {
+    throw new PlantImageError("unsupported-type", "This photo format could not be processed. Please choose JPEG, PNG, or WebP, or change your camera format.");
   }
   if (!file.size || file.size > MAX_PLANT_IMAGE_INPUT_BYTES) {
     throw new PlantImageError("oversized-image", "This image is too large. Choose a photograph smaller than 15 MB.");

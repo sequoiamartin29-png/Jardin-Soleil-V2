@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useGarden } from "../../context/GardenContext";
 import { useEstateEnvironment } from "../../context/EstateEnvironmentContext";
 import BotanicalIcon from "../icons/BotanicalIcon";
@@ -11,21 +11,27 @@ import EstateHealthReview from "./EstateHealthReview";
 import PhotoDiagnosis from "./PhotoDiagnosis";
 import SymptomWizard from "./SymptomWizard";
 import "./PlantHealthCenter.css";
+import { clearHealthDraft, createHealthDraft, loadHealthDraft, saveHealthDraft } from "../../utils/healthCaseDraft";
 
 export default function PlantHealthCenter({ initialPlantId = "", initialDiagnosisId = "", initialMode = "", initialFinderContext = null, onConsult, onOpenPlantFinder }) {
   const garden = useGarden();
   const environment = useEstateEnvironment();
-  const [view, setView] = useState(initialDiagnosisId ? "history" : initialMode || "home");
-  const [draft, setDraft] = useState({
+  const restoredDraft = useMemo(() => loadHealthDraft(), []);
+  const [view, setView] = useState(initialDiagnosisId ? "history" : initialMode || (restoredDraft ? restoredDraft.currentStep === "photos" ? "photo" : "wizard" : "home"));
+  const [draft, setDraft] = useState(() => restoredDraft || createHealthDraft({
     ...(initialPlantId ? { plantId:initialPlantId } : {}),
     ...(initialFinderContext || {}),
     ...(initialFinderContext ? { notice:"Plant Finder field evidence was carried into this separate health review. Choose an existing estate plant before preparing a diagnosis; the possible species match is not treated as a diagnosis." } : {}),
-  });
+  }));
   const [result, setResult] = useState(null);
   const [selectedDiagnosisId, setSelectedDiagnosisId] = useState(initialDiagnosisId);
   const selectedDiagnosis = garden.plantDiagnoses.find((item) => item.id === selectedDiagnosisId);
   const selectedPlant = garden.activePlants.find((item) => item.id === (draft.plantId || selectedDiagnosis?.plantId));
   const activeCount = garden.plantDiagnoses.filter((item) => item.status !== "Resolved").length;
+  useEffect(() => { if (draft?.status === "Draft") saveHealthDraft(draft); }, [draft]);
+  const updateDraft = (patch) => setDraft((current) => ({ ...current, ...patch, updatedAt:new Date().toISOString() }));
+  const begin = (step="photos") => { const next=createHealthDraft({ ...(initialPlantId?{plantId:initialPlantId}:{}), currentStep:step }); setDraft(next); setResult(null); setView(step === "photos" ? "photo" : "wizard"); };
+  const discard = () => { if (!window.confirm("Discard this unfinished health check? This cannot be undone.")) return; clearHealthDraft(); setDraft(createHealthDraft()); setView("home"); };
 
   const prepareAssessment = (assessment) => {
     const plant = garden.activePlants.find((item) => item.id === assessment.plantId);
@@ -46,12 +52,13 @@ export default function PlantHealthCenter({ initialPlantId = "", initialDiagnosi
 
   const saveDiagnosis = (record) => {
     const saved = garden.addPlantDiagnosis(record);
+    clearHealthDraft();
     setSelectedDiagnosisId(saved.id);
     setView("history");
   };
 
   const openHistory = (diagnosisId) => { setSelectedDiagnosisId(diagnosisId); setView("history"); };
-  const startWizard = (nextDraft = draft) => { setDraft(nextDraft); setResult(null); setView("wizard"); };
+  const startWizard = (nextDraft = draft) => { updateDraft({ ...nextDraft, currentStep:"symptoms" }); setResult(null); setView("wizard"); };
   const actions = <><EstateActionButton variant="quiet" onClick={onOpenPlantFinder}>Identify an Unknown Plant</EstateActionButton><EstateActionButton variant="ledger" onClick={() => setView("review")}>Estate Health Review</EstateActionButton>{selectedPlant && <EstateActionButton variant="gate" onClick={() => onConsult?.(selectedPlant)}>Consult the Head Gardener</EstateActionButton>}</>;
 
   return (
@@ -61,16 +68,17 @@ export default function PlantHealthCenter({ initialPlantId = "", initialDiagnosi
       {initialFinderContext && <aside className="js-health-finder-handoff" role="status"><strong>Plant Finder evidence received</strong><p>{initialFinderContext.notes || "A field image or trait record is available."} Identification and health diagnosis remain separate; choose an existing estate plant before saving a health case.</p></aside>}
 
       {view === "home" && <>
+        {restoredDraft && <section className="js-health-continue" aria-labelledby="continue-health-title"><div><p>Saved draft</p><h2 id="continue-health-title">Continue Health Check</h2><span>Last saved {new Date(restoredDraft.updatedAt).toLocaleString()}</span></div><button type="button" onClick={()=>setView(draft.currentStep === "photos" ? "photo" : "wizard")}>Continue Draft</button><button type="button" onClick={discard}>Discard Draft</button></section>}
         <section className="js-plant-health__overview"><article><span>Active case files</span><strong>{activeCount}</strong><p>Monitoring, treating, improving, recurring, or unconfirmed</p></article><article><span>Resolved</span><strong>{garden.plantDiagnoses.filter((item) => item.status === "Resolved").length}</strong><p>Completed estate health records</p></article><article><span>Weather source</span><strong>{environment.sourceStatus}</strong><p>{environment.sourceStatus === "Live" ? "Current estate conditions available" : "No live-weather claim will be made"}</p></article></section>
         <section className="js-plant-health__modes" aria-label="Diagnostic modes">
-          <EstateDataCard accent="#8c6c8f"><BotanicalIcon type="flower" size="lg" decorative /><p>Specimen plate</p><h2>Photo Diagnosis</h2><span>Preserve a close photograph, identify the affected area, and use secure analysis only when configured.</span><button type="button" onClick={() => setView("photo")}>Begin with a photo</button></EstateDataCard>
-          <EstateDataCard accent="#647a55"><BotanicalIcon type="herb" size="lg" decorative /><p>Guided examination</p><h2>Symptom Wizard</h2><span>Record visible symptoms, pests, recent conditions, and timing for deterministic local ranking.</span><button type="button" onClick={() => startWizard(initialPlantId ? { plantId:initialPlantId } : {})}>Begin symptom review</button></EstateDataCard>
+          <EstateDataCard accent="#8c6c8f"><BotanicalIcon type="flower" size="lg" decorative /><p>New case</p><h2>Start New Health Check</h2><span>Add up to four photos, then confirm the symptoms you observe.</span><button type="button" onClick={() => begin("photos")}>Take or choose photos</button></EstateDataCard>
+          <EstateDataCard accent="#647a55"><BotanicalIcon type="herb" size="lg" decorative /><p>Guided examination</p><h2>Manual Symptom Check</h2><span>Record visible symptoms and add photos to the same case when helpful.</span><button type="button" onClick={() => begin("symptoms")}>Enter symptoms manually</button></EstateDataCard>
           <EstateDataCard accent="#a27b3f"><BotanicalIcon type="tree" size="lg" decorative /><p>Estate case archive</p><h2>Estate Health Review</h2><span>Review active diagnoses, treatment progress, follow-up dates, repeated problems, and resolved cases.</span><button type="button" onClick={() => setView("review")}>Review estate health</button></EstateDataCard>
         </section>
       </>}
 
-      {view === "photo" && <PhotoDiagnosis initialPlantId={draft.plantId || initialPlantId} onFallback={(nextDraft) => startWizard(nextDraft)} onExternalResult={prepareExternalAssessment} />}
-      {view === "wizard" && <SymptomWizard key={`${draft.plantId || "new"}-${draft.photoIds?.join("-") || "no-photo"}`} plants={garden.activePlants} journalEntries={garden.journalEntries} environment={environment} initialDraft={draft} onComplete={prepareAssessment} />}
+      {view === "photo" && <PhotoDiagnosis initialDraft={draft} onDraftChange={updateDraft} onFallback={(nextDraft) => startWizard(nextDraft)} onExternalResult={prepareExternalAssessment} />}
+      {view === "wizard" && <SymptomWizard key={`${draft.id}-${draft.photoIds?.join("-") || "no-photo"}`} plants={garden.activePlants} journalEntries={garden.journalEntries} environment={environment} initialDraft={draft} onDraftChange={updateDraft} onComplete={prepareAssessment} />}
       {view === "results" && result && <DiagnosticResults result={result} onSave={saveDiagnosis} onRestart={() => startWizard({ plantId:result.context.plant.id })} onConsult={onConsult} />}
       {view === "review" && <EstateHealthReview plants={garden.activePlants} diagnoses={garden.plantDiagnoses} onOpen={openHistory} onStartDiagnosis={() => startWizard({})} />}
       {view === "history" && selectedDiagnosis && <DiagnosisHistory diagnosis={selectedDiagnosis} plant={garden.plants.find((item) => item.id === selectedDiagnosis.plantId)} photos={garden.photos} addPhotos={garden.addPhotos} addFollowUp={garden.addDiagnosisFollowUp} updateDiagnosis={garden.updatePlantDiagnosis} onBack={() => setView("review")} onConsult={onConsult} />}

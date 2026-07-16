@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { GardenProvider, useGarden } from "./context/GardenContext";
 import { EstateEnvironmentProvider } from "./context/EstateEnvironmentContext";
@@ -34,6 +34,8 @@ import PlantHealthCenter from "./components/plantHealth/PlantHealthCenter";
 import PlantFinder from "./components/plantFinder/PlantFinder";
 import PlantFinderHistory from "./components/plantFinder/PlantFinderHistory";
 import BuddyDailyLogger from "./components/buddy/BuddyDailyLogger";
+import HealthCenterErrorBoundary from "./components/plantHealth/HealthCenterErrorBoundary";
+import { HEALTH_PAGE_KEY } from "./utils/healthCaseDraft";
 
 import "./styles/app.css";
 
@@ -70,7 +72,8 @@ const estatePagePresentation = {
 };
 
 function GardenApp() {
-  const [page, setPage] = useState("Dashboard");
+  const validPages = Object.keys(estatePagePresentation);
+  const [page, setPage] = useState(() => { try { const saved=localStorage.getItem(HEALTH_PAGE_KEY); return validPages.includes(saved) ? saved : "Dashboard"; } catch { return "Dashboard"; } });
   const [conservatoryLaunch, setConservatoryLaunch] = useState({ companion: null, scopePlant: null, settingsOpen:false, launchId:0 });
   const [healthCenterLaunch, setHealthCenterLaunch] = useState({ plantId:"", diagnosisId:"", mode:"", launchId:0 });
   const [plantEditorPrefill, setPlantEditorPrefill] = useState(null);
@@ -79,6 +82,7 @@ function GardenApp() {
   const [menuOpen,setMenuOpen]=useState(false);
   const menuTriggerRef=useRef(null);
   const closeMenu=useCallback(()=>setMenuOpen(false),[]);
+  useEffect(() => { try { localStorage.setItem(HEALTH_PAGE_KEY, page); } catch { /* navigation remains usable */ } }, [page]);
 
   const {
     selectedPlant,
@@ -141,7 +145,7 @@ function GardenApp() {
         );
 
       case "Plant Health Center":
-        return <PlantHealthCenter key={healthCenterLaunch.launchId} initialPlantId={healthCenterLaunch.plantId} initialDiagnosisId={healthCenterLaunch.diagnosisId} initialMode={healthCenterLaunch.mode} initialFinderContext={healthCenterLaunch.finderContext} onOpenPlantFinder={() => navigate("Plant Finder")} onConsult={(plant) => openConservatory("gardener", plant)} />;
+        return <HealthCenterErrorBoundary onRestore={() => openHealthCenter({})} onHome={() => openHealthCenter({})} onDashboard={() => navigate("Dashboard")}><PlantHealthCenter key={healthCenterLaunch.launchId} initialPlantId={healthCenterLaunch.plantId} initialDiagnosisId={healthCenterLaunch.diagnosisId} initialMode={healthCenterLaunch.mode} initialFinderContext={healthCenterLaunch.finderContext} onOpenPlantFinder={() => navigate("Plant Finder")} onConsult={(plant) => openConservatory("gardener", plant)} /></HealthCenterErrorBoundary>;
 
       case "Plant Finder":
         return <PlantFinder onNavigate={navigate} onConsultHeadGardener={() => openConservatory("gardener")} onOpenHealthCenter={(finderContext) => openHealthCenter({ mode:"wizard", finderContext, ...finderContext })} onAddToEstate={(candidate, identification, preparedPhoto = null) => {

@@ -14,11 +14,13 @@ const timelines = ["started today", "several days", "one to two weeks", "more th
 const steps = ["Plant", "Affected area", "Visible symptoms", "Pest evidence", "Recent conditions", "Timeline"];
 const toggle = (list, value) => list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
 
-export default function SymptomWizard({ plants, journalEntries, environment, initialDraft = {}, onComplete }) {
+export default function SymptomWizard({ plants, journalEntries, environment, initialDraft = {}, onDraftChange, onComplete }) {
   const [step, setStep] = useState(initialDraft.plantId ? 2 : 1);
   const [draft, setDraft] = useState({ plantId:"", affectedArea:"leaves", symptoms:[], pestEvidence:[], recentConditions:[], timeline:"", photoIds:[], photoMode:"symptom", ...initialDraft });
   const plant = plants.find((item) => item.id === draft.plantId);
   const symptoms = useMemo(() => symptomMap[draft.affectedArea] || leafSymptoms, [draft.affectedArea]);
+
+  useEffect(() => { onDraftChange?.({ ...draft, currentStep:"symptoms", wizardStep:step }); }, [draft, step]);
 
   useEffect(() => {
     if (!plant || draft.recentConditions.length) return;
@@ -55,4 +57,3 @@ export default function SymptomWizard({ plants, journalEntries, environment, ini
 function ChoiceGrid({ legend, description, values, selected, onToggle, multiple = false }) {
   return <fieldset className="js-health-choice-grid"><legend>{legend}</legend>{description && <p>{description}</p>}<div>{values.map((value) => { const checked = selected.includes(value); return <label className={checked ? "is-selected" : ""} key={value}><input type={multiple ? "checkbox" : "radio"} checked={checked} onChange={() => onToggle(value)} />{value}</label>; })}</div></fieldset>;
 }
-
