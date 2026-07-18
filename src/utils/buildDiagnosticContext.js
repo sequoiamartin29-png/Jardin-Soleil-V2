@@ -12,10 +12,10 @@ export function buildDiagnosticContext({ plant, journalEntries = [], environment
   const weatherAvailable = ["Live", "Cached"].includes(sourceStatus) && environment.weather;
 
   if (weatherAvailable) {
-    if (["rain", "storm"].includes(environment.condition) || Number(environment.weather.precipitation || 0) > 0.05) conditions.add("heavy rain");
-    if (Number(environment.weather.temperature || 0) >= 88) conditions.add("heat");
-    if (Number(environment.weather.temperature || 99) <= 34 || environment.condition === "snow") conditions.add("frost");
-    if (Number(environment.weather.wind || 0) >= 15) conditions.add("wind");
+    if (["rain", "heavy_rain", "thunderstorm"].includes(environment.condition) || Number(environment.weather.precipitation || 0) > 0.05) conditions.add("heavy rain");
+    if (Number(environment.weather.temperatureF || environment.weather.temperature || 0) >= 88) conditions.add("heat");
+    if (Number(environment.weather.temperatureF || environment.weather.temperature || 99) <= 34 || ["snow","heavy_snow"].includes(environment.condition)) conditions.add("frost");
+    if (Number(environment.weather.windSpeedMph || environment.weather.wind || 0) >= 15) conditions.add("wind");
     if (Number(environment.weather.cloudCover || 0) >= 75) conditions.add("cloudy");
     if (["rain", "storm", "cloudy"].includes(environment.condition) && Number(environment.weather.cloudCover || 0) >= 70) conditions.add("high humidity");
   }
@@ -59,4 +59,3 @@ function seasonFromDate(date) {
   const month = date.getMonth();
   return month <= 1 || month === 11 ? "winter" : month <= 4 ? "spring" : month <= 7 ? "summer" : "autumn";
 }
-

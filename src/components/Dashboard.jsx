@@ -99,7 +99,7 @@ export default function Dashboard({ onNavigate }) {
         <EstateEnvironment paused={animationsPaused} />
 
         <div
-          className={`js-garden-motion ${isDayGarden ? "is-day" : "is-evening"} weather-${environment.condition} phase-${environment.phase} intensity-${environment.settings.intensity.toLowerCase()}${environment.windy ? " is-windy" : ""}${!environment.settings.wildlife ? " wildlife-off" : ""}${animationsPaused ? " is-paused" : ""}${DEBUG_ANIMATIONS ? " is-debug" : ""}`}
+          className={`js-garden-motion ${isDayGarden ? "is-day" : "is-evening"} weather-${environment.condition} phase-${environment.phase} quality-${environment.settings.quality.toLowerCase()}${environment.windy ? " is-windy" : ""}${environment.settings.reducedMotion ? " is-reduced-motion" : ""}${!environment.settings.wildlife ? " wildlife-off" : ""}${animationsPaused ? " is-paused" : ""}${DEBUG_ANIMATIONS ? " is-debug" : ""}`}
           aria-hidden="true"
         >
           <div className="js-fountain-motion">
@@ -139,7 +139,7 @@ export default function Dashboard({ onNavigate }) {
           <span className="js-dashboard-artwork__date">{localNow.toLocaleDateString(undefined, { month:"long", day:"numeric", year:"numeric" })}</span>
           <time dateTime={localNow.toISOString()}>{localNow.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" })}</time>
           <span className="js-dashboard-artwork__zone">{localTimeZone.replace(/_/g, " ")}</span>
-          <span className="js-dashboard-artwork__local-weather"><b aria-hidden="true">{gardenLight.icon}</b>{environment.weather ? `${environment.conditionLabel} · ${Math.round(environment.weather.temperature)}°F` : gardenLight.label}</span>
+          <span className="js-dashboard-artwork__local-weather"><b aria-hidden="true">{gardenLight.icon}</b>{environment.weather ? `${environment.conditionLabel} · ${Math.round(environment.weather.temperatureF)}°F${environment.weather.isStale ? " · Last known" : ""}` : gardenLight.label}</span>
         </section>
 
         <button className="js-dashboard-artwork__health-action" type="button" onClick={() => onNavigate?.("Plant Health Center")}>Plant Health Center</button>
