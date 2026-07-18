@@ -21,6 +21,7 @@ import PlantDirectory from "./components/PlantDirectory";
 import PlantProfile from "./components/PlantProfile";
 import JournalEntry from "./components/JournalEntry";
 import JournalTimeline from "./components/JournalTimeline";
+import JournalHub from "./components/JournalHub";
 import PhotoManager from "./components/PhotoManager";
 import BuddyJournal from "./components/dashboard/BuddyJournal";
 import EstateEnvironmentSettings from "./components/EstateEnvironmentSettings";
@@ -34,6 +35,7 @@ import PlantHealthCenter from "./components/plantHealth/PlantHealthCenter";
 import PlantFinder from "./components/plantFinder/PlantFinder";
 import PlantFinderHistory from "./components/plantFinder/PlantFinderHistory";
 import BuddyDailyLogger from "./components/buddy/BuddyDailyLogger";
+import BuddyGarden from "./components/BuddyGarden";
 import HealthCenterErrorBoundary from "./components/plantHealth/HealthCenterErrorBoundary";
 import { HEALTH_PAGE_KEY } from "./utils/healthCaseDraft";
 
@@ -54,6 +56,7 @@ const estatePagePresentation = {
   Tasks:{ theme:"calendar", accent:"sage", title:"Estate Tasks" },
   Calendar:{ theme:"calendar", accent:"powder-blue", title:"Estate Calendar" },
   Logbook:{ theme:"journal", accent:"blush", title:"Garden Logbook" },
+  Journal:{ theme:"journal", accent:"blush", title:"Journal" },
   "New Journal Entry":{ theme:"journal", accent:"blush", title:"New Journal Entry" },
   "Journal Timeline":{ theme:"journal", accent:"blush", title:"Journal Timeline" },
   "Photo Manager":{ theme:"journal", accent:"blush", title:"Photo Manager" },
@@ -65,6 +68,7 @@ const estatePagePresentation = {
   "Garden Challenges":{ theme:"learning", accent:"gold", title:"Garden Challenges" },
   "Garden Match":{ theme:"learning", accent:"gold", title:"Garden Match" },
   "Word Search":{ theme:"learning", accent:"sage", title:"Botanical Word Search" },
+  "Buddy's Garden":{ theme:"learning", accent:"gold", title:"Buddy’s Garden" },
   "Buddy's Garden Journal":{ theme:"journal", accent:"sage", title:"Buddy’s Garden Journal" },
   "Buddy Garden Day":{ theme:"journal", accent:"sage", title:"Log My Garden Day" },
   "The Conservatory":{ theme:"conservatory", accent:"plum", title:"The Conservatory" },
@@ -110,6 +114,8 @@ function GardenApp() {
     setPage("Plant Health Center");
   };
   const navigate = (nextPage, context = {}) => {
+    const journalAliases = { Logbook:"logs", "Journal Timeline":"timeline" };
+    if (journalAliases[nextPage]) { context = { ...context, journalView:journalAliases[nextPage] }; nextPage = "Journal"; }
     setMenuOpen(false);
     setNavigationContext({ page:nextPage, ...context, launchId:Date.now() });
     if (nextPage === "The Conservatory") setConservatoryLaunch({ companion: null, scopePlant: null, settingsOpen:false, launchId:Date.now() });
@@ -187,6 +193,9 @@ function GardenApp() {
       case "Logbook":
         return <Logbook onNavigate={navigate} />;
 
+      case "Journal":
+        return <JournalHub key={`journal-${navigationContext.launchId}`} initialView={navigationContext.journalView || "recent"} onNavigate={navigate} />;
+
       case "New Journal Entry":
         return (
           <JournalEntry
@@ -222,6 +231,9 @@ function GardenApp() {
 
       case "Garden Challenges":
         return <GardenChallenges onNavigate={navigate} />;
+
+      case "Buddy's Garden":
+        return <BuddyGarden onNavigate={navigate} />;
 
       case "Garden Match":
         return <GardenMatch onNavigate={navigate} />;

@@ -71,10 +71,17 @@ export default function EstateAppShell({
         <div><span>Current estate room</span><strong>{pageTitle}</strong></div>
         <nav aria-label="Estate quick actions">
           <button type="button" onClick={() => onNavigate?.("Dashboard")}>Return to Dashboard</button>
-          <button type="button" onClick={() => onNavigate?.("Buddy Garden Day")}>Log My Garden Day</button>
-          <button type="button" onClick={() => onNavigate?.("New Journal Entry")}>Quick Journal Entry</button>
+          <button type="button" onClick={() => onNavigate?.("Journal")}>Open Journal</button>
+          <button type="button" onClick={() => onNavigate?.("New Journal Entry")}>New Entry</button>
         </nav>
       </footer>}
+      <nav className="js-estate-app-shell__bottom-nav" aria-label="Primary navigation">
+        <button type="button" aria-current={page === "Dashboard" ? "page" : undefined} onClick={() => onNavigate?.("Dashboard")}><span aria-hidden="true">⌂</span><small>Home</small></button>
+        <button type="button" aria-current={page === "Garden Collections" ? "page" : undefined} onClick={() => onNavigate?.("Garden Collections")}><span aria-hidden="true">♧</span><small>Garden</small></button>
+        <button className="is-add" type="button" aria-label="Add a new plant" onClick={() => onNavigate?.("Add New Plant")}><span aria-hidden="true">＋</span><small>Add</small></button>
+        <button type="button" aria-current={page === "Journal" ? "page" : undefined} onClick={() => onNavigate?.("Journal")}><span aria-hidden="true">▤</span><small>Journal</small></button>
+        <button type="button" aria-expanded={menuOpen} onClick={onToggleMenu}><span aria-hidden="true">☰</span><small>Menu</small></button>
+      </nav>
     </div>
   );
 }

@@ -12,10 +12,7 @@ export const estateDrawerSections=[
     {label:"Plant Finder History",page:"Plant Finder History",icon:"lavender"},
   ]},
   {title:"Journal & Planning",items:[
-    {label:"Log My Garden Day",page:"Buddy Garden Day",icon:"tree"},
-    {label:"Daily Logs",page:"Logbook",icon:"lavender"},
-    {label:"New Journal Entry",page:"New Journal Entry",icon:"rose"},
-    {label:"Journal Timeline",page:"Journal Timeline",icon:"herb"},
+    {label:"Journal",page:"Journal",icon:"herb"},
     {label:"Tasks",page:"Tasks",icon:"vegetable"},
     {label:"Calendar",page:"Calendar",icon:"flower"},
     {label:"Gallery",page:"Gallery",icon:"flower"},
@@ -31,9 +28,7 @@ export const estateDrawerSections=[
   {title:"Learning & Apothecary",items:[
     {label:"Learning Center",page:"Learning",icon:"tree"},
     {label:"Tea Apothecary",page:"Tea Apothecary",icon:"tea"},
-    {label:"Word Search",page:"Word Search",icon:"mint"},
-    {label:"Garden Match",page:"Garden Match",icon:"flower"},
-    {label:"Garden Challenges",page:"Garden Challenges",icon:"apple"},
+    {label:"Buddy’s Garden",page:"Buddy's Garden",icon:"flower"},
   ]},
   {title:"The Conservatory",items:[
     {label:"Open The Conservatory",page:"The Conservatory",icon:"shrub"},

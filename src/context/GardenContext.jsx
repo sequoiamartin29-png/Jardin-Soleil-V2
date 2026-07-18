@@ -6,6 +6,7 @@ import { starterInventoryItems } from "../data/inventory";
 import { countUniquePlants, getMintVarietyNames, getUniqueGardenBeds, isEdibleOrHerbPlant, isOrchardFruitTree } from "../utils/plantClassification";
 import { preserveDeletedPlantReference } from "../utils/plantMutations";
 import { buildBuddyJournalEntry, careActionTypes, isTeaHarvestPlant } from "../utils/buildBulkCareEvents";
+import { isTaskDueOn, localDateKey } from "../utils/localDate";
 
 const GardenContext = createContext(null);
 
@@ -177,6 +178,34 @@ const load = (key, fallback) => {
   } catch {
     return fallback;
   }
+};
+
+const normalizeJournalEntry = (entry, index) => {
+  const createdAt = entry.createdAt || entry.timestamp || entry.date || new Date().toISOString();
+  return {
+    ...entry,
+    id:entry.id || `legacy-journal-${index}-${String(createdAt).replace(/[^0-9]/g, "")}`,
+    createdAt,
+    date:entry.date || String(createdAt).slice(0, 10),
+    title:entry.title || entry.type || "Garden note",
+    type:entry.type || entry.entryType || "Note",
+    notes:entry.notes || entry.observations || entry.description || "",
+    observations:entry.observations || entry.notes || "",
+    gardenZone:entry.gardenZone || entry.zone || "",
+    plantId:entry.plantId || entry.linkedPlantId || "",
+    favorite:Boolean(entry.favorite || entry.isFavorite),
+    legacySource:entry.legacySource || entry.source || "Journal",
+  };
+};
+
+const loadJournalEntries = () => {
+  const signatures = new Set();
+  return load("jardinSoleilJournalEntries", []).map(normalizeJournalEntry).map((entry) => {
+    const signature = `${entry.createdAt}|${entry.plantId}|${entry.type}|${entry.notes}`.toLocaleLowerCase();
+    const suspiciousDuplicate = signatures.has(signature);
+    signatures.add(signature);
+    return { ...entry, suspiciousDuplicate:entry.suspiciousDuplicate || suspiciousDuplicate };
+  });
 };
 
 const loadPlants = () => {
@@ -396,7 +425,7 @@ export function GardenProvider({ children }) {
   const [selectedPlant, setSelectedPlant] = useState(null);
 
   const [journalEntries, setJournalEntries] = useState(() =>
-    load("jardinSoleilJournalEntries", []).map((entry) => plantLegacyIdMap.has(entry.plantId) ? { ...entry, plantId:plantLegacyIdMap.get(entry.plantId) } : entry)
+    loadJournalEntries().map((entry) => plantLegacyIdMap.has(entry.plantId) ? { ...entry, plantId:plantLegacyIdMap.get(entry.plantId) } : entry)
   );
 
   const [photos, setPhotos] = useState(() =>
@@ -420,6 +449,7 @@ export function GardenProvider({ children }) {
     load("jardinSoleilGardenCollections", gardenZones).map((collection) => ({ ...collection }))
   );
   const [tasks, setTasks] = useState(() => load("jardinSoleilTasks", starterTaskRecords).map((task) => plantLegacyIdMap.has(task.plantId) ? { ...task, plantId:plantLegacyIdMap.get(task.plantId) } : task));
+  const [lastTaskRefreshDate, setLastTaskRefreshDate] = useState(() => load("jardinSoleilTasksLastLocalRefresh", ""));
   const [buddyGardenLogs, setBuddyGardenLogs] = useState(() =>
     load("jardinSoleilBuddyGardenLogs", []).map((record) => ({ ...record, source:record.source || "Buddy Natural-Language Logger" }))
   );
@@ -466,6 +496,7 @@ export function GardenProvider({ children }) {
 
   useEffect(() => { localStorage.setItem("jardinSoleilGardenCollections", JSON.stringify(gardenCollections)); }, [gardenCollections]);
   useEffect(() => { localStorage.setItem("jardinSoleilTasks", JSON.stringify(tasks)); }, [tasks]);
+  useEffect(() => { localStorage.setItem("jardinSoleilTasksLastLocalRefresh", JSON.stringify(lastTaskRefreshDate)); }, [lastTaskRefreshDate]);
   useEffect(() => { localStorage.setItem("jardinSoleilBuddyGardenLogs", JSON.stringify(buddyGardenLogs)); }, [buddyGardenLogs]);
   useEffect(() => { localStorage.setItem("jardinSoleilInventory", JSON.stringify(inventoryItems)); }, [inventoryItems]);
   useEffect(() => { localStorage.setItem("jardinSoleilTeaRecipes", JSON.stringify(teaRecipes)); }, [teaRecipes]);
@@ -628,6 +659,32 @@ export function GardenProvider({ children }) {
     task.id === taskId ? { ...task, ...updates, updatedAt:new Date().toISOString() } : task
   ));
   const deleteTask = (taskId) => setTasks((current) => current.filter((task) => task.id !== taskId));
+  const refreshDailyTasks = (date = new Date()) => {
+    const dateKey = localDateKey(date);
+    const previewTemplates = tasks.filter((task) => task.isTemplate || task.kind === "template");
+    const previewIds = new Set(tasks.map((task) => String(task.id)));
+    const added = previewTemplates.filter((template) => isTaskDueOn(template, date) && !previewIds.has(`${template.id}__${dateKey}`)).length;
+    setTasks((current) => {
+      const templates = current.filter((task) => task.isTemplate || task.kind === "template");
+      const existing = new Set(current.map((task) => String(task.id)));
+      const occurrences = templates.filter((template) => isTaskDueOn(template, date)).flatMap((template) => {
+        const id = `${template.id}__${dateKey}`;
+        if (existing.has(id)) return [];
+        return [{ ...template, id, templateId:template.id, kind:"occurrence", isTemplate:false, dueDate:dateKey, completed:false, completedAt:null, createdAt:new Date().toISOString() }];
+      });
+      return occurrences.length ? [...occurrences, ...current] : current;
+    });
+    setLastTaskRefreshDate(dateKey);
+    return { dateKey, added };
+  };
+
+  useEffect(() => {
+    const refresh = () => refreshDailyTasks(new Date());
+    refresh();
+    const onVisibility = () => { if (!document.hidden && localDateKey() !== lastTaskRefreshDate) refresh(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [lastTaskRefreshDate]);
 
   const applyBuddyGardenLog = ({ originalText, parsedActions = [], confirmedActions = [], date, time = "", photos:attachments = [], taskCompletionIds = [] }) => {
     const now = new Date();
@@ -941,6 +998,8 @@ export function GardenProvider({ children }) {
     addTask,
     updateTask,
     deleteTask,
+    refreshDailyTasks,
+    lastTaskRefreshDate,
     buddyGardenLogs,
     applyBuddyGardenLog,
     undoBuddyGardenLog,

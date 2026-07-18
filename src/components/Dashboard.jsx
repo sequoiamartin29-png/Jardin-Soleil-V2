@@ -21,7 +21,7 @@ const dashboardHotspots = [
   { label: "Flower and Perennials", page: "Garden Collections", area: [56.7, 40.1, 16.1, 5.7] },
   { label: "Tea and Herb Corridor", page: "Garden Collections", area: [17.2, 49.2, 16.3, 5.8] },
   { label: "Vegetable Garden", page: "Garden Collections", area: [61.5, 49.8, 16.7, 5.5] },
-  { label: "Open Buddy’s Garden games", page: "Garden Challenges", area: [41.2, 53.4, 13.4, 5.2] },
+  { label: "Open Buddy’s Garden games", page: "Buddy's Garden", area: [41.2, 53.4, 13.4, 5.2] },
   { label: "Berry Zone", page: "Garden Collections", area: [20.5, 60.6, 16.8, 5.5] },
   { label: "Container Collection", page: "Garden Collections", area: [59.1, 60.7, 17.2, 5.4] },
   { label: "Nursery Shed", page: "Inventory", area: [39.1, 67.1, 18.8, 4.7] },
@@ -44,10 +44,11 @@ const dashboardHotspots = [
 ];
 
 export default function Dashboard({ onNavigate }) {
-  const { stats } = useGarden();
+  const { stats, activePlants } = useGarden();
   const environment = useEstateEnvironment();
   const [localNow, setLocalNow] = useState(() => new Date());
   const [animationsPaused, setAnimationsPaused] = useState(() => document.hidden);
+  const [spotlightIndex, setSpotlightIndex] = useState(0);
   const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local time";
 
   useEffect(() => {
@@ -62,6 +63,9 @@ export default function Dashboard({ onNavigate }) {
   }, []);
 
   const localHour = localNow.getHours();
+  const spotlightPlant = activePlants[spotlightIndex % Math.max(activePlants.length, 1)];
+  const moveSpotlight = (amount) => { if (activePlants.length) setSpotlightIndex((current) => (current + amount + activePlants.length) % activePlants.length); };
+  const randomSpotlight = () => { if (activePlants.length > 1) setSpotlightIndex((current) => { let next=current; while (next === current) next=Math.floor(Math.random()*activePlants.length); return next; }); };
   const isDayGarden = localHour >= 6 && localHour < 18;
   const gardenLight = localHour >= 5 && localHour < 12
     ? { icon: "☀️", label: "Morning garden light" }
@@ -140,15 +144,20 @@ export default function Dashboard({ onNavigate }) {
 
         <button className="js-dashboard-artwork__health-action" type="button" onClick={() => onNavigate?.("Plant Health Center")}>Plant Health Center</button>
 
+        <section className="js-dashboard-spotlight" aria-label="Plant Spotlight">
+          <div><span>Plant Spotlight</span><strong>{spotlightPlant?.nickname || spotlightPlant?.name || "Add plants to your estate to begin Plant Spotlight."}</strong></div>
+          <div role="group" aria-label="Plant Spotlight controls"><button type="button" aria-label="Previous spotlight plant" disabled={activePlants.length < 2} onClick={() => moveSpotlight(-1)}>‹</button><button type="button" aria-label="Choose a random spotlight plant" disabled={activePlants.length < 2} onClick={randomSpotlight}>↻</button><button type="button" aria-label="Next spotlight plant" disabled={activePlants.length < 2} onClick={() => moveSpotlight(1)}>›</button></div>
+        </section>
+
         <button
           className="js-dashboard-artwork__garden-match"
           type="button"
-          aria-label="Open Garden Match memory game"
-          onClick={() => onNavigate?.("Garden Match")}
+          aria-label="Open Buddy’s Garden game hub"
+          onClick={() => onNavigate?.("Buddy's Garden")}
         >
           <span aria-hidden="true">✦</span>
-          <strong>Garden Match</strong>
-          <small>Botanical memory game</small>
+          <strong>Buddy’s Garden</strong>
+          <small>Choose a garden game</small>
         </button>
 
         <nav className="js-dashboard-artwork__hotspots" aria-label="Interactive Jardin Soleil estate map">
