@@ -12,8 +12,8 @@ export const estateDrawerSections=[
     {label:"Plant Finder History",page:"Plant Finder History",icon:"lavender"},
   ]},
   {title:"Journal & Planning",items:[
-    {label:"Journal",page:"Journal",icon:"herb"},
-    {label:"Tasks",page:"Tasks",icon:"vegetable"},
+    {label:"Journal & Harvests",page:"Journal",icon:"herb"},
+    {label:"Care & Estate Tasks",page:"Tasks",icon:"vegetable"},
     {label:"Calendar",page:"Calendar",icon:"flower"},
     {label:"Gallery",page:"Gallery",icon:"flower"},
     {label:"Photo Manager",page:"Photo Manager",icon:"shrub"},
@@ -21,7 +21,7 @@ export const estateDrawerSections=[
   {title:"Garden Tools",items:[
     {label:"Weather",page:"Weather",icon:"lavender"},
     {label:"Plant Health Center",page:"Plant Health Center",icon:"herb"},
-    {label:"Inventory",page:"Inventory",icon:"container-plant"},
+    {label:"Feed & Garden Inventory",page:"Inventory",icon:"container-plant"},
     {label:"Add New Plant",page:"Add New Plant",icon:"generic-plant"},
     {label:"Archived Plants",page:"Archived Plants",icon:"tree"},
   ]},

@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useGarden } from "../context/GardenContext";
-import dashboardArtwork from "../assets/jardin-soleil-dashboard.jpeg";
 import BuddyCompanion from "./dashboard/BuddyCompanion";
 import EstateEnvironment from "./dashboard/EstateEnvironment";
 import DashboardStatCard from "./dashboard/DashboardStatCard";
 import { useEstateEnvironment } from "../context/EstateEnvironmentContext";
+import {
+  DASHBOARD_SKIN_STORAGE_KEY,
+  dashboardSkins,
+  getDashboardSkin,
+} from "../data/dashboardSkins";
 import "./Dashboard.css";
 
 const DEBUG_ANIMATIONS = false;
@@ -37,11 +41,15 @@ const dashboardHotspots = [
   { label: "Log Garden Update", page: "New Journal Entry", area: [81.0, 87.6, 16.2, 2.4] },
   { label: "Take Photo", page: "Photo Manager", area: [81.0, 90.3, 16.2, 2.4] },
   { label: "Add to Task List", page: "Tasks", area: [81.0, 93.0, 16.2, 2.4] },
-  { label: "Water", page: "Garden Collections", area: [1.8, 96.2, 19.3, 2.7] },
-  { label: "Feed", page: "Inventory", area: [21.2, 96.2, 19.2, 2.7] },
-  { label: "Care", page: "New Journal Entry", area: [59.5, 96.2, 18.1, 2.7] },
-  { label: "Harvest", page: "Logbook", area: [77.7, 96.2, 20.4, 2.7] },
 ];
+
+const loadDashboardSkinId = () => {
+  try {
+    return getDashboardSkin(globalThis.localStorage?.getItem(DASHBOARD_SKIN_STORAGE_KEY)).id;
+  } catch {
+    return getDashboardSkin().id;
+  }
+};
 
 export default function Dashboard({ onNavigate }) {
   const { stats, activePlants } = useGarden();
@@ -49,7 +57,15 @@ export default function Dashboard({ onNavigate }) {
   const [localNow, setLocalNow] = useState(() => new Date());
   const [animationsPaused, setAnimationsPaused] = useState(() => document.hidden);
   const [spotlightIndex, setSpotlightIndex] = useState(0);
+  const [selectedDashboardSkinId, setSelectedDashboardSkinId] = useState(loadDashboardSkinId);
+  const [failedDashboardSkinId, setFailedDashboardSkinId] = useState(null);
   const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local time";
+  const selectedDashboardSkin = getDashboardSkin(selectedDashboardSkinId);
+  const defaultDashboardSkin = getDashboardSkin();
+  const displayedDashboardSkin = failedDashboardSkinId === selectedDashboardSkin.id
+    ? defaultDashboardSkin
+    : selectedDashboardSkin;
+  const dashboardArtwork = displayedDashboardSkin.backgroundImage;
 
   useEffect(() => {
     const timer = window.setInterval(() => setLocalNow(new Date()), 1000);
@@ -61,6 +77,26 @@ export default function Dashboard({ onNavigate }) {
     document.addEventListener("visibilitychange", updateVisibility);
     return () => document.removeEventListener("visibilitychange", updateVisibility);
   }, []);
+
+  useEffect(() => {
+    try {
+      globalThis.localStorage?.setItem(DASHBOARD_SKIN_STORAGE_KEY, selectedDashboardSkin.id);
+    } catch {
+      // Skin selection remains usable for the current visit when storage is unavailable.
+    }
+  }, [selectedDashboardSkin.id]);
+
+  const selectDashboardSkin = (skinId) => {
+    const nextSkin = getDashboardSkin(skinId);
+    setFailedDashboardSkinId(null);
+    setSelectedDashboardSkinId(nextSkin.id);
+  };
+
+  const handleDashboardArtworkError = () => {
+    if (selectedDashboardSkin.id !== defaultDashboardSkin.id) {
+      setFailedDashboardSkinId(selectedDashboardSkin.id);
+    }
+  };
 
   const localHour = localNow.getHours();
   const spotlightPlant = activePlants[spotlightIndex % Math.max(activePlants.length, 1)];
@@ -76,26 +112,87 @@ export default function Dashboard({ onNavigate }) {
         : { icon: "🌙", label: "Night garden" };
 
   return (
-    <section className="js-dashboard-artwork" aria-label="Jardin Soleil dashboard">
+    <section
+      className="js-dashboard-artwork"
+      aria-label="Jardin Soleil dashboard"
+      data-dashboard-skin={selectedDashboardSkin.id}
+      style={{
+        "--dashboard-skin-accent": selectedDashboardSkin.accent,
+        "--dashboard-skin-glow": selectedDashboardSkin.glow,
+      }}
+    >
       <p className="js-dashboard-artwork__summary" id="dashboard-garden-summary">
         Jardin Soleil currently tracks {stats.totalPlants} plants, {stats.orchardCount} orchard trees,
         {stats.journalCount} garden notes, and {stats.photoCount} photos.
       </p>
 
+      <details className="js-dashboard-skin-picker">
+        <summary>
+          <span className="js-dashboard-skin-picker__title">
+            <span aria-hidden="true">✦</span>
+            <span>
+              <strong>Dashboard Skins</strong>
+              <small>{selectedDashboardSkin.name}</small>
+            </span>
+          </span>
+          <span className="js-dashboard-skin-picker__chevron" aria-hidden="true">⌄</span>
+        </summary>
+        <div className="js-dashboard-skin-picker__panel">
+          <div className="js-dashboard-skin-picker__intro">
+            <strong>Choose your estate atmosphere</strong>
+            <span>Your selection is saved for your next visit.</span>
+          </div>
+          <div className="js-dashboard-skin-picker__options" role="group" aria-label="Choose a dashboard skin">
+            {dashboardSkins.map((skin) => {
+              const isActive = skin.id === selectedDashboardSkin.id;
+              return (
+                <button
+                  className={`js-dashboard-skin-option${isActive ? " is-active" : ""}`}
+                  type="button"
+                  key={skin.id}
+                  aria-pressed={isActive}
+                  onClick={() => selectDashboardSkin(skin.id)}
+                >
+                  <span
+                    className="js-dashboard-skin-option__preview"
+                    aria-hidden="true"
+                    style={{
+                      backgroundImage: `url("${skin.backgroundImage}")`,
+                      backgroundPosition: skin.previewPosition,
+                    }}
+                  />
+                  <span className="js-dashboard-skin-option__copy">
+                    <strong>{skin.name}</strong>
+                    <small>{skin.description}</small>
+                  </span>
+                  <span className="js-dashboard-skin-option__status">
+                    {isActive ? "Active" : "Select"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {failedDashboardSkinId === selectedDashboardSkin.id && (
+            <p className="js-dashboard-skin-picker__fallback" role="status">
+              This artwork could not be loaded, so French Chalet is being shown.
+            </p>
+          )}
+        </div>
+      </details>
+
       <div className="js-dashboard-artwork__viewport">
       <div className="js-dashboard-artwork__canvas" aria-describedby="dashboard-garden-summary">
         <div className="js-dashboard-artwork__pieces">
           <div className="js-dashboard-artwork__upper">
-            <img src={dashboardArtwork} alt="Illustrated Jardin Soleil French botanical estate dashboard with chalet, formal gardens, fountain, garden panels, and navigation" />
+            <img src={dashboardArtwork} onError={handleDashboardArtworkError} alt={`Illustrated Jardin Soleil ${displayedDashboardSkin.name} dashboard with château, formal gardens, fountain, garden panels, and navigation`} />
           </div>
           <div className="js-dashboard-artwork__stat-strip">
-            <div className="js-dashboard-artwork__strip-side js-dashboard-artwork__strip-side--left" aria-hidden="true"><img src={dashboardArtwork} alt="" /></div>
+            <div className="js-dashboard-artwork__strip-side js-dashboard-artwork__strip-side--left" aria-hidden="true"><img src={dashboardArtwork} onError={handleDashboardArtworkError} alt="" /></div>
             <div className="js-dashboard-artwork__stat-placeholder" aria-hidden="true" />
-            <div className="js-dashboard-artwork__strip-side js-dashboard-artwork__strip-side--right" aria-hidden="true"><img src={dashboardArtwork} alt="" /></div>
+            <div className="js-dashboard-artwork__strip-side js-dashboard-artwork__strip-side--right" aria-hidden="true"><img src={dashboardArtwork} onError={handleDashboardArtworkError} alt="" /></div>
           </div>
-          <div className="js-dashboard-artwork__lower" aria-hidden="true"><img src={dashboardArtwork} alt="" /></div>
+          <div className="js-dashboard-artwork__lower" aria-hidden="true"><img src={dashboardArtwork} onError={handleDashboardArtworkError} alt="" /></div>
         </div>
-
         <EstateEnvironment paused={animationsPaused} />
 
         <div
@@ -104,11 +201,15 @@ export default function Dashboard({ onNavigate }) {
         >
           <div className="js-fountain-motion">
             <span className="js-fountain-motion__basin" />
+            <span className="js-fountain-motion__waterline" />
             <span className="js-fountain-motion__ripple js-fountain-motion__ripple--one" />
             <span className="js-fountain-motion__ripple js-fountain-motion__ripple--two" />
+            <span className="js-fountain-motion__arc js-fountain-motion__arc--left" />
+            <span className="js-fountain-motion__arc js-fountain-motion__arc--right" />
             <span className="js-fountain-motion__jet js-fountain-motion__jet--left" />
             <span className="js-fountain-motion__jet js-fountain-motion__jet--center" />
             <span className="js-fountain-motion__jet js-fountain-motion__jet--right" />
+            <span className="js-fountain-motion__plume"><i /><i /><i /></span>
             <span className="js-fountain-motion__mist" />
             <span className="js-fountain-motion__sparkle js-fountain-motion__sparkle--one" />
             <span className="js-fountain-motion__sparkle js-fountain-motion__sparkle--two" />
