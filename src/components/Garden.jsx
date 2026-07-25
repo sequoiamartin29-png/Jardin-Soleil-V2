@@ -18,7 +18,7 @@ const belongsToCollection = (plant, collection, collections) => {
   return getPlantDirectoryGroup(plant) === collection.directoryGroup;
 };
 
-export default function Garden({ onAddPlant, onSelectPlant, onEditPlant }) {
+export default function Garden({ onAddPlant, onSelectPlant, onEditPlant, onManageZones }) {
   const { activePlants, stats, gardenCollections, updateGardenCollection, assignPlantToCollection } = useGarden();
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name:"", description:"", label:"" });
@@ -64,12 +64,13 @@ export default function Garden({ onAddPlant, onSelectPlant, onEditPlant }) {
   });
 
   return (
-    <EstatePage id="garden-collections-title" title="Garden Collections" description="Five editable garden rooms, each linked to the canonical plant registry." icon="flower" className="js-garden-collections" actions={<button className="js-estate-button is-primary" type="button" onClick={onAddPlant}>Add New Plant</button>}>
+    <EstatePage id="garden-collections-title" title="Garden Collections" description="Your garden zones, each linked to the shared plant registry." icon="flower" className="js-garden-collections" actions={<><button className="js-estate-button" type="button" onClick={onManageZones}>Manage Zones</button><button className="js-estate-button is-primary" type="button" onClick={onAddPlant}>Add New Plant</button></>}>
       <div className="js-estate-toolbar">
         <p><strong>{stats.edibleHerbCount}</strong> edibles & herbs · <strong>{stats.gardenZoneCount}</strong> garden zones</p>
         <span className="js-estate-badge is-gold">Assignments update without duplicating plants</span>
       </div>
       <div className="js-garden-collections__grid">
+        {!sections.length && <div className="js-estate-empty"><h2>Create your first garden zone</h2><p>Zones can represent a bed, orchard, greenhouse, balcony, indoor shelf, or any place where you grow.</p><button className="js-estate-button is-primary" type="button" onClick={onManageZones}>Create a Garden Zone</button></div>}
         {sections.map((section) => (
           <article className="js-estate-card js-collection-card" key={section.id}>
             <header>

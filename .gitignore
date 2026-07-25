@@ -4,3 +4,5 @@ dist/
 .env.*
 !.env.example
 .codex-chrome-qa/
+.chrome-skin-test/
+.private-migrations/

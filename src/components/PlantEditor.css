@@ -29,6 +29,7 @@
 .js-plant-editor__finder-photo img { display:block; max-height:230px; object-fit:contain; width:100%; }
 .js-plant-editor__finder-photo figcaption { align-items:center; color:#615847; display:flex; font-size:11px; justify-content:space-between; padding:8px 10px; }
 .js-plant-editor__finder-photo button { background:transparent; border:0; color:#8e4249; cursor:pointer; font-weight:800; }
+.js-plant-editor__quick-start{background:rgba(235,232,210,.72);border:1px solid #c5b184;border-radius:14px;display:grid;gap:5px;grid-column:1/-1;padding:13px}.js-plant-editor__quick-start>strong{color:#586948}.js-plant-editor__quick-start>span{color:#766e60;font:13px/1.4 Georgia,serif}.js-plant-editor__quick-start>div{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}.js-plant-editor__quick-start button{background:#fffaf0;border:1px solid #a98a57;border-radius:999px;color:#5b604e;cursor:pointer;font-size:11px;font-weight:800;padding:7px 10px}
 
 .js-plant-editor__duplicates { background: linear-gradient(135deg, #fff4df, #f4dfbd); border: 1px solid #bf8d42; border-radius: 18px; box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .4); margin: 22px 0; padding: 22px; }
 .js-plant-editor__duplicates h2 { color: #725233; font: italic 28px Georgia, serif; margin: 0 0 7px; }

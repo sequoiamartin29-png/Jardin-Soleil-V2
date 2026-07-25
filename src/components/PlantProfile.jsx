@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useGarden } from "../context/GardenContext";
 import BotanicalIcon from "./icons/BotanicalIcon";
 import PlantMoveForm from "./PlantMoveForm";
@@ -21,7 +21,7 @@ const includesType = (entry, words) =>
   words.some((word) => cleanType(entry.type).toLowerCase().includes(word.toLowerCase()));
 const formatDate = (value) => value ? new Date(value).toLocaleDateString() : "Not recorded";
 
-export default function PlantProfile({onEdit,onExit,onConsult,onDiagnose,onOpenDiagnosis}) {
+export default function PlantProfile({initialSection="",onEdit,onExit,onConsult,onDiagnose,onOpenDiagnosis}) {
   const {
     selectedPlant,
     setSelectedPlant,
@@ -60,6 +60,14 @@ export default function PlantProfile({onEdit,onExit,onConsult,onDiagnose,onOpenD
   const diagnoses = plant ? getDiagnosesForPlant(plant.id) : [];
   const hasHealth = plant?.health !== undefined && plant?.health !== null && plant?.health !== "";
   const collectionMembers = (plant?.collectionMembers || []).map((id) => plants.find((item) => item.id === id)).filter(Boolean);
+
+  useEffect(() => {
+    if (initialSection !== "health" || !plant) return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("plant-profile-health")?.scrollIntoView({ behavior:"smooth", block:"start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [initialSection, plant?.id]);
 
   const sortedHistory = useMemo(
     () => [...history].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)),
@@ -255,7 +263,7 @@ export default function PlantProfile({onEdit,onExit,onConsult,onDiagnose,onOpenD
         </article>
       </div>
 
-      <article className="js-profile__card js-profile__health-center">
+      <article className="js-profile__card js-profile__health-center" id="plant-profile-health">
         <div className="js-profile__section-heading"><div><p>Botanical infirmary</p><h2>Plant Health Timeline</h2></div><button className="js-profile__button" type="button" onClick={()=>onDiagnose?.(plant)}>Diagnose This Plant</button></div>
         {diagnoses.length ? <div className="js-profile__diagnoses">{[...diagnoses].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).map((diagnosis)=><article key={diagnosis.id}><div><time>{formatDate(diagnosis.createdAt)}</time><h3>{diagnosis.workingDiagnosis}</h3><p>{diagnosis.symptoms.join(", ") || "Symptoms not recorded"}</p><small>{diagnosis.followUps?.length || 0} follow-up records</small></div><HealthStatusSeal status={diagnosis.status}/><button type="button" onClick={()=>onOpenDiagnosis?.(diagnosis)}>Open case file</button></article>)}</div> : <p className="js-profile__empty-state">No saved plant-health diagnosis exists for {plant.nickname || plant.name}.</p>}
       </article>

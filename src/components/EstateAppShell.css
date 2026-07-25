@@ -60,6 +60,7 @@ body { background:#ded5bd; margin:0; overflow-x:hidden; }
 .js-estate-app-shell__crest { align-items:center;background:radial-gradient(circle,#fffaf0 38%,#e4cfaa 68%,#a97d3b 70% 73%,#f6ead2 74%);border:1px solid #9e7436;border-radius:50%;box-shadow:0 7px 18px rgba(67,48,28,.16),inset 0 0 0 3px rgba(255,255,255,.55);display:grid;height:54px;justify-items:center;place-content:center;position:relative;width:54px; }
 .js-estate-app-shell__crest .botanical-icon{opacity:.32;position:absolute}.js-estate-app-shell__crest b{color:#795325;font:italic 19px Georgia,serif;position:relative}
 .js-estate-app-shell__brand p{color:#89632d;font-size:10px;font-weight:850;letter-spacing:.19em;margin:0;text-transform:uppercase}.js-estate-app-shell__brand span{color:#4a593d;font:italic 22px/1.1 Baskerville,Georgia,serif}.js-estate-app-shell__brand small{color:#786c59;font:italic 12px Georgia,serif;letter-spacing:.08em}
+.js-estate-app-shell__sample-badge{background:linear-gradient(90deg,#80688b,#a17b95);border:1px solid rgba(255,255,255,.7);border-radius:999px;box-shadow:0 4px 12px rgba(62,43,65,.2);color:#fff;font:800 10px Arial,sans-serif;letter-spacing:.09em;margin:2px auto 8px;max-width:max-content;padding:7px 14px;position:relative;text-transform:uppercase;z-index:8}
 
 .js-estate-app-shell__main { min-height:calc(100vh - 160px);padding:10px clamp(12px,3vw,46px) 34px;position:relative;z-index:1; }
 .js-estate-app-shell__content-window { background:linear-gradient(145deg,rgba(255,251,240,.88),rgba(237,225,202,.83));border:1px solid rgba(164,119,52,.5);border-radius:18px 42px 18px 42px;box-shadow:inset 0 0 0 5px rgba(255,255,255,.3),0 28px 70px rgba(57,43,27,.15);margin:0 auto;max-width:1500px;min-height:calc(100vh - 190px);padding:clamp(18px,3.5vw,48px);position:relative; }
@@ -68,9 +69,10 @@ body { background:#ded5bd; margin:0; overflow-x:hidden; }
 
 .js-estate-app-shell--dashboard .js-estate-app-shell__brand,.js-estate-app-shell--dashboard .js-estate-app-shell__canopy{display:none}
 .js-estate-app-shell--dashboard .js-estate-app-shell__main{min-height:100vh;padding:0}
-.js-estate-app-shell--dashboard .js-estate-app-shell__content-window{background:transparent;border:0;border-radius:0;box-shadow:none;max-width:1024px;min-height:0;padding:0;width:100%}
+.js-estate-app-shell--dashboard .js-estate-app-shell__content-window{background:transparent;border:0;border-radius:0;box-shadow:none;max-width:1440px;min-height:0;padding:0;width:100%}
 .js-estate-app-shell--dashboard .js-estate-app-shell__content-window::before,.js-estate-app-shell--dashboard .js-estate-app-shell__content-window::after{display:none}
-.js-estate-app-shell--dashboard .js-estate-app-shell__menu{left:max(12px,calc((100vw - 1024px)/2 + 12px))}
+.js-estate-app-shell--dashboard .js-estate-app-shell__menu{left:max(12px,calc((100vw - 1440px)/2 + 12px))}
+.js-estate-app-shell--dashboard .js-estate-app-shell__sample-badge{left:50%;margin:8px 0;position:absolute;top:0;transform:translateX(-50%);z-index:90}
 
 .js-estate-app-shell__footer { align-items:center;background:linear-gradient(90deg,rgba(237,222,194,.94),rgba(255,249,235,.96),rgba(232,218,192,.94));border:1px solid rgba(163,119,54,.54);border-radius:999px 999px 0 0;box-shadow:0 -10px 30px rgba(65,48,27,.1),inset 0 1px rgba(255,255,255,.7);display:flex;gap:20px;justify-content:space-between;margin:0 auto;max-width:1320px;padding:13px clamp(20px,4vw,38px);position:relative;z-index:2; }
 .js-estate-app-shell__footer>div{display:grid}.js-estate-app-shell__footer span{color:#946d36;font-size:9px;font-weight:850;letter-spacing:.14em;text-transform:uppercase}.js-estate-app-shell__footer strong{color:#4d5e40;font:italic 18px Georgia,serif}

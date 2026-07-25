@@ -1,16 +1,35 @@
 import React, { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { normalizeWildlifeActivity } from "../data/estateWildlife";
+import {
+  CUSTOMER_ENVIRONMENT_DEFAULTS_VERSION,
+  customerFeatures,
+} from "../data/customerFeatures";
 import { determineDayPhase, determineSeason } from "../utils/determineSeason";
 import { normalizeOpenMeteoWeather, weatherConditionLabels } from "../utils/normalizeWeather";
 
 const EnvironmentContext=createContext(null);
 const CACHE_MS=20*60*1000;
-const defaultSettings={liveWeather:true,seasonalEffects:true,dayNight:true,wildlife:true,buddy:true,quality:window.matchMedia?.("(max-width: 760px)").matches?"Balanced":"Full",reducedMotion:window.matchMedia?.("(prefers-reduced-motion: reduce)").matches||false,sound:false,previewCondition:"",previewSeason:""};
-const defaultLocation={label:"Delaware",latitude:39,longitude:-75.5,source:"default"};
+const defaultSettings={liveWeather:true,seasonalEffects:true,dayNight:true,wildlife:false,wildlifeActivity:customerFeatures.wildlifeDefault,buddy:false,quality:window.matchMedia?.("(max-width: 760px)").matches?"Balanced":"Full",reducedMotion:window.matchMedia?.("(prefers-reduced-motion: reduce)").matches||false,sound:false,previewCondition:"",previewSeason:"",customerDefaultsVersion:CUSTOMER_ENVIRONMENT_DEFAULTS_VERSION};
+const defaultLocation={label:"Choose a location",latitude:null,longitude:null,source:"unset"};
 const loadJson=(key,fallback)=>{try{const value=localStorage.getItem(key);return value?JSON.parse(value):fallback;}catch{return fallback;}};
 const migrateCachedWeather=(cached)=>!cached?null:cached.temperatureF!==undefined?cached:{...cached,temperatureF:cached.temperature??null,apparentTemperatureF:cached.apparentTemperature??null,windSpeedMph:cached.wind||0,windGustMph:cached.windGust||0,condition:cached.condition||"clear",source:cached.source||"Open-Meteo",fetchedAt:cached.fetchedAt||cached.observedAt||new Date(0).toISOString(),isLive:false,isStale:true};
 
 export function EstateEnvironmentProvider({children}){
-  const [settings,setSettings]=useState(()=>({...defaultSettings,...loadJson("jardinSoleilEnvironmentSettings",{})}));
+  const [settings,setSettings]=useState(()=>{
+    const saved=loadJson("jardinSoleilEnvironmentSettings",{});
+    const defaultsAreCurrent=saved.customerDefaultsVersion===CUSTOMER_ENVIRONMENT_DEFAULTS_VERSION;
+    const wildlifeActivity=defaultsAreCurrent
+      ? normalizeWildlifeActivity(saved.wildlifeActivity,saved.wildlife)
+      : customerFeatures.wildlifeDefault;
+    return {
+      ...defaultSettings,
+      ...saved,
+      customerDefaultsVersion:CUSTOMER_ENVIRONMENT_DEFAULTS_VERSION,
+      buddy:customerFeatures.buddyEnabled && Boolean(saved.buddy),
+      wildlifeActivity,
+      wildlife:wildlifeActivity!=="Off",
+    };
+  });
   const [estateLocation,setEstateLocation]=useState(()=>loadJson("jardinSoleilWeatherLocation",defaultLocation));
   const [weather,setWeather]=useState(()=>migrateCachedWeather(loadJson("jardinSoleilWeatherCache",null)));
   const [status,setStatus]=useState(weather?"cached":"idle");
@@ -24,6 +43,7 @@ export function EstateEnvironmentProvider({children}){
 
   const refreshWeather=useCallback(async({force=false}={})=>{
     if(!settings.liveWeather){setStatus("disabled");return null;}
+    if(!Number.isFinite(Number(estateLocation.latitude))||!Number.isFinite(Number(estateLocation.longitude))){setStatus("idle");return null;}
     const age=Date.now()-new Date(weather?.fetchedAt||0).getTime();
     if(!force&&weather?.latitude===estateLocation.latitude&&weather?.longitude===estateLocation.longitude&&age<CACHE_MS){setStatus("ready");return weather;}
     if(requestRef.current)return requestRef.current.promise;
@@ -44,11 +64,21 @@ export function EstateEnvironmentProvider({children}){
 
   const setManualLocation=async(query)=>{const text=String(query||"").trim();if(!text)return false;setStatus("locating");try{const response=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(text)}&count=1&language=en&format=json`);const place=(await response.json()).results?.[0];if(!place)throw new Error();setEstateLocation({label:[place.name,place.admin1,place.country_code].filter(Boolean).join(", "),latitude:place.latitude,longitude:place.longitude,source:"manual"});setWeather(null);return true;}catch{setError("That location could not be found. Try a city or postal code.");setStatus("error");return false;}};
   const useMyLocation=()=>new Promise((resolve)=>{if(!navigator.geolocation){setError("Choose a location to activate local estate weather.");resolve(false);return;}setStatus("locating");navigator.geolocation.getCurrentPosition((position)=>{setEstateLocation({label:"My local area",latitude:Number(position.coords.latitude.toFixed(2)),longitude:Number(position.coords.longitude.toFixed(2)),source:"geolocation"});setWeather(null);resolve(true);},()=>{setError("Choose a location to activate local estate weather.");setStatus("error");resolve(false);},{timeout:10000,maximumAge:3600000});});
-  const updateSetting=(key,value)=>setSettings((current)=>({...current,[key]:value}));
+  const updateSetting=(key,value)=>setSettings((current)=>{
+    if(key==="buddy"&&!customerFeatures.buddyEnabled)return{...current,buddy:false};
+    if(key==="wildlifeActivity"){
+      const wildlifeActivity=normalizeWildlifeActivity(value,current.wildlife);
+      return {...current,wildlifeActivity,wildlife:wildlifeActivity!=="Off"};
+    }
+    if(key==="wildlife"){
+      return {...current,wildlife:Boolean(value),wildlifeActivity:value?(current.wildlifeActivity==="Off"?"Natural":current.wildlifeActivity):"Off"};
+    }
+    return {...current,[key]:value};
+  });
   const resetPreview=()=>setSettings((current)=>({...current,previewCondition:"",previewSeason:""}));
   const liveCondition=weather?.condition||"clear", condition=settings.previewCondition||liveCondition;
   const locationClock=new Date(now);const observedHour=String(weather?.observedAt||"").match(/T(\d\d):(\d\d)/);if(observedHour)locationClock.setHours(Number(observedHour[1]),Number(observedHour[2])+Math.max(0,Math.round((Date.now()-new Date(weather.fetchedAt||Date.now()).getTime())/60000)));
-  const season=settings.previewSeason||determineSeason(locationClock,estateLocation.latitude);
+  const season=settings.previewSeason||determineSeason(locationClock,Number.isFinite(Number(estateLocation.latitude))?Number(estateLocation.latitude):45);
   const phase=settings.dayNight?determineDayPhase(locationClock,weather?.sunrise,weather?.sunset):"daytime";
   const windy=Number(weather?.windSpeedMph||0)>=13||condition==="windy";
   const heat=Number(weather?.temperatureF||0)>=90||condition==="hot";

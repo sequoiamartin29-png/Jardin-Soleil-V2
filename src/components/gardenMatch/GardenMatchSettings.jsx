@@ -53,7 +53,7 @@ export default function GardenMatchSettings({ settings, onChange }) {
           </select>
         </label>
         <label>
-          <span>Buddy hints</span>
+          <span>Garden hints</span>
           <select value={settings.buddyHints ? "on" : "off"} onChange={(event) => setSetting("buddyHints", event.target.value === "on")}>
             <option value="on">On</option>
             <option value="off">Off</option>

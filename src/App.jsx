@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { GardenProvider, useGarden } from "./context/GardenContext";
 import { EstateEnvironmentProvider } from "./context/EstateEnvironmentContext";
@@ -36,10 +36,50 @@ import PlantFinder from "./components/plantFinder/PlantFinder";
 import PlantFinderHistory from "./components/plantFinder/PlantFinderHistory";
 import BuddyDailyLogger from "./components/buddy/BuddyDailyLogger";
 import BuddyGarden from "./components/BuddyGarden";
+import GardenGames from "./components/GardenGames";
+import GardenOnboarding from "./components/GardenOnboarding";
+import GardenSettings from "./components/GardenSettings";
+import DashboardSkinDialog from "./components/DashboardSkinDialog";
 import HealthCenterErrorBoundary from "./components/plantHealth/HealthCenterErrorBoundary";
 import { HEALTH_PAGE_KEY } from "./utils/healthCaseDraft";
+import {
+  DASHBOARD_SKIN_STORAGE_KEY,
+  getDashboardSkin,
+  loadStoredDashboardSkinId,
+} from "./data/dashboardSkins";
+import {
+  resolveCustomerCompanion,
+  resolveCustomerRoute,
+} from "./data/customerFeatures";
+import {
+  buildPlantHealthAlerts,
+  unreadPlantHealthAlerts,
+} from "./utils/plantHealthAlerts";
 
 import "./styles/app.css";
+
+const PLANT_HEALTH_NAVIGATION_KEY = "jardinSoleilPlantHealthNavigation";
+const emptyHealthLaunch = { plantId:"", diagnosisId:"", mode:"", finderContext:null, launchId:0 };
+const loadHealthLaunch = () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PLANT_HEALTH_NAVIGATION_KEY) || "{}");
+    return { ...emptyHealthLaunch, ...saved, launchId:Date.now() };
+  } catch {
+    return emptyHealthLaunch;
+  }
+};
+const saveHealthLaunch = (launch) => {
+  try {
+    localStorage.setItem(PLANT_HEALTH_NAVIGATION_KEY, JSON.stringify({
+      plantId:launch.plantId || "",
+      diagnosisId:launch.diagnosisId || "",
+      mode:launch.mode || "",
+      finderContext:launch.finderContext || null,
+    }));
+  } catch {
+    // Navigation remains available for the current session.
+  }
+};
 
 const estatePagePresentation = {
   Dashboard:{ theme:"dashboard", accent:"blush", title:"Dashboard" },
@@ -68,34 +108,74 @@ const estatePagePresentation = {
   "Garden Challenges":{ theme:"learning", accent:"gold", title:"Garden Challenges" },
   "Garden Match":{ theme:"learning", accent:"gold", title:"Garden Match" },
   "Word Search":{ theme:"learning", accent:"sage", title:"Botanical Word Search" },
+  "Garden Games":{ theme:"learning", accent:"gold", title:"Garden Games" },
   "Buddy's Garden":{ theme:"learning", accent:"gold", title:"Buddy’s Garden" },
   "Buddy's Garden Journal":{ theme:"journal", accent:"sage", title:"Buddy’s Garden Journal" },
   "Buddy Garden Day":{ theme:"journal", accent:"sage", title:"Log My Garden Day" },
   "The Conservatory":{ theme:"conservatory", accent:"plum", title:"The Conservatory" },
   "Estate Environment":{ theme:"conservatory", accent:"powder-blue", title:"Estate Environment" },
+  "Garden Settings":{ theme:"nursery", accent:"gold", title:"Garden Profile & Data" },
 };
 
 function GardenApp() {
   const validPages = Object.keys(estatePagePresentation);
-  const [page, setPage] = useState(() => { try { const saved=localStorage.getItem(HEALTH_PAGE_KEY); return validPages.includes(saved) ? saved : "Dashboard"; } catch { return "Dashboard"; } });
+  const [page, setPage] = useState(() => {
+    try {
+      const saved=resolveCustomerRoute(localStorage.getItem(HEALTH_PAGE_KEY));
+      return validPages.includes(saved) ? saved : "Dashboard";
+    } catch {
+      return "Dashboard";
+    }
+  });
   const [conservatoryLaunch, setConservatoryLaunch] = useState({ companion: null, scopePlant: null, settingsOpen:false, launchId:0 });
-  const [healthCenterLaunch, setHealthCenterLaunch] = useState({ plantId:"", diagnosisId:"", mode:"", launchId:0 });
+  const [healthCenterLaunch, setHealthCenterLaunch] = useState(loadHealthLaunch);
   const [plantEditorPrefill, setPlantEditorPrefill] = useState(null);
   const [plantEditorReturnPage, setPlantEditorReturnPage] = useState("Plant Directory");
-  const [navigationContext,setNavigationContext]=useState({page:"Dashboard",launchId:0});
+  const [navigationContext,setNavigationContext]=useState(() => (
+    page === "Plant Health Center"
+      ? { page, ...loadHealthLaunch(), launchId:Date.now() }
+      : { page:"Dashboard", launchId:0 }
+  ));
   const [menuOpen,setMenuOpen]=useState(false);
+  const [dashboardSkinId,setDashboardSkinId]=useState(loadStoredDashboardSkinId);
+  const [dashboardSkinPreviewId,setDashboardSkinPreviewId]=useState(loadStoredDashboardSkinId);
+  const [dashboardSkinDialogOpen,setDashboardSkinDialogOpen]=useState(false);
   const menuTriggerRef=useRef(null);
   const closeMenu=useCallback(()=>setMenuOpen(false),[]);
   useEffect(() => { try { localStorage.setItem(HEALTH_PAGE_KEY, page); } catch { /* navigation remains usable */ } }, [page]);
+  useEffect(() => {
+    try { localStorage.setItem(DASHBOARD_SKIN_STORAGE_KEY, dashboardSkinId); } catch { /* preview and selection still work in memory */ }
+  }, [dashboardSkinId]);
 
   const {
+    gardenProfile,
     selectedPlant,
     setSelectedPlant,
     journalEntries,
     addJournalEntry,
     photos,
-    updatePlantIdentification
+    updatePlantIdentification,
+    plantDiagnoses,
+    plants,
+    updatePlant,
+    updatePlantDiagnosis,
   } = useGarden();
+  const healthAlerts = useMemo(() => buildPlantHealthAlerts({
+    plantDiagnoses,
+    plants,
+    photos,
+  }), [plantDiagnoses, plants, photos]);
+  const unreadHealthAlerts = useMemo(() => unreadPlantHealthAlerts(healthAlerts), [healthAlerts]);
+
+  const markHealthAlertReviewed = (alert) => {
+    if (!alert?.unread) return;
+    const reviewedAt = new Date().toISOString();
+    if (alert.healthCaseId) {
+      updatePlantDiagnosis(alert.healthCaseId, { alertReviewedAt:reviewedAt, acknowledgedAt:reviewedAt });
+    } else if (alert.plantId) {
+      updatePlant(alert.plantId, { healthAlertReviewedAt:reviewedAt });
+    }
+  };
 
   const openPlant = (plant) => {
     setSelectedPlant(plant);
@@ -104,29 +184,60 @@ function GardenApp() {
   const startAddPlant = () => { setSelectedPlant(null); setPlantEditorPrefill(null); setPlantEditorReturnPage(page === "Dashboard" ? "Dashboard" : page); navigate("Plant Editor"); };
   const editPlant = (plant) => { setSelectedPlant(plant); setPlantEditorPrefill(null); setPlantEditorReturnPage("Plant Profile"); navigate("Plant Editor"); };
   const openConservatory = (companion = null, scopePlant = null, settingsOpen = false) => {
-    setConservatoryLaunch({ companion, scopePlant, settingsOpen, launchId:Date.now() });
+    setConservatoryLaunch({ companion:resolveCustomerCompanion(companion), scopePlant, settingsOpen, launchId:Date.now() });
     setMenuOpen(false);
     setPage("The Conservatory");
   };
   const openHealthCenter = ({ plantId = "", diagnosisId = "", mode = "", finderContext = null, photoIds = [], notes = "", traits = null } = {}) => {
-    setHealthCenterLaunch({ plantId, diagnosisId, mode, finderContext:finderContext || (photoIds.length || notes || traits ? { photoIds, notes, traits } : null), launchId:Date.now() });
+    const launch = { plantId, diagnosisId, mode, finderContext:finderContext || (photoIds.length || notes || traits ? { photoIds, notes, traits } : null), launchId:Date.now() };
+    setHealthCenterLaunch(launch);
+    saveHealthLaunch(launch);
+    setNavigationContext({ page:"Plant Health Center", ...launch });
     setMenuOpen(false);
     setPage("Plant Health Center");
   };
   const navigate = (nextPage, context = {}) => {
+    nextPage = resolveCustomerRoute(nextPage);
     const journalAliases = { Logbook:"logs", "Journal Timeline":"timeline" };
     if (journalAliases[nextPage]) { context = { ...context, journalView:journalAliases[nextPage] }; nextPage = "Journal"; }
     setMenuOpen(false);
     setNavigationContext({ page:nextPage, ...context, launchId:Date.now() });
+    if (nextPage === "Plant Profile" && context.plantId) {
+      setSelectedPlant(plants.find((plant) => plant.id === context.plantId) || null);
+    }
     if (nextPage === "The Conservatory") setConservatoryLaunch({ companion: null, scopePlant: null, settingsOpen:false, launchId:Date.now() });
-    if (nextPage === "Plant Health Center") setHealthCenterLaunch({ plantId:"", diagnosisId:"", mode:"", finderContext:null, launchId:Date.now() });
+    if (nextPage === "Plant Health Center") {
+      const launch = {
+        plantId:context.plantId || "",
+        diagnosisId:context.diagnosisId || "",
+        mode:context.mode || "",
+        finderContext:context.finderContext || null,
+        launchId:Date.now(),
+      };
+      setHealthCenterLaunch(launch);
+      saveHealthLaunch(launch);
+    }
     setPage(nextPage);
+  };
+  const openDashboardSkins = () => {
+    setDashboardSkinPreviewId(dashboardSkinId);
+    setDashboardSkinDialogOpen(true);
+  };
+  const closeDashboardSkins = () => {
+    setDashboardSkinPreviewId(dashboardSkinId);
+    setDashboardSkinDialogOpen(false);
+  };
+  const applyDashboardSkin = (skinId) => {
+    const nextId = getDashboardSkin(skinId).id;
+    setDashboardSkinId(nextId);
+    setDashboardSkinPreviewId(nextId);
+    setDashboardSkinDialogOpen(false);
   };
 
   const renderPage = () => {
     switch (page) {
       case "Dashboard":
-        return <Dashboard journalEntries={journalEntries} onNavigate={navigate} />;
+        return <Dashboard skinId={dashboardSkinDialogOpen ? dashboardSkinPreviewId : dashboardSkinId} onNavigate={navigate} />;
 
       case "Orchard":
         return <Orchard onSelectPlant={openPlant} onEditPlant={editPlant} onAddPlant={startAddPlant} />;
@@ -141,6 +252,7 @@ function GardenApp() {
         return (
           <PlantProfile
             plant={selectedPlant}
+            initialSection={navigationContext.section || ""}
             journalEntries={journalEntries}
             onEdit={() => navigate("Plant Editor")}
             onExit={() => navigate("Plant Directory")}
@@ -151,7 +263,7 @@ function GardenApp() {
         );
 
       case "Plant Health Center":
-        return <HealthCenterErrorBoundary onRestore={() => openHealthCenter({})} onHome={() => openHealthCenter({})} onDashboard={() => navigate("Dashboard")}><PlantHealthCenter key={healthCenterLaunch.launchId} initialPlantId={healthCenterLaunch.plantId} initialDiagnosisId={healthCenterLaunch.diagnosisId} initialMode={healthCenterLaunch.mode} initialFinderContext={healthCenterLaunch.finderContext} onOpenPlantFinder={() => navigate("Plant Finder")} onConsult={(plant) => openConservatory("gardener", plant)} /></HealthCenterErrorBoundary>;
+        return <HealthCenterErrorBoundary onRestore={() => openHealthCenter({})} onHome={() => openHealthCenter({})} onDashboard={() => navigate("Dashboard")}><PlantHealthCenter key={healthCenterLaunch.launchId} initialPlantId={healthCenterLaunch.plantId} initialDiagnosisId={healthCenterLaunch.diagnosisId} initialMode={healthCenterLaunch.mode} initialFinderContext={healthCenterLaunch.finderContext} alerts={healthAlerts} onReviewAlert={markHealthAlertReviewed} onOpenPlant={(plantId) => navigate("Plant Profile", { plantId, section:"health" })} onOpenPlantFinder={() => navigate("Plant Finder")} onConsult={(plant) => openConservatory("gardener", plant)} /></HealthCenterErrorBoundary>;
 
       case "Plant Finder":
         return <PlantFinder onNavigate={navigate} onConsultHeadGardener={() => openConservatory("gardener")} onOpenHealthCenter={(finderContext) => openHealthCenter({ mode:"wizard", finderContext, ...finderContext })} onAddToEstate={(candidate, identification, preparedPhoto = null) => {
@@ -182,7 +294,7 @@ function GardenApp() {
         return <PlantEditor plant={null} onOpenPlantFinder={() => navigate("Plant Finder")} onCancel={() => navigate("Dashboard")} onSaved={(plant) => { setSelectedPlant(plant); navigate("Plant Profile"); }} onOpenExisting={openPlant} />;
 
       case "Garden Collections":
-        return <Garden onAddPlant={startAddPlant} onSelectPlant={openPlant} onEditPlant={editPlant} />;
+        return <Garden onAddPlant={startAddPlant} onSelectPlant={openPlant} onEditPlant={editPlant} onManageZones={() => navigate("Garden Settings", { settingsSection:"manage" })} />;
 
       case "Tasks":
         return <Tasks onNavigate={navigate} />;
@@ -232,6 +344,9 @@ function GardenApp() {
       case "Garden Challenges":
         return <GardenChallenges onNavigate={navigate} />;
 
+      case "Garden Games":
+        return <GardenGames onNavigate={navigate} />;
+
       case "Buddy's Garden":
         return <BuddyGarden onNavigate={navigate} />;
 
@@ -253,8 +368,11 @@ function GardenApp() {
       case "Estate Environment":
         return <EstateEnvironmentSettings onBack={() => navigate("Dashboard")} />;
 
+      case "Garden Settings":
+        return <GardenSettings key={`garden-settings-${navigationContext.launchId}`} initialSection={navigationContext.settingsSection || "profile"} onNavigate={navigate} />;
+
       default:
-        return <Dashboard journalEntries={journalEntries} onNavigate={navigate} />;
+        return <Dashboard skinId={dashboardSkinDialogOpen ? dashboardSkinPreviewId : dashboardSkinId} onNavigate={navigate} />;
     }
   };
 
@@ -262,6 +380,8 @@ function GardenApp() {
   const pageTitle = page === "Plant Editor"
     ? selectedPlant ? `Edit ${selectedPlant.nickname || selectedPlant.name}` : "Add New Plant"
     : presentation.title;
+
+  if (!gardenProfile.onboardingCompleted) return <GardenOnboarding onComplete={() => navigate("Dashboard")} />;
 
   return (
     <div className="app">
@@ -274,10 +394,19 @@ function GardenApp() {
         onToggleMenu={() => setMenuOpen((open) => !open)}
         menuTriggerRef={menuTriggerRef}
         onNavigate={navigate}
+        sampleGardenEnabled={gardenProfile.sampleGardenEnabled}
       >
         {renderPage()}
       </EstateAppShell>
-      <EstateMenuDrawer open={menuOpen} onClose={closeMenu} onNavigate={navigate} onOpenConservatory={(companion,settingsOpen)=>openConservatory(companion,null,settingsOpen)} activePage={page} returnFocusRef={menuTriggerRef}/>
+      <EstateMenuDrawer open={menuOpen} onClose={closeMenu} onNavigate={navigate} onOpenAppearance={openDashboardSkins} activePage={page} activeContext={navigationContext} healthAlerts={unreadHealthAlerts} returnFocusRef={menuTriggerRef}/>
+      <DashboardSkinDialog
+        open={dashboardSkinDialogOpen}
+        activeSkinId={dashboardSkinId}
+        previewSkinId={dashboardSkinPreviewId}
+        onPreview={(skinId) => setDashboardSkinPreviewId(getDashboardSkin(skinId).id)}
+        onApply={applyDashboardSkin}
+        onClose={closeDashboardSkins}
+      />
       <PlantDeletionSnackbar />
     </div>
   );

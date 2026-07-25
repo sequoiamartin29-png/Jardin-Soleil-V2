@@ -343,7 +343,7 @@ export const gardenMatchRewards = [
   { id:"botanical-frame", title:"Botanical Frame", type:"frame", description:"A watercolor flower frame for mastered collections." },
   { id:"pollinator-crest", title:"Pollinator Crest", type:"crest", description:"A meadow crest for welcoming estate pollinators." },
   { id:"moon-silver", title:"Moon Silver", type:"card-back", description:"A silver card back inspired by the Moon Garden." },
-  { id:"buddy-ribbon", title:"Buddy's Garden Ribbon", type:"buddy-ribbon", description:"A cheerful estate ribbon awarded for a daily streak." },
+  { id:"buddy-ribbon", title:"Garden Games Ribbon", type:"buddy-ribbon", description:"A cheerful estate ribbon awarded for a daily streak." },
 ];
 
 export const gardenMatchSeasons = [

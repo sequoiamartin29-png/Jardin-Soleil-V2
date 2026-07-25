@@ -36,13 +36,17 @@ export default function BuddyCompanion({ onOpenJournal, onOpenLogger, weatherMod
 
   useEffect(() => {
     const today = localDateKey();
-    const storageKey = "jardinSoleilBuddyGreetingDate";
+    const storageKey = `jardinSoleilBuddyGreetingDate:${garden.gardenProfile.id}`;
     if (localStorage.getItem(storageKey) === today) return undefined;
     localStorage.setItem(storageKey, today);
-    const greeting = window.setTimeout(() => setBubble("Welcome back, Sequoia. The garden has been waiting for you."), DEBUG_BUDDY ? 200 : 1200);
+    const gardenName = garden.gardenProfile.gardenName || "your garden";
+    const greetingText = garden.gardenProfile.ownerDisplayName
+      ? `Welcome back, ${garden.gardenProfile.ownerDisplayName}. ${gardenName} has been waiting for you.`
+      : `Welcome to ${gardenName}. I’m ready when you are.`;
+    const greeting = window.setTimeout(() => setBubble(greetingText), DEBUG_BUDDY ? 200 : 1200);
     const dismiss = window.setTimeout(() => setBubble(""), DEBUG_BUDDY ? 5000 : 9200);
     return () => { window.clearTimeout(greeting); window.clearTimeout(dismiss); };
-  }, []);
+  }, [garden.gardenProfile.id, garden.gardenProfile.gardenName, garden.gardenProfile.ownerDisplayName]);
 
   useEffect(() => {
     if (bubble || !estate.updates.length) return undefined;

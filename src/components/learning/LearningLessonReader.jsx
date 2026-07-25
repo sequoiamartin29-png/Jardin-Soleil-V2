@@ -101,7 +101,7 @@ export default function LearningLessonReader({ lesson, subject, subjectLessons, 
         <button className="js-learning-reader__favorite" type="button" aria-label={`${isFavorite ? "Remove" : "Add"} ${lesson.title} ${isFavorite ? "from" : "to"} favorites`} aria-pressed={isFavorite} onClick={() => onToggleFavorite(lesson.id)}>{isFavorite ? "♥ Favorite" : "♡ Add Favorite"}</button>
       </header>
 
-      <aside className="js-learning-reader__buddy"><span aria-hidden="true">🐾</span><div><strong>Buddy says</strong><p>Let’s take a closer look at how this part of the garden works.</p></div></aside>
+      <aside className="js-learning-reader__note"><span aria-hidden="true">✦</span><div><strong>Garden note</strong><p>Let’s take a closer look at how this part of the garden works.</p></div></aside>
       <p className="js-learning-reader__introduction">{lesson.introduction}</p>
 
       <div className="js-learning-reader__sections">
@@ -119,7 +119,7 @@ export default function LearningLessonReader({ lesson, subject, subjectLessons, 
         <div><span aria-hidden="true">✦</span><div><p>Garden activity</p><h3 id={`${lesson.id}-activity`}>{lesson.activity.title}</h3></div></div>
         <p>{lesson.activity.introduction}</p>
         <ul>{lesson.activity.promptItems.map((item) => <li key={item}>{item}</li>)}</ul>
-        <aside><span aria-hidden="true">🐾</span><p>“I’ll wait here while you observe your garden zone.”</p></aside>
+        <aside><span aria-hidden="true">✦</span><p>Take your time while you observe the garden zone.</p></aside>
       </section>
 
       <section ref={completionGateRef} className="js-learning-reader__review" aria-labelledby={`${lesson.id}-review`}>

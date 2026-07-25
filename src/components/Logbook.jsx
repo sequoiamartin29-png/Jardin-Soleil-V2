@@ -86,7 +86,7 @@ export default function Logbook({onNavigate}) {
       >
         Beginning July 1, every action in Jardin Soleil will be recorded here.
       </p>
-      <button type="button" onClick={()=>onNavigate?.("Buddy Garden Day")} style={{marginBottom:"24px",background:"linear-gradient(#748562,#576c49)",border:"1px solid #a77c39",borderRadius:"999px",color:"white",fontWeight:800,padding:"12px 20px"}}>Log My Garden Day with Buddy</button>
+      <button type="button" onClick={()=>onNavigate?.("New Journal Entry")} style={{marginBottom:"24px",background:"linear-gradient(#748562,#576c49)",border:"1px solid #a77c39",borderRadius:"999px",color:"white",fontWeight:800,padding:"12px 20px"}}>Add Journal Entry</button>
 
       <section aria-labelledby="recent-estate-activity" style={{background:"linear-gradient(145deg,#fffaf0,#efe2cc)",border:"1px solid #b88d4a",borderRadius:"24px",boxShadow:"0 12px 28px rgba(70,52,30,.1)",marginBottom:"28px",padding:"24px"}}>
         <h3 id="recent-estate-activity" style={{color:"#526242",fontFamily:"Georgia,serif",fontSize:"28px",marginTop:0}}>Recent Confirmed Estate Activity</h3>

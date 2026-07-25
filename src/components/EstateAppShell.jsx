@@ -24,6 +24,7 @@ export default function EstateAppShell({
   onToggleMenu,
   menuTriggerRef,
   onNavigate,
+  sampleGardenEnabled = false,
   children,
 }) {
   const isDashboard = theme === "dashboard";
@@ -58,6 +59,8 @@ export default function EstateAppShell({
         </div>
         <small>Rooted in purpose · Grown with love</small>
       </header>
+
+      {sampleGardenEnabled && <div className="js-estate-app-shell__sample-badge" role="status">Sample Garden · Fictional records</div>}
 
       <main className="js-estate-app-shell__main" id="estate-page-content">
         <div className="js-estate-app-shell__content-window">

@@ -23,7 +23,7 @@ const compact = (value) => clean(value).replace(/[^a-z0-9#]/g, "");
 const matchesPlantAlias = (text, alias) => {
   if (containsPhrase(text, alias)) return true;
   // Some canonical legacy names are stored as one word (for example,
-  // "Beetlepeach") while people naturally dictate them as two words.
+  // joined nicknames while people naturally dictate them as separate words.
   // Restrict compact matching to those single-token aliases so Apple Mint
   // cannot accidentally match Pineapple Mint.
   return !alias.includes(" ") && alias.length >= 8 && compact(text).includes(compact(alias));

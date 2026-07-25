@@ -1,0 +1,229 @@
+.js-estate-wildlife {
+  container-type: size;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  z-index: 4;
+}
+
+.js-estate-wildlife *,
+.js-estate-wildlife *::before,
+.js-estate-wildlife *::after {
+  pointer-events: none;
+}
+
+.js-wildlife-event {
+  animation-duration: var(--wildlife-duration);
+  animation-fill-mode: both;
+  animation-iteration-count: 1;
+  animation-timing-function: cubic-bezier(.37, .02, .56, .98);
+  height: var(--wildlife-size);
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  will-change: transform, opacity;
+  width: var(--wildlife-size);
+}
+
+.js-wildlife-event img {
+  display: block;
+  filter: drop-shadow(0 2px 2px rgba(42, 34, 24, .18));
+  height: 100%;
+  object-fit: contain;
+  transform-origin: 50% 55%;
+  user-select: none;
+  width: 100%;
+}
+
+.js-wildlife-event.depth-background {
+  filter: saturate(.82);
+  opacity: 0;
+}
+
+.js-wildlife-event.depth-background img {
+  filter: drop-shadow(0 1px 1px rgba(42, 34, 24, .12));
+}
+
+.js-wildlife-event.direction-reverse img {
+  scale: -1 1;
+}
+
+.js-wildlife-event.path-bird-sky-arc {
+  animation-name: wildlife-bird-sky-arc;
+}
+
+.js-wildlife-event.path-bird-hedge-swoop {
+  animation-name: wildlife-bird-hedge-swoop;
+}
+
+.js-wildlife-event.path-bird-high-glide {
+  animation-name: wildlife-bird-high-glide;
+}
+
+.js-wildlife-event.path-butterfly-rose-drift {
+  animation-name: wildlife-butterfly-rose-drift;
+}
+
+.js-wildlife-event.path-butterfly-border-pause {
+  animation-name: wildlife-butterfly-border-pause;
+}
+
+.js-wildlife-event.path-bee-flower-hop {
+  animation-name: wildlife-bee-flower-hop;
+}
+
+.js-wildlife-event.path-bee-herb-hover {
+  animation-name: wildlife-bee-herb-hover;
+}
+
+.js-wildlife-event.path-moth-lantern-orbit {
+  animation-name: wildlife-moth-lantern-orbit;
+}
+
+.js-wildlife-event.path-moth-evening-drift {
+  animation-name: wildlife-moth-evening-drift;
+}
+
+.js-wildlife-event.is-bird img {
+  animation: wildlife-bird-wings 2.8s ease-in-out infinite;
+}
+
+.js-wildlife-event.is-butterfly img {
+  animation: wildlife-butterfly-wings 1.05s ease-in-out infinite;
+}
+
+.js-wildlife-event.is-bee img {
+  animation: wildlife-bee-hover .34s ease-in-out infinite alternate;
+}
+
+.js-wildlife-event.is-moth img {
+  animation: wildlife-moth-wings 1.35s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px rgba(247, 222, 158, .2));
+}
+
+@keyframes wildlife-bird-sky-arc {
+  0% { opacity:0; transform:translate3d(-12cqw, 17cqh, 0) rotate(-3deg) scale(.82); }
+  10% { opacity:.58; }
+  34% { transform:translate3d(27cqw, 7cqh, 0) rotate(-8deg) scale(.88); }
+  62% { transform:translate3d(64cqw, 12cqh, 0) rotate(4deg) scale(.9); }
+  90% { opacity:.55; }
+  100% { opacity:0; transform:translate3d(112cqw, 5cqh, 0) rotate(-5deg) scale(.78); }
+}
+
+@keyframes wildlife-bird-hedge-swoop {
+  0% { opacity:0; transform:translate3d(-13cqw, 29cqh, 0) rotate(-4deg) scale(.86); }
+  9% { opacity:.8; }
+  31% { transform:translate3d(24cqw, 22cqh, 0) rotate(-8deg) scale(.96); }
+  56% { transform:translate3d(53cqw, 31cqh, 0) rotate(8deg) scale(1); }
+  76% { transform:translate3d(79cqw, 24cqh, 0) rotate(-6deg) scale(.94); }
+  92% { opacity:.76; }
+  100% { opacity:0; transform:translate3d(111cqw, 18cqh, 0) rotate(-3deg) scale(.84); }
+}
+
+@keyframes wildlife-bird-high-glide {
+  0% { opacity:0; transform:translate3d(110cqw, 10cqh, 0) rotate(2deg) scale(.72); }
+  12% { opacity:.5; }
+  42% { transform:translate3d(69cqw, 5cqh, 0) rotate(-5deg) scale(.78); }
+  70% { transform:translate3d(34cqw, 11cqh, 0) rotate(5deg) scale(.8); }
+  90% { opacity:.48; }
+  100% { opacity:0; transform:translate3d(-12cqw, 7cqh, 0) rotate(-3deg) scale(.7); }
+}
+
+@keyframes wildlife-butterfly-rose-drift {
+  0% { opacity:0; transform:translate3d(-7cqw, 61cqh, 0) rotate(-12deg) scale(.84); }
+  12% { opacity:.84; }
+  28% { transform:translate3d(24cqw, 54cqh, 0) rotate(8deg) scale(.94); }
+  38%, 46% { transform:translate3d(35cqw, 58cqh, 0) rotate(-4deg) scale(.96); }
+  66% { transform:translate3d(63cqw, 49cqh, 0) rotate(11deg) scale(1); }
+  74%, 82% { transform:translate3d(76cqw, 53cqh, 0) rotate(-8deg) scale(.95); }
+  92% { opacity:.78; }
+  100% { opacity:0; transform:translate3d(106cqw, 46cqh, 0) rotate(9deg) scale(.8); }
+}
+
+@keyframes wildlife-butterfly-border-pause {
+  0% { opacity:0; transform:translate3d(104cqw, 66cqh, 0) rotate(12deg) scale(.8); }
+  12% { opacity:.78; }
+  31% { transform:translate3d(77cqw, 58cqh, 0) rotate(-9deg) scale(.92); }
+  43%, 53% { transform:translate3d(62cqw, 62cqh, 0) rotate(3deg) scale(.95); }
+  72% { transform:translate3d(34cqw, 53cqh, 0) rotate(-11deg) scale(1); }
+  82%, 88% { transform:translate3d(23cqw, 57cqh, 0) rotate(5deg) scale(.93); }
+  100% { opacity:0; transform:translate3d(-7cqw, 50cqh, 0) rotate(-8deg) scale(.78); }
+}
+
+@keyframes wildlife-bee-flower-hop {
+  0% { opacity:0; transform:translate3d(11cqw, 72cqh, 0) rotate(-3deg); }
+  10% { opacity:.9; }
+  27%, 36% { transform:translate3d(27cqw, 63cqh, 0) rotate(6deg); }
+  51% { transform:translate3d(45cqw, 70cqh, 0) rotate(-7deg); }
+  60%, 69% { transform:translate3d(58cqw, 64cqh, 0) rotate(3deg); }
+  86% { transform:translate3d(76cqw, 69cqh, 0) rotate(-4deg); }
+  100% { opacity:0; transform:translate3d(93cqw, 58cqh, 0) rotate(5deg); }
+}
+
+@keyframes wildlife-bee-herb-hover {
+  0% { opacity:0; transform:translate3d(91cqw, 56cqh, 0) rotate(4deg); }
+  11% { opacity:.86; }
+  26% { transform:translate3d(74cqw, 61cqh, 0) rotate(-4deg); }
+  35%, 46% { transform:translate3d(62cqw, 57cqh, 0) rotate(5deg); }
+  65% { transform:translate3d(42cqw, 66cqh, 0) rotate(-6deg); }
+  75%, 84% { transform:translate3d(31cqw, 62cqh, 0) rotate(3deg); }
+  100% { opacity:0; transform:translate3d(9cqw, 69cqh, 0) rotate(-5deg); }
+}
+
+@keyframes wildlife-moth-lantern-orbit {
+  0% { opacity:0; transform:translate3d(73cqw, 31cqh, 0) rotate(-8deg) scale(.8); }
+  14% { opacity:.62; }
+  31% { transform:translate3d(63cqw, 22cqh, 0) rotate(9deg) scale(.92); }
+  47% { transform:translate3d(54cqw, 30cqh, 0) rotate(-11deg) scale(1); }
+  62%, 72% { transform:translate3d(64cqw, 36cqh, 0) rotate(7deg) scale(.94); }
+  88% { opacity:.58; }
+  100% { opacity:0; transform:translate3d(83cqw, 25cqh, 0) rotate(-5deg) scale(.78); }
+}
+
+@keyframes wildlife-moth-evening-drift {
+  0% { opacity:0; transform:translate3d(-7cqw, 41cqh, 0) rotate(-8deg) scale(.78); }
+  13% { opacity:.57; }
+  34% { transform:translate3d(28cqw, 34cqh, 0) rotate(10deg) scale(.9); }
+  49%, 58% { transform:translate3d(44cqw, 39cqh, 0) rotate(-7deg) scale(.96); }
+  78% { transform:translate3d(73cqw, 31cqh, 0) rotate(8deg) scale(.88); }
+  91% { opacity:.52; }
+  100% { opacity:0; transform:translate3d(105cqw, 36cqh, 0) rotate(-4deg) scale(.76); }
+}
+
+@keyframes wildlife-bird-wings {
+  0%, 16%, 44%, 66%, 100% { transform:scaleY(1) rotate(0); }
+  23%, 35% { transform:scaleY(.84) rotate(-2deg); }
+  50%, 60% { transform:scaleY(.92) rotate(1deg); }
+}
+
+@keyframes wildlife-butterfly-wings {
+  0%, 18%, 48%, 68%, 100% { transform:perspective(80px) rotateY(0deg); }
+  28%, 38% { transform:perspective(80px) rotateY(56deg); }
+  78%, 88% { transform:perspective(80px) rotateY(42deg); }
+}
+
+@keyframes wildlife-bee-hover {
+  from { transform:translate3d(0, -1px, 0) rotate(-1deg); }
+  to { transform:translate3d(0, 1px, 0) rotate(1deg); }
+}
+
+@keyframes wildlife-moth-wings {
+  0%, 24%, 55%, 100% { transform:perspective(90px) rotateY(0deg); }
+  34%, 45% { transform:perspective(90px) rotateY(48deg); }
+  70%, 84% { transform:perspective(90px) rotateY(35deg); }
+}
+
+@media (max-width: 700px) {
+  .js-wildlife-event.depth-background {
+    opacity: .46;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js-estate-wildlife {
+    display: none;
+  }
+}
+

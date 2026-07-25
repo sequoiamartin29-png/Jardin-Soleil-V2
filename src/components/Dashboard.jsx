@@ -1,71 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { useGarden } from "../context/GardenContext";
-import BuddyCompanion from "./dashboard/BuddyCompanion";
-import EstateEnvironment from "./dashboard/EstateEnvironment";
-import DashboardStatCard from "./dashboard/DashboardStatCard";
 import { useEstateEnvironment } from "../context/EstateEnvironmentContext";
-import {
-  DASHBOARD_SKIN_STORAGE_KEY,
-  dashboardSkins,
-  getDashboardSkin,
-} from "../data/dashboardSkins";
+import { getDashboardHotspots, getDashboardSkin } from "../data/dashboardSkins";
+import DashboardStatCard from "./dashboard/DashboardStatCard";
+import EstateEnvironment from "./dashboard/EstateEnvironment";
+import EstateWildlife from "./wildlife/EstateWildlife";
 import "./Dashboard.css";
 
-const DEBUG_ANIMATIONS = false;
-
-const activateFromKeyboard = (event, action) => {
-  if (event.key !== "Enter" && event.key !== " " && event.key !== "Spacebar") return;
-  event.preventDefault();
-  action();
-};
-
-const dashboardHotspots = [
-  { label: "Orchard Gate", page: "Orchard", area: [38.2, 36.1, 18.1, 4.2] },
-  { label: "Orchard garden area", page: "Orchard", area: [23.5, 40.3, 17.4, 5.2] },
-  { label: "Flower and Perennials", page: "Garden Collections", area: [56.7, 40.1, 16.1, 5.7] },
-  { label: "Tea and Herb Corridor", page: "Garden Collections", area: [17.2, 49.2, 16.3, 5.8] },
-  { label: "Vegetable Garden", page: "Garden Collections", area: [61.5, 49.8, 16.7, 5.5] },
-  { label: "Open Buddy’s Garden games", page: "Buddy's Garden", area: [41.2, 53.4, 13.4, 5.2] },
-  { label: "Berry Zone", page: "Garden Collections", area: [20.5, 60.6, 16.8, 5.5] },
-  { label: "Container Collection", page: "Garden Collections", area: [59.1, 60.7, 17.2, 5.4] },
-  { label: "Nursery Shed", page: "Inventory", area: [39.1, 67.1, 18.8, 4.7] },
-  { label: "View All Tasks", page: "Tasks", area: [80.1, 49.7, 16.4, 2.1] },
-  { label: "View Calendar", page: "Calendar", area: [80.1, 63.9, 16.4, 2.0] },
-  { label: "View Full Forecast", page: "Weather", area: [79.8, 79.5, 16.8, 2.0] },
-  { label: "View All Logs", page: "Logbook", area: [20.8, 83.8, 16.5, 1.9] },
-  { label: "View Harvests", page: "Logbook", area: [41.0, 83.8, 15.2, 1.9] },
-  { label: "View Plant Directory", page: "Plant Directory", area: [60.4, 83.8, 15.5, 1.9] },
-  { label: "View Orchard", page: "Orchard", area: [24.7, 93.9, 13.2, 1.8] },
-  { label: "View Garden Details", page: "Garden Collections", area: [57.0, 93.9, 16.1, 1.8] },
-  { label: "Add New Plant", page: "Add New Plant", area: [81.0, 84.9, 16.2, 2.4] },
-  { label: "Log Garden Update", page: "New Journal Entry", area: [81.0, 87.6, 16.2, 2.4] },
-  { label: "Take Photo", page: "Photo Manager", area: [81.0, 90.3, 16.2, 2.4] },
-  { label: "Add to Task List", page: "Tasks", area: [81.0, 93.0, 16.2, 2.4] },
-];
-
-const loadDashboardSkinId = () => {
-  try {
-    return getDashboardSkin(globalThis.localStorage?.getItem(DASHBOARD_SKIN_STORAGE_KEY)).id;
-  } catch {
-    return getDashboardSkin().id;
-  }
-};
-
-export default function Dashboard({ onNavigate }) {
-  const { stats, activePlants } = useGarden();
+export default function Dashboard({ onNavigate, skinId }) {
+  const {
+    stats,
+    activePlants,
+    gardenProfile,
+    journalEntries,
+    tasks,
+    calendarEntries,
+  } = useGarden();
   const environment = useEstateEnvironment();
   const [localNow, setLocalNow] = useState(() => new Date());
   const [animationsPaused, setAnimationsPaused] = useState(() => document.hidden);
   const [spotlightIndex, setSpotlightIndex] = useState(0);
-  const [selectedDashboardSkinId, setSelectedDashboardSkinId] = useState(loadDashboardSkinId);
-  const [failedDashboardSkinId, setFailedDashboardSkinId] = useState(null);
+  const [failedSkinId, setFailedSkinId] = useState("");
+
+  const requestedSkin = getDashboardSkin(skinId);
+  const defaultSkin = getDashboardSkin();
+  const displayedSkin = failedSkinId === requestedSkin.id ? defaultSkin : requestedSkin;
+  const hotspots = getDashboardHotspots(displayedSkin.hotspotMapId);
   const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local time";
-  const selectedDashboardSkin = getDashboardSkin(selectedDashboardSkinId);
-  const defaultDashboardSkin = getDashboardSkin();
-  const displayedDashboardSkin = failedDashboardSkinId === selectedDashboardSkin.id
-    ? defaultDashboardSkin
-    : selectedDashboardSkin;
-  const dashboardArtwork = displayedDashboardSkin.backgroundImage;
 
   useEffect(() => {
     const timer = window.setInterval(() => setLocalNow(new Date()), 1000);
@@ -78,219 +39,241 @@ export default function Dashboard({ onNavigate }) {
     return () => document.removeEventListener("visibilitychange", updateVisibility);
   }, []);
 
-  useEffect(() => {
-    try {
-      globalThis.localStorage?.setItem(DASHBOARD_SKIN_STORAGE_KEY, selectedDashboardSkin.id);
-    } catch {
-      // Skin selection remains usable for the current visit when storage is unavailable.
-    }
-  }, [selectedDashboardSkin.id]);
-
-  const selectDashboardSkin = (skinId) => {
-    const nextSkin = getDashboardSkin(skinId);
-    setFailedDashboardSkinId(null);
-    setSelectedDashboardSkinId(nextSkin.id);
-  };
-
-  const handleDashboardArtworkError = () => {
-    if (selectedDashboardSkin.id !== defaultDashboardSkin.id) {
-      setFailedDashboardSkinId(selectedDashboardSkin.id);
-    }
-  };
+  useEffect(() => setFailedSkinId(""), [requestedSkin.id]);
 
   const localHour = localNow.getHours();
   const spotlightPlant = activePlants[spotlightIndex % Math.max(activePlants.length, 1)];
-  const moveSpotlight = (amount) => { if (activePlants.length) setSpotlightIndex((current) => (current + amount + activePlants.length) % activePlants.length); };
-  const randomSpotlight = () => { if (activePlants.length > 1) setSpotlightIndex((current) => { let next=current; while (next === current) next=Math.floor(Math.random()*activePlants.length); return next; }); };
-  const isDayGarden = localHour >= 6 && localHour < 18;
+  const recentEntry = journalEntries[0];
+  const recentHarvest = journalEntries.find((entry) => /harvest/i.test(`${entry.type || ""} ${entry.title || ""}`));
+  const openTasks = tasks.filter((task) => !task.completed && !task.isTemplate).slice(0, 5);
+  const upcomingEvents = calendarEntries
+    .filter((entry) => !entry.date || entry.date >= new Date().toISOString().slice(0, 10))
+    .sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"))
+    .slice(0, 3);
+  const welcomeTitle = gardenProfile.ownerDisplayName
+    ? `Welcome back, ${gardenProfile.ownerDisplayName}.`
+    : gardenProfile.gardenName
+      ? `Welcome to ${gardenProfile.gardenName}.`
+      : "Welcome to your garden.";
   const gardenLight = localHour >= 5 && localHour < 12
-    ? { icon: "☀️", label: "Morning garden light" }
+    ? { icon:"☀️", label:"Morning garden light" }
     : localHour >= 12 && localHour < 18
-      ? { icon: "🌤️", label: "Afternoon garden light" }
+      ? { icon:"🌤️", label:"Afternoon garden light" }
       : localHour >= 18 && localHour < 21
-        ? { icon: "🌅", label: "Evening garden light" }
-        : { icon: "🌙", label: "Night garden" };
+        ? { icon:"🌅", label:"Evening garden light" }
+        : { icon:"🌙", label:"Night garden" };
+
+  const moveSpotlight = (amount) => {
+    if (activePlants.length) {
+      setSpotlightIndex((current) => (current + amount + activePlants.length) % activePlants.length);
+    }
+  };
+  const randomSpotlight = () => {
+    if (activePlants.length < 2) return;
+    setSpotlightIndex((current) => {
+      let next = current;
+      while (next === current) next = Math.floor(Math.random() * activePlants.length);
+      return next;
+    });
+  };
 
   return (
     <section
-      className="js-dashboard-artwork"
+      className="js-dashboard"
       aria-label="Jardin Soleil dashboard"
-      data-dashboard-skin={selectedDashboardSkin.id}
+      data-dashboard-skin={requestedSkin.id}
+      data-overlay-tone={displayedSkin.overlayTone}
+      data-text-contrast={displayedSkin.textContrast}
       style={{
-        "--dashboard-skin-accent": selectedDashboardSkin.accent,
-        "--dashboard-skin-glow": selectedDashboardSkin.glow,
+        "--dashboard-skin-accent":displayedSkin.accent,
+        "--dashboard-skin-glow":displayedSkin.glow,
       }}
     >
-      <p className="js-dashboard-artwork__summary" id="dashboard-garden-summary">
+      <p className="js-dashboard__summary" id="dashboard-garden-summary">
         Jardin Soleil currently tracks {stats.totalPlants} plants, {stats.orchardCount} orchard trees,
         {stats.journalCount} garden notes, and {stats.photoCount} photos.
       </p>
 
-      <details className="js-dashboard-skin-picker">
-        <summary>
-          <span className="js-dashboard-skin-picker__title">
+      <header className="js-dashboard__heading">
+        <p>Jardin Soleil · Your living estate</p>
+        <h1>{welcomeTitle}</h1>
+        <span>
+          {activePlants.length
+            ? `Here’s what’s growing in ${gardenProfile.gardenName || "your garden"} today.`
+            : "Your garden is ready to grow."}
+        </span>
+      </header>
+
+      {!activePlants.length && (
+        <section className="js-dashboard-empty-welcome" aria-labelledby="dashboard-empty-title">
+          <div>
             <span aria-hidden="true">✦</span>
-            <span>
-              <strong>Dashboard Skins</strong>
-              <small>{selectedDashboardSkin.name}</small>
-            </span>
-          </span>
-          <span className="js-dashboard-skin-picker__chevron" aria-hidden="true">⌄</span>
-        </summary>
-        <div className="js-dashboard-skin-picker__panel">
-          <div className="js-dashboard-skin-picker__intro">
-            <strong>Choose your estate atmosphere</strong>
-            <span>Your selection is saved for your next visit.</span>
+            <div>
+              <h2 id="dashboard-empty-title">Your garden is ready to grow.</h2>
+              <p>Begin with one plant or create the spaces that will become your garden.</p>
+            </div>
           </div>
-          <div className="js-dashboard-skin-picker__options" role="group" aria-label="Choose a dashboard skin">
-            {dashboardSkins.map((skin) => {
-              const isActive = skin.id === selectedDashboardSkin.id;
-              return (
-                <button
-                  className={`js-dashboard-skin-option${isActive ? " is-active" : ""}`}
-                  type="button"
-                  key={skin.id}
-                  aria-pressed={isActive}
-                  onClick={() => selectDashboardSkin(skin.id)}
-                >
-                  <span
-                    className="js-dashboard-skin-option__preview"
-                    aria-hidden="true"
-                    style={{
-                      backgroundImage: `url("${skin.backgroundImage}")`,
-                      backgroundPosition: skin.previewPosition,
-                    }}
-                  />
-                  <span className="js-dashboard-skin-option__copy">
-                    <strong>{skin.name}</strong>
-                    <small>{skin.description}</small>
-                  </span>
-                  <span className="js-dashboard-skin-option__status">
-                    {isActive ? "Active" : "Select"}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          {failedDashboardSkinId === selectedDashboardSkin.id && (
-            <p className="js-dashboard-skin-picker__fallback" role="status">
-              This artwork could not be loaded, so French Chalet is being shown.
-            </p>
-          )}
-        </div>
-      </details>
+          <nav aria-label="Start building your garden">
+            <button type="button" onClick={() => onNavigate?.("Add New Plant")}>Add Your First Plant</button>
+            <button type="button" onClick={() => onNavigate?.("Garden Settings", { settingsSection:"manage" })}>Create a Garden Zone</button>
+            <button type="button" onClick={() => onNavigate?.("Plant Finder")}>Identify a Plant</button>
+            <button type="button" onClick={() => onNavigate?.("Learning")}>Explore Learning</button>
+          </nav>
+        </section>
+      )}
 
-      <div className="js-dashboard-artwork__viewport">
-      <div className="js-dashboard-artwork__canvas" aria-describedby="dashboard-garden-summary">
-        <div className="js-dashboard-artwork__pieces">
-          <div className="js-dashboard-artwork__upper">
-            <img src={dashboardArtwork} onError={handleDashboardArtworkError} alt={`Illustrated Jardin Soleil ${displayedDashboardSkin.name} dashboard with château, formal gardens, fountain, garden panels, and navigation`} />
-          </div>
-          <div className="js-dashboard-artwork__stat-strip">
-            <div className="js-dashboard-artwork__strip-side js-dashboard-artwork__strip-side--left" aria-hidden="true"><img src={dashboardArtwork} onError={handleDashboardArtworkError} alt="" /></div>
-            <div className="js-dashboard-artwork__stat-placeholder" aria-hidden="true" />
-            <div className="js-dashboard-artwork__strip-side js-dashboard-artwork__strip-side--right" aria-hidden="true"><img src={dashboardArtwork} onError={handleDashboardArtworkError} alt="" /></div>
-          </div>
-          <div className="js-dashboard-artwork__lower" aria-hidden="true"><img src={dashboardArtwork} onError={handleDashboardArtworkError} alt="" /></div>
-        </div>
+      <section className="js-dashboard-stats" aria-label="Live garden statistics">
+        <DashboardStatCard icon="edibles" value={stats.totalPlants} label="Plants" accessibleName={`Open Plant Directory — ${stats.totalPlants} plants`} onClick={() => onNavigate?.("Plant Directory")} />
+        <DashboardStatCard icon="mint" value={stats.vegetableCount} label="Vegetables" accessibleName={`Open Vegetables — ${stats.vegetableCount} vegetables`} onClick={() => onNavigate?.("Plant Directory", { initialFilter:"Vegetables" })} />
+        <DashboardStatCard icon="fruitTree" value={stats.fruitTreeCount} label="Fruit Trees" accessibleName={`Open Orchard — ${stats.fruitTreeCount} fruit trees`} onClick={() => onNavigate?.("Orchard")} />
+        <DashboardStatCard icon="zones" value={stats.gardenZoneCount} label="Garden Zones" accessibleName={`Open Garden Collections — ${stats.gardenZoneCount} zones`} onClick={() => onNavigate?.("Garden Collections")} />
+        <DashboardStatCard icon="photos" value={stats.photoCount} label="Photos Logged" accessibleName={`Open Garden Gallery — ${stats.photoCount} photos`} onClick={() => onNavigate?.("Gallery")} />
+      </section>
+
+      <div className="js-dashboard-canvas" aria-describedby="dashboard-garden-summary">
+        <picture className="js-dashboard-canvas__art">
+          <source media="(max-width: 700px)" srcSet={displayedSkin.mobileImage} />
+          <img
+            src={displayedSkin.desktopImage}
+            onError={() => {
+              if (requestedSkin.id !== defaultSkin.id) setFailedSkinId(requestedSkin.id);
+            }}
+            alt={`Illustrated ${displayedSkin.name} estate with château, formal garden regions, paths, and central fountain`}
+          />
+        </picture>
+        <span className="js-dashboard-canvas__tone" aria-hidden="true" />
+
         <EstateEnvironment paused={animationsPaused} />
+        <EstateWildlife paused={animationsPaused} />
 
-        <div
-          className={`js-garden-motion ${isDayGarden ? "is-day" : "is-evening"} weather-${environment.condition} phase-${environment.phase} quality-${environment.settings.quality.toLowerCase()}${environment.windy ? " is-windy" : ""}${environment.settings.reducedMotion ? " is-reduced-motion" : ""}${!environment.settings.wildlife ? " wildlife-off" : ""}${animationsPaused ? " is-paused" : ""}${DEBUG_ANIMATIONS ? " is-debug" : ""}`}
-          aria-hidden="true"
-        >
-          <div className="js-fountain-motion">
-            <span className="js-fountain-motion__basin" />
-            <span className="js-fountain-motion__waterline" />
-            <span className="js-fountain-motion__ripple js-fountain-motion__ripple--one" />
-            <span className="js-fountain-motion__ripple js-fountain-motion__ripple--two" />
-            <span className="js-fountain-motion__arc js-fountain-motion__arc--left" />
-            <span className="js-fountain-motion__arc js-fountain-motion__arc--right" />
-            <span className="js-fountain-motion__jet js-fountain-motion__jet--left" />
-            <span className="js-fountain-motion__jet js-fountain-motion__jet--center" />
-            <span className="js-fountain-motion__jet js-fountain-motion__jet--right" />
-            <span className="js-fountain-motion__plume"><i /><i /><i /></span>
-            <span className="js-fountain-motion__mist" />
-            <span className="js-fountain-motion__sparkle js-fountain-motion__sparkle--one" />
-            <span className="js-fountain-motion__sparkle js-fountain-motion__sparkle--two" />
-          </div>
-
-          <span className="js-butterfly js-butterfly--one" /><span className="js-butterfly js-butterfly--two" />
-          <span className="js-butterfly js-butterfly--three" /><span className="js-butterfly js-butterfly--four" />
-          <span className="js-bee js-bee--one" /><span className="js-bee js-bee--two" /><span className="js-bee js-bee--three" />
-          <span className="js-moth" />
-          <span className="js-hummingbird"><i /><b /></span>
-
-          <span className="js-bloom js-bloom--one" /><span className="js-bloom js-bloom--two" /><span className="js-bloom js-bloom--three" />
-          <span className="js-leaf-sway js-leaf-sway--one" /><span className="js-leaf-sway js-leaf-sway--two" />
-          <span className="js-pollen js-pollen--one" /><span className="js-pollen js-pollen--two" /><span className="js-pollen js-pollen--three" />
-
-          {DEBUG_ANIMATIONS && <div className="js-motion-debug">
-            <span style={{ left:"44.2%", top:"48.4%" }}>Fountain 44.2%, 48.4%</span>
-            <span style={{ left:"34%", top:"56%" }}>Butterfly 34%, 56%</span>
-            <span style={{ left:"35%", top:"58%" }}>Bee 35%, 58%</span>
-            <span style={{ left:"16%", top:"56%" }}>Hummingbird 16%, 56%</span>
-          </div>}
-        </div>
-
-        {environment.settings.buddy&&<BuddyCompanion onOpenJournal={() => onNavigate?.("Buddy's Garden Journal")} onOpenLogger={() => onNavigate?.("Buddy Garden Day")} paused={animationsPaused} weatherMode={environment.buddyMode} />}
-
-        <section className="js-dashboard-artwork__clock" aria-label={`Local date and time in ${localTimeZone}`}>
-          <span className="js-dashboard-artwork__weekday">{localNow.toLocaleDateString(undefined, { weekday:"long" })}</span>
-          <span className="js-dashboard-artwork__date">{localNow.toLocaleDateString(undefined, { month:"long", day:"numeric", year:"numeric" })}</span>
-          <time dateTime={localNow.toISOString()}>{localNow.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" })}</time>
-          <span className="js-dashboard-artwork__zone">{localTimeZone.replace(/_/g, " ")}</span>
-          <span className="js-dashboard-artwork__local-weather"><b aria-hidden="true">{gardenLight.icon}</b>{environment.weather ? `${environment.conditionLabel} · ${Math.round(environment.weather.temperatureF)}°F${environment.weather.isStale ? " · Last known" : ""}` : gardenLight.label}</span>
-        </section>
-
-        <button className="js-dashboard-artwork__health-action" type="button" onClick={() => onNavigate?.("Plant Health Center")}>Plant Health Center</button>
-
-        <section className="js-dashboard-spotlight" aria-label="Plant Spotlight">
-          <div><span>Plant Spotlight</span><strong>{spotlightPlant?.nickname || spotlightPlant?.name || "Add plants to your estate to begin Plant Spotlight."}</strong></div>
-          <div role="group" aria-label="Plant Spotlight controls"><button type="button" aria-label="Previous spotlight plant" disabled={activePlants.length < 2} onClick={() => moveSpotlight(-1)}>‹</button><button type="button" aria-label="Choose a random spotlight plant" disabled={activePlants.length < 2} onClick={randomSpotlight}>↻</button><button type="button" aria-label="Next spotlight plant" disabled={activePlants.length < 2} onClick={() => moveSpotlight(1)}>›</button></div>
-        </section>
-
-        <button
-          className="js-dashboard-artwork__garden-match"
-          type="button"
-          aria-label="Open Buddy’s Garden game hub"
-          onClick={() => onNavigate?.("Buddy's Garden")}
-        >
-          <span aria-hidden="true">✦</span>
-          <strong>Buddy’s Garden</strong>
-          <small>Choose a garden game</small>
-        </button>
-
-        <nav className="js-dashboard-artwork__hotspots" aria-label="Interactive Jardin Soleil estate map">
-          {dashboardHotspots.map(({ label, page, area: [left, top, width, height] }) => (
+        <nav className="js-dashboard-hotspots" aria-label="Interactive Jardin Soleil estate map">
+          {hotspots.map(({ id, label, page, desktop, mobile }) => (
             <button
               type="button"
-              className="js-dashboard-artwork__hotspot"
-              key={label}
-              aria-label={label}
-              title={label}
+              className={`js-dashboard-hotspot js-dashboard-hotspot--${id}`}
+              key={id}
+              aria-label={`Open ${label}`}
               onClick={() => onNavigate?.(page)}
-              onKeyDown={(event) => activateFromKeyboard(event, () => onNavigate?.(page))}
-              style={{ left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` }}
-            />
+              style={{
+                "--hotspot-left":`${desktop[0]}%`,
+                "--hotspot-top":`${desktop[1]}%`,
+                "--hotspot-width":`${desktop[2]}%`,
+                "--hotspot-height":`${desktop[3]}%`,
+                "--hotspot-mobile-left":`${mobile[0]}%`,
+                "--hotspot-mobile-top":`${mobile[1]}%`,
+                "--hotspot-mobile-width":`${mobile[2]}%`,
+                "--hotspot-mobile-height":`${mobile[3]}%`,
+              }}
+            >
+              <span>{label}</span>
+            </button>
           ))}
         </nav>
       </div>
 
-      <div
-        className="js-dashboard-stat-overlay"
-        role="region"
-        aria-label="Live garden statistics. Scroll horizontally on small screens."
-        tabIndex="0"
-      >
-        <div className="js-dashboard-stat-row">
-          <DashboardStatCard icon="fruitTree" value={stats.orchardCount} label="Fruit Trees" accessibleName={`Open Orchard — ${stats.orchardCount} Fruit Trees`} onClick={() => onNavigate?.("Orchard")} />
-          <DashboardStatCard icon="mint" value={stats.mintVarietyCount} label="Mint Varieties" subtext={`${stats.mintVarietyCount} Current`} accessibleName={`Open Mint Varieties in Plant Directory — ${stats.mintVarietyCount} varieties`} onClick={() => onNavigate?.("Plant Directory", { initialSearch:"Mint", initialFilter:"Herbs" })} />
-          <DashboardStatCard icon="edibles" value={stats.edibleHerbCount} label="Edibles & Herbs" accessibleName={`Open Edibles and Herbs in Garden Collections — ${stats.edibleHerbCount} plants`} onClick={() => onNavigate?.("Garden Collections")} />
-          <DashboardStatCard icon="zones" value={stats.gardenZoneCount} label="Garden Zones" accessibleName={`Open Garden Collections — ${stats.gardenZoneCount} Garden Zones`} onClick={() => onNavigate?.("Garden Collections")} />
-          <DashboardStatCard icon="photos" value={stats.photoCount} label="Photos Logged" accessibleName={`Open Garden Gallery — ${stats.photoCount} Photos Logged`} onClick={() => onNavigate?.("Gallery")} />
-        </div>
-      </div>
+      {failedSkinId === requestedSkin.id && (
+        <p className="js-dashboard__fallback" role="status">
+          This artwork could not be loaded, so French Chalet is being shown.
+        </p>
+      )}
+
+      <div className="js-dashboard-live-layout">
+        <main className="js-dashboard-main-column">
+          <section className="js-dashboard-activity-grid" aria-label="Garden activity">
+            <article className="js-dashboard-panel js-dashboard-activity-card">
+              <header><span>Recent Log</span><h2>{recentEntry?.title || "No journal entries yet."}</h2></header>
+              <p>{recentEntry?.notes || recentEntry?.observations || "Your first garden note will appear here."}</p>
+              <footer>
+                <small>{recentEntry?.date ? new Date(`${recentEntry.date}T12:00:00`).toLocaleDateString() : "Ready for your first note"}</small>
+                <button type="button" onClick={() => onNavigate?.("Journal")}>View Journal</button>
+              </footer>
+            </article>
+
+            <article className="js-dashboard-panel js-dashboard-activity-card">
+              <header><span>Harvest Spotlight</span><h2>{recentHarvest?.title || "No harvests yet."}</h2></header>
+              <p>{recentHarvest?.notes || "Harvests you record will appear here."}</p>
+              <footer>
+                <small>{recentHarvest?.date ? new Date(`${recentHarvest.date}T12:00:00`).toLocaleDateString() : "Waiting for your first harvest"}</small>
+                <button type="button" onClick={() => onNavigate?.("Journal", { journalView:"harvests" })}>View Harvests</button>
+              </footer>
+            </article>
+
+            <article className="js-dashboard-panel js-dashboard-activity-card">
+              <header>
+                <span>Plant Spotlight</span>
+                <h2>{spotlightPlant?.nickname || spotlightPlant?.name || "No spotlight plant yet."}</h2>
+              </header>
+              <p>{spotlightPlant ? spotlightPlant.variety || spotlightPlant.category || "Garden plant" : "Add a plant to begin your daily spotlight."}</p>
+              <footer>
+                <div className="js-dashboard-spotlight-controls" role="group" aria-label="Plant Spotlight controls">
+                  <button type="button" aria-label="Previous spotlight plant" disabled={activePlants.length < 2} onClick={() => moveSpotlight(-1)}>‹</button>
+                  <button type="button" aria-label="Choose a random spotlight plant" disabled={activePlants.length < 2} onClick={randomSpotlight}>↻</button>
+                  <button type="button" aria-label="Next spotlight plant" disabled={activePlants.length < 2} onClick={() => moveSpotlight(1)}>›</button>
+                </div>
+                <button type="button" onClick={() => onNavigate?.(spotlightPlant ? "Plant Directory" : "Add New Plant")}>
+                  {spotlightPlant ? "View Plants" : "Add Plant"}
+                </button>
+              </footer>
+            </article>
+          </section>
+
+          <section className="js-dashboard-status-grid" aria-label="Garden status">
+            <article className="js-dashboard-panel js-dashboard-status-card">
+              <div><span>Orchard Status</span><strong>{stats.fruitTreeCount}</strong></div>
+              <p>{stats.fruitTreeCount ? `${stats.fruitTreeCount} ${stats.fruitTreeCount === 1 ? "fruit tree" : "fruit trees"} recorded.` : "Add a fruit tree to begin your orchard ledger."}</p>
+              <button type="button" onClick={() => onNavigate?.("Orchard")}>View Orchard</button>
+            </article>
+            <article className="js-dashboard-panel js-dashboard-status-card">
+              <div><span>Garden Health</span><strong>{stats.totalPlants ? `${stats.averageHealth}%` : "—"}</strong></div>
+              <p>{stats.totalPlants ? `${stats.plantsNeedingAttention.length} plants currently need attention.` : "Add plants to begin tracking garden health."}</p>
+              <button type="button" onClick={() => onNavigate?.("Plant Health Center")}>Plant Health Center</button>
+            </article>
+          </section>
+        </main>
+
+        <aside className="js-dashboard-right-rail" aria-label="Dashboard planning and weather">
+          <article className="js-dashboard-panel js-dashboard-weather-panel">
+            <header>
+              <div>
+                <span>{localNow.toLocaleDateString(undefined, { weekday:"long" })}</span>
+                <strong>{localNow.toLocaleDateString(undefined, { month:"long", day:"numeric", year:"numeric" })}</strong>
+              </div>
+              <time dateTime={localNow.toISOString()}>{localNow.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" })}</time>
+            </header>
+            <div className="js-dashboard-weather-panel__condition">
+              <b aria-hidden="true">{gardenLight.icon}</b>
+              <div>
+                <strong>{environment.weather ? environment.conditionLabel : gardenLight.label}</strong>
+                <span>{environment.weather ? `${Math.round(environment.weather.temperatureF)}°F${environment.weather.isStale ? " · Last known" : ""}` : localTimeZone.replace(/_/g, " ")}</span>
+              </div>
+            </div>
+            <button type="button" onClick={() => onNavigate?.("Weather")}>View Full Forecast</button>
+          </article>
+
+          <article className="js-dashboard-panel js-dashboard-rail-card">
+            <header><span>Today’s Tasks</span><button type="button" onClick={() => onNavigate?.("Tasks")}>View all</button></header>
+            {openTasks.length ? (
+              <ul>{openTasks.map((task) => <li key={task.id}><span aria-hidden="true">□</span>{task.title}</li>)}</ul>
+            ) : <p>Your tasks will appear here.</p>}
+          </article>
+
+          <article className="js-dashboard-panel js-dashboard-rail-card">
+            <header><span>Upcoming Events</span><button type="button" onClick={() => onNavigate?.("Calendar")}>Calendar</button></header>
+            {upcomingEvents.length ? (
+              <ul>{upcomingEvents.map((entry) => <li key={entry.id}><time>{entry.date ? new Date(`${entry.date}T12:00:00`).toLocaleDateString(undefined, { month:"short", day:"numeric" }) : "Soon"}</time>{entry.title}</li>)}</ul>
+            ) : <p>Upcoming garden events will appear here.</p>}
+          </article>
+
+          <article className="js-dashboard-panel js-dashboard-quick-actions">
+            <header><span>Quick Actions</span></header>
+            <div>
+              <button type="button" onClick={() => onNavigate?.("Add New Plant")}>Add New Plant</button>
+              <button type="button" onClick={() => onNavigate?.("New Journal Entry")}>Log Garden Update</button>
+              <button type="button" onClick={() => onNavigate?.("Photo Manager")}>Take Photo</button>
+              <button type="button" onClick={() => onNavigate?.("Tasks")}>Add to Task List</button>
+            </div>
+          </article>
+        </aside>
       </div>
     </section>
   );

@@ -32,12 +32,12 @@ import GardenMatchCompletion from "./GardenMatchCompletion";
 import GardenMatchGameOver from "./GardenMatchGameOver";
 import "./GardenMatch.css";
 
-const buddyMessages = {
-  start:"Buddy has buried a clue somewhere in the garden.",
+const gardenMessages = {
+  start:"A clue is waiting somewhere in the garden.",
   match:"Great memory! That pair belongs together.",
   near:"Only a few garden treasures remain.",
-  hint:"Buddy found a clue! Look for the glowing cards.",
-  mismatch:"Not this time—Buddy is still sniffing out the pair.",
+  hint:"A matching pair is glowing.",
+  mismatch:"Not this time—take another look around the garden.",
   complete:"Every garden treasure is home again!",
 };
 
@@ -68,7 +68,7 @@ export default function GardenMatch({ onNavigate }) {
   const [highestCombo, setHighestCombo] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [matchFeedback, setMatchFeedback] = useState(null);
-  const [buddyMessage, setBuddyMessage] = useState(buddyMessages.start);
+  const [guidanceMessage, setGuidanceMessage] = useState(gardenMessages.start);
   const [announcement, setAnnouncement] = useState("");
   const [dailyRewardGranted, setDailyRewardGranted] = useState(false);
   const [newRewards, setNewRewards] = useState([]);
@@ -185,7 +185,7 @@ export default function GardenMatch({ onNavigate }) {
     setHighestCombo(0);
     setHintsUsed(0);
     setMatchFeedback(null);
-    setBuddyMessage(buddyMessages.start);
+    setGuidanceMessage(gardenMessages.start);
     setAnnouncement(previewMs > 0 ? `Previewing ${nextDeck.length} cards.` : "The garden is ready.");
     setDailyRewardGranted(false);
     setNewRewards([]);
@@ -275,7 +275,7 @@ export default function GardenMatch({ onNavigate }) {
     };
     setElapsedMs(timeMs);
     setCompletedResult(result);
-    setBuddyMessage(buddyMessages.complete);
+    setGuidanceMessage(gardenMessages.complete);
     setAnnouncement(`Garden complete. ${result.rank}, ${result.score} points.`);
     playTone("complete");
 
@@ -329,7 +329,7 @@ export default function GardenMatch({ onNavigate }) {
       setCombo(newCombo);
       setHighestCombo(highestComboRef.current);
       const comboLabel = getGardenMatchComboLabel(newCombo);
-      setBuddyMessage(comboLabel || buddyMessages.match);
+      setGuidanceMessage(comboLabel || gardenMessages.match);
       setAnnouncement(`${firstCard.title} and ${card.title} are a match. ${comboLabel}`.trim());
       if (settings.facts) {
         setMatchFeedback({ name:card.name, icon:card.icon, fact:card.shortFact });
@@ -340,7 +340,7 @@ export default function GardenMatch({ onNavigate }) {
     } else {
       comboRef.current = 0;
       setCombo(0);
-      setBuddyMessage(buddyMessages.mismatch);
+      setGuidanceMessage(gardenMessages.mismatch);
       setAnnouncement(`${firstCard?.title || "First card"} and ${card.title} do not match.`);
       playTone("miss");
     }
@@ -353,7 +353,7 @@ export default function GardenMatch({ onNavigate }) {
         matchedRef.current = nextMatched;
         predictedMatches = nextMatched.size;
         setMatchedPairIds(nextMatched);
-        if ((deck.length / 2) - predictedMatches <= 2 && predictedMatches < deck.length / 2) setBuddyMessage(buddyMessages.near);
+        if ((deck.length / 2) - predictedMatches <= 2 && predictedMatches < deck.length / 2) setGuidanceMessage(gardenMessages.near);
       }
       flippedRef.current = [];
       setFlippedIds([]);
@@ -372,8 +372,8 @@ export default function GardenMatch({ onNavigate }) {
     hintsRef.current += 1;
     setHintsUsed(hintsRef.current);
     setHintIds(cards);
-    setBuddyMessage(buddyMessages.hint);
-    setAnnouncement("Buddy has highlighted a matching pair.");
+    setGuidanceMessage(gardenMessages.hint);
+    setAnnouncement("A matching pair has been highlighted.");
     if (hintTimeoutRef.current) window.clearTimeout(hintTimeoutRef.current);
     hintTimeoutRef.current = window.setTimeout(() => setHintIds([]), 1500);
   }, [deck, difficulty.hintLimit, settings.buddyHints]);
@@ -403,10 +403,10 @@ export default function GardenMatch({ onNavigate }) {
       id="garden-match-title"
       title="Garden Match"
       eyebrow="Jardin Soleil · Botanical Games"
-      description="Match the living collections, follow Buddy's clues, and restore every garden room of the estate."
+      description="Match the living collections, follow garden clues, and restore every garden room of the estate."
       icon="flower"
       className={`garden-match${settings.highContrast ? " garden-match--high-contrast" : ""}${settings.reducedMotion ? " garden-match--reduced-motion" : ""}`}
-      actions={<button className="js-estate-button" type="button" onClick={() => onNavigate?.("Learning")}>Back to Learning Center</button>}
+      actions={<button className="js-estate-button" type="button" onClick={() => onNavigate?.("Garden Games")}>Back to Garden Games</button>}
     >
       {phase === "selection" ? (
         <GardenMatchSelection
@@ -448,14 +448,14 @@ export default function GardenMatch({ onNavigate }) {
               <div><dt>Accuracy</dt><dd>{Math.round(accuracy * 100)}%</dd></div>
             </dl>
             <div className="garden-match-game__actions">
-              <button className="garden-match-button" type="button" onClick={useHint} disabled={!settings.buddyHints || hintsUsed >= difficulty.hintLimit || locked || previewActive}>Buddy Hint {hintsUsed}/{difficulty.hintLimit}</button>
+              <button className="garden-match-button" type="button" onClick={useHint} disabled={!settings.buddyHints || hintsUsed >= difficulty.hintLimit || locked || previewActive}>Garden Hint {hintsUsed}/{difficulty.hintLimit}</button>
               <button className="garden-match-button" type="button" onClick={() => prepareGame(collectionId, difficultyId, modeId)}>Restart Game</button>
               <button className="garden-match-button" type="button" onClick={chooseNewGame}>New Game</button>
             </div>
           </header>
 
           <div className="garden-match-status-row">
-            <p className="garden-match-buddy"><span aria-hidden="true">🐾</span><strong>Buddy says</strong>{buddyMessage}</p>
+            <p className="garden-match-guidance"><span aria-hidden="true">✦</span><strong>Garden clue</strong>{guidanceMessage}</p>
             <p className="garden-match-scoring-note"><strong>Scoring</strong> Matches + accuracy + efficiency + time + combos − hints, adjusted by difficulty.</p>
           </div>
 
