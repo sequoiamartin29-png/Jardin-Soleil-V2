@@ -1,7 +1,7 @@
 import React from "react";
 import { getLearningSubject } from "../../data/learningCenterLessons";
 
-export default function LearningFavorites({ lessons, progress, onOpenLesson }) {
+export default function LearningFavorites({ lessons, progress, onOpenLesson, onBrowseLessons }) {
   const completed = new Set(progress.completedLessonIds);
   const favoriteLessons = lessons.filter((lesson) => progress.favoriteLessonIds.includes(lesson.id));
 
@@ -20,7 +20,13 @@ export default function LearningFavorites({ lessons, progress, onOpenLesson }) {
             </li>
           ))}
         </ul>
-      ) : <p className="js-learning__empty">You haven’t saved any lessons yet. Select the heart on a lesson you’d like to revisit.</p>}
+      ) : (
+        <div className="js-learning__empty" role="status">
+          <strong>No favorite lessons yet</strong>
+          <p>Open a lesson and select Add Favorite to keep it close for another garden day.</p>
+          <button type="button" onClick={onBrowseLessons}>Browse Lessons</button>
+        </div>
+      )}
     </section>
   );
 }

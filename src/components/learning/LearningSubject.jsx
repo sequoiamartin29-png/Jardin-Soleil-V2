@@ -1,7 +1,15 @@
 import React from "react";
 
-export default function LearningSubject({ subject, lessons, progress, onOpenLesson, onToggleFavorite }) {
-  if (!subject) return <p className="js-learning__empty" role="status">This learning subject could not be found.</p>;
+export default function LearningSubject({ subject, lessons, progress, onOpenLesson, onBrowseSubjects }) {
+  if (!subject) {
+    return (
+      <div className="js-learning__empty" role="status">
+        <strong>Subject not found</strong>
+        <p>This learning subject is not available. Return to Garden Foundations to keep learning.</p>
+        <button type="button" onClick={onBrowseSubjects}>Browse Garden Foundations</button>
+      </div>
+    );
+  }
   const completed = new Set(progress.completedLessonIds);
   const favorites = new Set(progress.favoriteLessonIds);
   const completedCount = lessons.filter((lesson) => completed.has(lesson.id)).length;
@@ -37,15 +45,21 @@ export default function LearningSubject({ subject, lessons, progress, onOpenLess
                     <span className="js-learning__lesson-meta"><span>{lesson.estimatedMinutes} min</span><span>{lesson.difficulty}</span></span>
                   </button>
                   <footer>
-                    <span className="js-learning__status">{isComplete ? "✓ Completed" : "Not completed"}</span>
-                    <button type="button" aria-label={`${isFavorite ? "Remove" : "Add"} ${lesson.title} ${isFavorite ? "from" : "to"} favorites`} aria-pressed={isFavorite} onClick={() => onToggleFavorite(lesson.id)}>{isFavorite ? "♥ Saved" : "♡ Save"}</button>
+                    <span className={`js-learning__status${isComplete ? " is-complete" : ""}`}>{isComplete ? "✓ Completed" : "Not completed"}</span>
+                    <span className={`js-learning__status${isFavorite ? " is-favorite" : ""}`}>{isFavorite ? "♥ Favorite" : "Not a favorite"}</span>
                   </footer>
                 </article>
               </li>
             );
           })}
         </ol>
-      ) : <p className="js-learning__empty" role="status">No lessons are available in this subject yet.</p>}
+      ) : (
+        <div className="js-learning__empty" role="status">
+          <strong>No lessons found</strong>
+          <p>This subject does not have any available lessons. Choose another subject to continue learning.</p>
+          <button type="button" onClick={onBrowseSubjects}>Browse Garden Foundations</button>
+        </div>
+      )}
     </div>
   );
 }

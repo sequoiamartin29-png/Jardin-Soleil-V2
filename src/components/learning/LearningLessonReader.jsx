@@ -73,7 +73,15 @@ export default function LearningLessonReader({ lesson, subject, subjectLessons, 
 
   const answeredCount = useMemo(() => Object.values(answers).filter((value) => String(value || "").trim()).length, [answers]);
 
-  if (!lesson) return <p className="js-learning__empty" role="status">This lesson could not be found.</p>;
+  if (!lesson) {
+    return (
+      <div className="js-learning__empty" role="status">
+        <strong>Lesson not found</strong>
+        <p>This lesson is not available. Return to the lesson library to choose a valid lesson.</p>
+        <button type="button" onClick={onBack}>Return to Lesson Library</button>
+      </div>
+    );
+  }
 
   const answerQuestion = (questionId, value, persist) => {
     setAnswers((current) => ({ ...current, [questionId]:value }));

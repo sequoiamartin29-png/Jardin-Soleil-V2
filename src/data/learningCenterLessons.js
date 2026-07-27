@@ -5,6 +5,7 @@ export const learningCenterSubjects = [
     description:"Learn to read light, soil, water, and seasonal change before choosing what the estate needs next.",
     icon:"sun",
     group:"Core subjects",
+    lessonIds:["understanding-your-garden","sunlight-and-garden-exposure","soil-basics","watering-with-intention","seasonal-garden-planning"],
   },
   {
     id:"plant-knowledge",
@@ -12,6 +13,7 @@ export const learningCenterSubjects = [
     description:"Build a practical vocabulary for plant profiles, botanical relationships, visible traits, and careful identification.",
     icon:"plant",
     group:"Core subjects",
+    lessonIds:["reading-a-plant-profile","botanical-names-made-simple","plant-families-and-relationships","recognizing-leaves-flowers-and-growth-habits","safe-plant-identification"],
   },
   {
     id:"orchard",
@@ -170,7 +172,7 @@ export const learningCenterLessons = [
     subtitle:"Plan work around plant cycles, local conditions, and realistic priorities.",
     summary:"Create a flexible seasonal rhythm rather than an inflexible task calendar.",
     estimatedMinutes:9,
-    difficulty:"Intermediate",
+    difficulty:"Beginner",
     icon:"calendar",
     introduction:"The useful garden year is shaped by local weather and plant development, not only by printed dates. A seasonal plan gives direction while leaving room to respond to the estate in front of you.",
     sections:[
@@ -242,7 +244,7 @@ export const learningCenterLessons = [
     subtitle:"Use shared structures and ancestry to organize plant knowledge.",
     summary:"Understand what plant families suggest—and what they cannot prove on their own.",
     estimatedMinutes:9,
-    difficulty:"Intermediate",
+    difficulty:"Beginner",
     icon:"family",
     introduction:"A plant family gathers genera that share evolutionary relationships. Family patterns can make unfamiliar plants easier to study, but they are clues rather than shortcuts to care or safety.",
     sections:[
@@ -266,7 +268,7 @@ export const learningCenterLessons = [
     subtitle:"Describe visible plant traits with repeatable, useful language.",
     summary:"Observe several structures together instead of relying on one memorable feature.",
     estimatedMinutes:10,
-    difficulty:"Intermediate",
+    difficulty:"Beginner",
     icon:"leaf",
     introduction:"Good plant observation is descriptive before it is diagnostic. A careful record of several independent traits is more useful than a quick guess based on color or one familiar shape.",
     sections:[

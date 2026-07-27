@@ -109,9 +109,23 @@ export default function Learning({ onNavigate }) {
 
             <div className="js-learning__panel" id="learning-section-panel">
               {view === "favorites" ? (
-                <LearningFavorites lessons={learningCenterLessons} progress={progress} onOpenLesson={(lessonId) => openLesson(lessonId, getLearningLesson(lessonId)?.subjectId)} />
+                <LearningFavorites
+                  lessons={learningCenterLessons}
+                  progress={progress}
+                  onOpenLesson={(lessonId) => openLesson(lessonId, getLearningLesson(lessonId)?.subjectId)}
+                  onBrowseLessons={() => {
+                    setActiveSubjectId("garden-foundations");
+                    setView("library");
+                  }}
+                />
               ) : (
-                <LearningSubject subject={activeSubject} lessons={activeLessons} progress={progress} onOpenLesson={(lessonId) => openLesson(lessonId, activeSubjectId)} onToggleFavorite={toggleFavorite} />
+                <LearningSubject
+                  subject={activeSubject}
+                  lessons={activeLessons}
+                  progress={progress}
+                  onOpenLesson={(lessonId) => openLesson(lessonId, activeSubjectId)}
+                  onBrowseSubjects={() => chooseSubject("garden-foundations")}
+                />
               )}
             </div>
           </div>
