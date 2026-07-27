@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { useGarden } from "../context/GardenContext";
 import { categoryForQuickStart, plantingMethodOptions, plantQuickStarts } from "../data/plantCatalog";
 import { plantCategories, plantGroups, suggestPlantGroup, validateAndNormalizePlant } from "../utils/plantMutations";
+import { isOrchardFruitTree } from "../utils/plantClassification";
 import { EstateActionButton, EstateFormSection, EstatePageShell } from "./EstatePageSystem";
+import PlantDeleteDialog from "./PlantDeleteDialog";
 import "./PlantEditor.css";
 
 const editableFields = ["name", "commonName", "nickname", "type", "category", "group", "variety", "botanicalName", "quantity", "zoneId", "gardenZone", "location", "status", "healthStatus", "health", "sun", "sunlight", "water", "watering", "soil", "plantingMethod", "plantedDate", "plantingDate", "expectedHarvest", "acquisitionDate", "source", "notes", "iconType", "tags", "identifiedAt", "identificationConfidence", "plantFinderIdentificationId"];
@@ -10,7 +12,7 @@ const blank = { name:"", commonName:"", nickname:"", type:"", category:"", group
 const initialFor = (plant) => plant ? { ...blank, ...plant, health:plant.health ?? "", tags:(plant.tags || []).join(", ") } : blank;
 const catalogEntries = Object.entries(plantQuickStarts).flatMap(([group, names]) => names.map((name) => ({ name, group, category:categoryForQuickStart(group) })));
 
-export default function PlantEditor({ plant, initialValues, initialPhoto, onCancel, onSaved, onOpenExisting, onOpenPlantFinder }) {
+export default function PlantEditor({ plant, initialValues, initialPhoto, onCancel, onSaved, onRemoved, onOpenExisting, onOpenPlantFinder }) {
   const { plants, addPlant, updatePlant, addPhotos, gardenCollections } = useGarden();
   const [form, setForm] = useState(() => initialFor(plant || initialValues));
   const [errors, setErrors] = useState({});
@@ -18,6 +20,8 @@ export default function PlantEditor({ plant, initialValues, initialPhoto, onCanc
   const [allowDuplicate, setAllowDuplicate] = useState(false);
   const [photo, setPhoto] = useState(null);
   const [keepInitialPhoto, setKeepInitialPhoto] = useState(Boolean(initialPhoto?.url));
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const isFruitTree = isOrchardFruitTree(plant);
 
   const change = (field, value) => {
     setForm((current) => {
@@ -145,7 +149,9 @@ export default function PlantEditor({ plant, initialValues, initialPhoto, onCanc
           {plant && <EstateActionButton variant="ledger" onClick={duplicate}>Duplicate Plant</EstateActionButton>}
           <EstateActionButton variant="primary" type="submit">{plant ? "Save Plant Changes" : "Add Plant"}</EstateActionButton>
         </div>
+        {plant&&<aside className="js-plant-editor__danger-zone"><div><strong>{isFruitTree?"Tree":"Plant"} lifecycle</strong><span>Archiving preserves the complete record and allows restoration. Permanent deletion preserves safe historical references.</span></div><EstateActionButton className="is-danger" onClick={()=>setConfirmDelete(true)}>Delete {isFruitTree?"Tree":"Plant"}</EstateActionButton></aside>}
       </form>
+      {confirmDelete&&<PlantDeleteDialog plant={plant} onCancel={()=>setConfirmDelete(false)} onArchived={()=>{setConfirmDelete(false);onRemoved?.({plant,action:"archived"});}} onScheduled={()=>{setConfirmDelete(false);onRemoved?.({plant,action:"deleted"});}}/>}
     </EstatePageShell>
   );
 }

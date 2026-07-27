@@ -4,6 +4,7 @@ import BotanicalIcon from "./icons/BotanicalIcon";
 import PlantMoveForm from "./PlantMoveForm";
 import PlantDeleteDialog from "./PlantDeleteDialog";
 import HealthStatusSeal from "./plantHealth/HealthStatusSeal";
+import { isOrchardFruitTree } from "../utils/plantClassification";
 import "./PlantProfile.css";
 
 const careActions = [
@@ -34,7 +35,6 @@ export default function PlantProfile({initialSection="",onEdit,onExit,onConsult,
     deleteJournalEntry,
     addPhotos,
     updatePlant,
-    archivePlant,
     restorePlant,
   } = useGarden();
   const [entryType, setEntryType] = useState("Watering");
@@ -58,6 +58,7 @@ export default function PlantProfile({initialSection="",onEdit,onExit,onConsult,
   const history = plant ? getEntriesForPlant(plant.id) : [];
   const photos = plant ? getPhotosForPlant(plant.id) : [];
   const diagnoses = plant ? getDiagnosesForPlant(plant.id) : [];
+  const isFruitTree = isOrchardFruitTree(plant);
   const hasHealth = plant?.health !== undefined && plant?.health !== null && plant?.health !== "";
   const collectionMembers = (plant?.collectionMembers || []).map((id) => plants.find((item) => item.id === id)).filter(Boolean);
 
@@ -228,9 +229,9 @@ export default function PlantProfile({initialSection="",onEdit,onExit,onConsult,
         <strong>{plant.nickname || "A cherished garden resident"}</strong>
         {hasHealth ? <div className="js-profile__health" aria-label={`${plant.health}% health`}><span style={{ width: `${plant.health}%` }} /></div> : <p>Health not recorded</p>}
       </header>
-      <div className="js-profile__record-actions"><button className="is-health" type="button" onClick={()=>onDiagnose?.(plant)}>Diagnose This Plant</button><button type="button" onClick={()=>onConsult?.(plant)}>Consult the Head Gardener</button><button type="button" onClick={onEdit}>Edit Plant</button><button type="button" onClick={()=>setMovingPlant(true)}>Move / Reclassify</button>{plant.archived?<button type="button" onClick={()=>restorePlant(plant.id)}>Restore Plant</button>:<button type="button" onClick={()=>{archivePlant(plant.id);onExit?.();}}>Archive Plant</button>}<button className="is-danger" type="button" onClick={()=>setConfirmDelete(true)}>Delete Plant</button></div>
+      <div className="js-profile__record-actions"><div><button className="is-health" type="button" onClick={()=>onDiagnose?.(plant)}>Diagnose This Plant</button><button type="button" onClick={()=>onConsult?.(plant)}>Consult the Head Gardener</button><button type="button" onClick={onEdit}>Edit {isFruitTree?"Tree":"Plant"}</button><button type="button" onClick={()=>setMovingPlant(true)}>Move / Reclassify</button>{plant.archived&&<button type="button" onClick={()=>restorePlant(plant.id)}>Restore {isFruitTree?"Tree":"Plant"}</button>}</div><div className="js-profile__danger-zone"><span>{plant.archived?"Permanent removal":"Archive or remove this record"}</span><button className="is-danger" type="button" onClick={()=>setConfirmDelete(true)}>Delete {isFruitTree?"Tree":"Plant"}</button></div></div>
       {movingPlant&&<PlantMoveForm plant={plant} onCancel={()=>setMovingPlant(false)} onSaved={(updated)=>{setSelectedPlant(updated);setMovingPlant(false);}}/>}
-      {confirmDelete&&<PlantDeleteDialog plant={plant} onCancel={()=>setConfirmDelete(false)} onScheduled={()=>{setConfirmDelete(false);onExit?.();}}/>}
+      {confirmDelete&&<PlantDeleteDialog plant={plant} onCancel={()=>setConfirmDelete(false)} onArchived={()=>{setConfirmDelete(false);onExit?.();}} onScheduled={()=>{setConfirmDelete(false);onExit?.();}}/>}
 
       <div className="js-profile__grid js-profile__grid--top">
         <article className="js-profile__card">

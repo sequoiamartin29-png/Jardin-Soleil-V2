@@ -61,7 +61,7 @@ const todaysLogs = [
 export default function Logbook({onNavigate}) {
   const { journalEntries, plants } = useGarden();
   const recent = [...journalEntries].sort((a,b) => new Date(b.createdAt || b.date || 0) - new Date(a.createdAt || a.date || 0)).slice(0, 8);
-  const plantName = (entry) => plants.find((plant) => plant.id === entry.plantId)?.nickname || plants.find((plant) => plant.id === entry.plantId)?.name || (entry.affectedPlantIds?.length ? `${entry.affectedPlantIds.length} linked plants` : "Jardin Soleil");
+  const plantName = (entry) => plants.find((plant) => plant.id === entry.plantId)?.nickname || plants.find((plant) => plant.id === entry.plantId)?.name || entry.deletedPlantName || (entry.affectedPlantIds?.length ? `${entry.affectedPlantIds.length} linked plants` : "Jardin Soleil");
   return (
     <section className="js-estate-page"
       style={{

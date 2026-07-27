@@ -45,7 +45,7 @@ export default function PlantHealthCenter({
   const selectedDiagnosis = garden.plantDiagnoses.find((item) => item.id === selectedDiagnosisId);
   const selectedPlant = garden.activePlants.find((item) => item.id === (draft.plantId || selectedDiagnosis?.plantId));
   const affectedPlant = garden.plants.find((item) => item.id === (selectedDiagnosis?.plantId || initialPlantId));
-  const activeCount = garden.plantDiagnoses.filter((item) => item.status !== "Resolved").length;
+  const activeCount = garden.plantDiagnoses.filter((item) => !["Resolved", "Archived"].includes(item.status)).length;
   useEffect(() => { if (draft?.status === "Draft") saveHealthDraft(draft); }, [draft]);
   const updateDraft = (patch) => setDraft((current) => ({ ...current, ...patch, updatedAt:new Date().toISOString() }));
   const begin = (step="photos") => { const next=createHealthDraft({ ...(initialPlantId?{plantId:initialPlantId}:{}), currentStep:step }); setDraft(next); setResult(null); setView(step === "photos" ? "photo" : "wizard"); };

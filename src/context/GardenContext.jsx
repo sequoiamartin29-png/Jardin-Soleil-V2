@@ -30,6 +30,18 @@ const createStableId = (prefix) => (
 const asArray = (value) => Array.isArray(value) ? value : [];
 const normalizePlantName = (value) => String(value || "").trim().toLocaleLowerCase();
 const withProfile = (record, profileId) => ({ ...record, gardenProfileId:profileId });
+const recordReferencesPlant = (record, plantId) => Boolean(
+  record
+  && (
+    record.plantId === plantId
+    || record.linkedPlantId === plantId
+    || record.estatePlantId === plantId
+    || asArray(record.affectedPlantIds).includes(plantId)
+    || asArray(record.linkedPlantIds).includes(plantId)
+    || asArray(record.targetIds).includes(plantId)
+    || asArray(record.confirmedActions).some((action) => recordReferencesPlant(action, plantId))
+  )
+);
 
 const normalizeJournalEntry = (entry, index = 0) => {
   const createdAt = entry.createdAt || entry.timestamp || entry.date || new Date().toISOString();
@@ -164,7 +176,8 @@ export function GardenProvider({ children }) {
   const [teaRecipes, setTeaRecipes] = useState(() => initialState.teaRecipes.map(normalizeTeaRecipe));
   const [calendarEntries, setCalendarEntries] = useState(initialState.calendarEntries);
   const [selectedPlant, setSelectedPlant] = useState(null);
-  const [pendingPlantDeletions, setPendingPlantDeletions] = useState([]);
+  const [pendingPlantDeletions, setPendingPlantDeletions] = useState(initialState.pendingPlantDeletions || []);
+  const [plantLifecycleNotices, setPlantLifecycleNotices] = useState([]);
   const deletionTimers = useRef(new Map());
 
   const pendingDeletionIds = useMemo(
@@ -198,11 +211,12 @@ export function GardenProvider({ children }) {
     inventoryItems,
     teaRecipes,
     calendarEntries,
+    pendingPlantDeletions,
     migratedFromLegacyAt:initialState.migratedFromLegacyAt || null,
   }), [
     gardenProfile, onboardingDraft, plants, zones, journalEntries, photos, plantDiagnoses,
     plantIdentifications, teaWorkflows, tasks, lastTaskRefreshDate, buddyGardenLogs,
-    inventoryItems, teaRecipes, calendarEntries, initialState.migratedFromLegacyAt,
+    inventoryItems, teaRecipes, calendarEntries, pendingPlantDeletions, initialState.migratedFromLegacyAt,
   ]);
 
   useEffect(() => {
@@ -230,6 +244,7 @@ export function GardenProvider({ children }) {
     setInventoryItems(next.inventoryItems.map(normalizeInventoryItem));
     setTeaRecipes(next.teaRecipes.map(normalizeTeaRecipe));
     setCalendarEntries(next.calendarEntries);
+    setPendingPlantDeletions(next.pendingPlantDeletions || []);
     setSelectedPlant(null);
     return result;
   };
@@ -644,25 +659,118 @@ export function GardenProvider({ children }) {
     setPlants((current) => [...current, next]);
     return next;
   };
-  const archivePlant = (plantId) => updatePlant(plantId, { archived:true, archivedAt:new Date().toISOString(), status:"Archived" });
-  const restorePlant = (plantId) => updatePlant(plantId, { archived:false, archivedAt:null, status:"Active" });
+  const pushPlantLifecycleNotice = (message) => {
+    const notice = { id:createStableId("plant-notice"), message };
+    setPlantLifecycleNotices((current) => [...current, notice]);
+    return notice;
+  };
+  const dismissPlantLifecycleNotice = (noticeId) => {
+    setPlantLifecycleNotices((current) => current.filter((notice) => notice.id !== noticeId));
+  };
+  const archivePlant = (plantId) => {
+    const plant = plants.find((item) => item.id === plantId);
+    if (!plant) return false;
+    const archivedAt = new Date().toISOString();
+    const recordLabel = isOrchardFruitTree(plant) ? "Tree" : "Plant";
+    const archiveSnapshot = plant.archiveSnapshot || {
+      status:plant.status || "Active",
+      category:plant.category || "",
+      group:plant.group || "",
+      collection:plant.collection || "",
+      zoneId:plant.zoneId || "",
+      gardenZone:plant.gardenZone || "",
+      location:plant.location || "",
+    };
+    updatePlant(plantId, { archived:true, archivedAt, archiveSnapshot, status:"Archived" });
+    setPlantDiagnoses((current) => current.map((diagnosis) => (
+      diagnosis.plantId === plantId && !["Resolved", "Archived"].includes(diagnosis.status)
+        ? { ...diagnosis, statusBeforePlantArchive:diagnosis.status, status:"Archived", archivedAt, archivedForPlantId:plantId }
+        : diagnosis
+    )));
+    setTasks((current) => current.map((task) => (
+      task.plantId === plantId && !task.completed && !task.archived
+        ? { ...task, archived:true, archivedAt, archivedForPlantId:plantId }
+        : task
+    )));
+    pushPlantLifecycleNotice(
+      recordLabel === "Tree"
+        ? "Tree removed from your orchard and archived safely."
+        : "Plant removed from your active directory and archived safely.",
+    );
+    return true;
+  };
+  const restorePlant = (plantId) => {
+    const plant = plants.find((item) => item.id === plantId);
+    if (!plant) return false;
+    const restoredAt = new Date().toISOString();
+    const restoredStatus = ["Archived", "Removed"].includes(plant.archiveSnapshot?.status)
+      ? "Active"
+      : plant.archiveSnapshot?.status || "Active";
+    updatePlant(plantId, { archived:false, archivedAt:null, status:restoredStatus, restoredAt });
+    setPlantDiagnoses((current) => current.map((diagnosis) => (
+      diagnosis.archivedForPlantId === plantId
+        ? {
+            ...diagnosis,
+            status:diagnosis.statusBeforePlantArchive || "Unconfirmed",
+            statusBeforePlantArchive:null,
+            archivedAt:null,
+            archivedForPlantId:null,
+            updatedAt:restoredAt,
+          }
+        : diagnosis
+    )));
+    setTasks((current) => current.map((task) => (
+      task.archivedForPlantId === plantId
+        ? { ...task, archived:false, archivedAt:null, archivedForPlantId:null, updatedAt:restoredAt }
+        : task
+    )));
+    pushPlantLifecycleNotice(`${isOrchardFruitTree(plant) ? "Tree" : "Plant"} restored to active records.`);
+    return true;
+  };
   const finalizeDeletePlant = (plant) => {
+    const deletedAt = new Date().toISOString();
+    const preserve = (record) => preserveDeletedPlantReference(record, plant);
     setPlants((current) => current.filter((item) => item.id !== plant.id));
-    setJournalEntries((current) => current.map((entry) => preserveDeletedPlantReference(entry, plant)));
-    setPhotos((current) => current.map((photo) => preserveDeletedPlantReference(photo, plant)));
-    setPlantDiagnoses((current) => current.map((diagnosis) => preserveDeletedPlantReference(diagnosis, plant)));
-    setTeaWorkflows((current) => current.map((workflow) => preserveDeletedPlantReference(workflow, plant)));
-    setTasks((current) => current.map((task) => preserveDeletedPlantReference(task, plant)));
-    setCalendarEntries((current) => current.map((entry) => preserveDeletedPlantReference(entry, plant)));
+    setJournalEntries((current) => current.map(preserve));
+    setPhotos((current) => current.map(preserve));
+    setPlantDiagnoses((current) => current.map((diagnosis) => {
+      const preserved = preserve(diagnosis);
+      return preserved === diagnosis ? diagnosis : {
+        ...preserved,
+        status:["Resolved", "Archived"].includes(diagnosis.status) ? diagnosis.status : "Archived",
+        statusBeforePlantDeletion:diagnosis.status,
+        archivedAt:diagnosis.archivedAt || deletedAt,
+      };
+    }));
+    setPlantIdentifications((current) => current.map(preserve));
+    setTeaWorkflows((current) => current.map(preserve));
+    setTasks((current) => current.map((task) => {
+      const preserved = preserve(task);
+      return preserved === task ? task : {
+        ...preserved,
+        archived:task.archived || !task.completed,
+        archivedAt:task.archivedAt || (!task.completed ? deletedAt : null),
+      };
+    }));
+    setBuddyGardenLogs((current) => current.map(preserve));
+    setInventoryItems((current) => current.map(preserve));
+    setTeaRecipes((current) => current.map(preserve));
+    setCalendarEntries((current) => current.map(preserve));
     setPendingPlantDeletions((current) => current.filter((item) => item.plantId !== plant.id));
     deletionTimers.current.delete(plant.id);
     if (selectedPlant?.id === plant.id) setSelectedPlant(null);
+    pushPlantLifecycleNotice(
+      `${isOrchardFruitTree(plant) ? "Tree" : "Plant"} permanently deleted. Related history was preserved.`,
+    );
   };
   const scheduleDeletePlant = (plantId) => {
     const plant = plants.find((item) => item.id === plantId);
     if (!plant || deletionTimers.current.has(plantId)) return false;
     const deadline = Date.now() + 10000;
-    setPendingPlantDeletions((current) => [...current, { plantId, plantName:plant.name, deadline }]);
+    setPendingPlantDeletions((current) => [
+      ...current.filter((item) => item.plantId !== plantId),
+      { plantId, plantName:plant.nickname || plant.name, plantKind:isOrchardFruitTree(plant) ? "Tree" : "Plant", deadline },
+    ]);
     deletionTimers.current.set(plantId, setTimeout(() => finalizeDeletePlant(plant), 10000));
     return true;
   };
@@ -674,6 +782,22 @@ export function GardenProvider({ children }) {
     setPendingPlantDeletions((current) => current.filter((item) => item.plantId !== plantId));
     return true;
   };
+
+  useEffect(() => {
+    pendingPlantDeletions.forEach((pending) => {
+      if (deletionTimers.current.has(pending.plantId)) return;
+      const plant = plants.find((item) => item.id === pending.plantId);
+      if (!plant) {
+        setPendingPlantDeletions((current) => current.filter((item) => item.plantId !== pending.plantId));
+        return;
+      }
+      const remaining = Math.max(0, Number(pending.deadline) - Date.now());
+      deletionTimers.current.set(
+        pending.plantId,
+        setTimeout(() => finalizeDeletePlant(plant), remaining),
+      );
+    });
+  }, [pendingPlantDeletions, plants]);
 
   const getPlantById = (plantId) => plants.find((plant) => plant.id === plantId);
   const getEntriesForPlant = (plantId) => journalEntries.filter((entry) => entry.plantId === plantId || entry.affectedPlantIds?.includes(plantId));
@@ -688,7 +812,7 @@ export function GardenProvider({ children }) {
     const herbs = activePlants.filter((plant) => ["Herbs", "Mints", "Tea Plants"].includes(plant.category));
     const gardenBeds = getUniqueGardenBeds(activePlants);
     const mintVarieties = getMintVarietyNames(activePlants);
-    const activeHealthCases = plantDiagnoses.filter((diagnosis) => diagnosis.status !== "Resolved");
+    const activeHealthCases = plantDiagnoses.filter((diagnosis) => !["Resolved", "Archived"].includes(diagnosis.status));
     const harvests = journalEntries.filter((entry) => /harvest/i.test(`${entry.type || ""} ${entry.title || ""}`));
     const weightedHealth = activePlants.reduce((sum, plant) => sum + (Number(plant.health) || 100), 0);
     return {
@@ -711,7 +835,7 @@ export function GardenProvider({ children }) {
       mintVarieties,
       citrusCount:activePlants.filter((plant) => (plant.category || "").toLocaleLowerCase() === "citrus").length,
       plantsNeedingAttention:activePlants.filter((plant) => Number(plant.health || 100) < 85),
-      openTaskCount:tasks.filter((task) => !task.completed && !task.isTemplate).length,
+      openTaskCount:tasks.filter((task) => !task.completed && !task.isTemplate && !task.archived).length,
       activeHealthCaseCount:activeHealthCases.length,
       harvestCount:harvests.length,
       recentEntries:journalEntries.slice(0, 5),
@@ -793,6 +917,8 @@ export function GardenProvider({ children }) {
     scheduleDeletePlant,
     undoDeletePlant,
     pendingPlantDeletions,
+    plantLifecycleNotices,
+    dismissPlantLifecycleNotice,
     getPlantById,
     getEntriesForPlant,
     getPhotosForPlant,

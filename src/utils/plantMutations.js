@@ -62,5 +62,44 @@ export function validatePlantMove(input, plant, existingPlants=[]) {
 }
 
 export function preserveDeletedPlantReference(record, plant) {
-  return record.plantId===plant.id?{...record,plantId:null,deletedPlantId:plant.id,deletedPlantName:plant.name,plantDeleted:true}:record;
+  if (!record || !plant?.id) return record;
+
+  const directReferenceFields = ["plantId", "linkedPlantId", "estatePlantId"];
+  const listReferenceFields = ["affectedPlantIds", "linkedPlantIds", "targetIds"];
+  let changed = false;
+  const next = { ...record };
+
+  directReferenceFields.forEach((field) => {
+    if (next[field] !== plant.id) return;
+    next[field] = null;
+    changed = true;
+  });
+
+  listReferenceFields.forEach((field) => {
+    if (!Array.isArray(next[field]) || !next[field].includes(plant.id)) return;
+    next[field] = next[field].filter((id) => id !== plant.id);
+    changed = true;
+  });
+
+  if (Array.isArray(next.confirmedActions)) {
+    const confirmedActions = next.confirmedActions.map((action) => preserveDeletedPlantReference(action, plant));
+    if (confirmedActions.some((action, index) => action !== next.confirmedActions[index])) {
+      next.confirmedActions = confirmedActions;
+      changed = true;
+    }
+  }
+
+  if (!changed) return record;
+
+  const priorReferences = Array.isArray(record.deletedPlantReferences) ? record.deletedPlantReferences : [];
+  return {
+    ...next,
+    deletedPlantId:record.deletedPlantId || plant.id,
+    deletedPlantName:record.deletedPlantName || plant.nickname || plant.name,
+    deletedPlantReferences:[
+      ...priorReferences.filter((reference) => reference.id !== plant.id),
+      { id:plant.id, name:plant.nickname || plant.name },
+    ],
+    plantDeleted:true,
+  };
 }

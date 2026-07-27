@@ -55,6 +55,7 @@ import {
   buildPlantHealthAlerts,
   unreadPlantHealthAlerts,
 } from "./utils/plantHealthAlerts";
+import { isOrchardFruitTree } from "./utils/plantClassification";
 
 import "./styles/app.css";
 
@@ -288,7 +289,7 @@ function GardenApp() {
         }} />;
 
       case "Plant Editor":
-        return <PlantEditor plant={selectedPlant} initialValues={plantEditorPrefill?.values} initialPhoto={plantEditorPrefill?.photo} onOpenPlantFinder={() => navigate("Plant Finder")} onCancel={() => navigate(selectedPlant ? "Plant Profile" : plantEditorReturnPage)} onSaved={(plant) => { if (plantEditorPrefill?.identificationId) updatePlantIdentification(plantEditorPrefill.identificationId, { verificationStatus:"Added to Estate", estatePlantId:plant.id }); setPlantEditorPrefill(null); setSelectedPlant(plant); navigate("Plant Profile"); }} onOpenExisting={openPlant} />;
+        return <PlantEditor plant={selectedPlant} initialValues={plantEditorPrefill?.values} initialPhoto={plantEditorPrefill?.photo} onOpenPlantFinder={() => navigate("Plant Finder")} onCancel={() => navigate(selectedPlant ? "Plant Profile" : plantEditorReturnPage)} onSaved={(plant) => { if (plantEditorPrefill?.identificationId) updatePlantIdentification(plantEditorPrefill.identificationId, { verificationStatus:"Added to Estate", estatePlantId:plant.id }); setPlantEditorPrefill(null); setSelectedPlant(plant); navigate("Plant Profile"); }} onRemoved={({plant}) => { setPlantEditorPrefill(null); navigate(isOrchardFruitTree(plant) ? "Orchard" : "Plant Directory"); }} onOpenExisting={openPlant} />;
 
       case "Add New Plant":
         return <PlantEditor plant={null} onOpenPlantFinder={() => navigate("Plant Finder")} onCancel={() => navigate("Dashboard")} onSaved={(plant) => { setSelectedPlant(plant); navigate("Plant Profile"); }} onOpenExisting={openPlant} />;

@@ -14,7 +14,7 @@ export default function EstateHealthReview({ plants, diagnoses, onOpen, onStartD
   const plantFor = (id) => plants.find((plant) => plant.id === id);
   const zones = [...new Set(plants.map((plant) => plant.gardenZone || plant.location).filter(Boolean))].sort();
   const active = diagnoses.filter((item) => activeStatuses.has(item.status));
-  const unresolved = diagnoses.filter((item) => item.status !== "Resolved");
+  const unresolved = diagnoses.filter((item) => !["Resolved", "Archived"].includes(item.status));
   const improving = diagnoses.filter((item) => item.status === "Improving");
   const resolved = diagnoses.filter((item) => item.status === "Resolved");
   const repeated = Object.entries(diagnoses.reduce((map, item) => ({ ...map, [item.workingDiagnosis]:(map[item.workingDiagnosis] || 0) + 1 }), {})).filter(([, count]) => count > 1);
@@ -61,4 +61,3 @@ export default function EstateHealthReview({ plants, diagnoses, onOpen, onStartD
     </div>
   );
 }
-

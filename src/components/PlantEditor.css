@@ -35,9 +35,14 @@
 .js-plant-editor__duplicates h2 { color: #725233; font: italic 28px Georgia, serif; margin: 0 0 7px; }
 .js-plant-editor__duplicates > div { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
 .js-plant-editor__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; margin-top: 26px; }
+.js-plant-editor__danger-zone { align-items:center; border-top:1px solid rgba(147,75,81,.34); display:flex; gap:20px; grid-column:1 / -1; justify-content:space-between; margin-top:34px; padding-top:22px; }
+.js-plant-editor__danger-zone > div { display:grid; gap:5px; max-width:680px; }
+.js-plant-editor__danger-zone strong { color:#743f43; font:600 19px Georgia,serif; }
+.js-plant-editor__danger-zone span { color:#76665d; font-size:13px; line-height:1.5; }
 
 @media (max-width: 650px) {
   .js-plant-editor { padding: 24px 16px; }
   .js-plant-editor label.is-wide { grid-column: auto; }
   .js-plant-editor__actions .js-estate-action { flex: 1 1 130px; }
+  .js-plant-editor__danger-zone { align-items:stretch; flex-direction:column; }
 }

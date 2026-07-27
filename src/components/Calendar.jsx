@@ -6,9 +6,9 @@ import "./Calendar.css";
 
 const keyFor = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 export default function Calendar({ onNavigate }) {
-  const { tasks, journalEntries, teaWorkflows, activePlants } = useGarden();
+  const { tasks, journalEntries, teaWorkflows, plants } = useGarden();
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  const events = useMemo(() => getGardenCalendarEvents({ tasks, journalEntries, teaWorkflows, plants:activePlants }), [tasks, journalEntries, teaWorkflows, activePlants]);
+  const events = useMemo(() => getGardenCalendarEvents({ tasks, journalEntries, teaWorkflows, plants }), [tasks, journalEntries, teaWorkflows, plants]);
   const monthPrefix = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
   const monthEvents = events.filter((event) => event.date.startsWith(monthPrefix));
   const firstDay = month.getDay();

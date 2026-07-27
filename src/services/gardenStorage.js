@@ -82,6 +82,7 @@ export const createEmptyGardenState = (profileValues = {}) => ({
   inventoryItems: [],
   teaRecipes: [],
   calendarEntries: [],
+  pendingPlantDeletions: [],
   lastTaskRefreshDate: "",
   migratedFromLegacyAt: null,
 });
@@ -96,6 +97,9 @@ const scopeGardenRecords = (state) => {
       gardenProfileId: record.gardenProfileId || profile.id,
     }));
   });
+  normalized.pendingPlantDeletions = Array.isArray(normalized.pendingPlantDeletions)
+    ? normalized.pendingPlantDeletions.filter((item) => item?.plantId && Number.isFinite(Number(item.deadline)))
+    : [];
   return normalized;
 };
 

@@ -1,6 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useGarden } from "../context/GardenContext";
 import BotanicalIcon from "./icons/BotanicalIcon";
+import PlantDeleteDialog from "./PlantDeleteDialog";
 import {
   BotanicalStatusSeal,
   EstateActionButton,
@@ -37,6 +38,7 @@ const recordedValue = (value, fallback = "Not recorded") => value || fallback;
 
 export default function Orchard({ onSelectPlant, onEditPlant, onAddPlant }) {
   const { activePlants } = useGarden();
+  const [deletingTree, setDeletingTree] = useState(null);
   const orchardPlants = activePlants.filter(isOrchardFruitTree);
   const groupedPlants = useMemo(() => {
     const groups = Object.fromEntries(orchardDirectoryGroups.map((group) => [group, []]));
@@ -133,6 +135,7 @@ export default function Orchard({ onSelectPlant, onEditPlant, onAddPlant }) {
                         <EstateActionButton variant="primary" onClick={() => onSelectPlant(plant)}>Open Plant Profile</EstateActionButton>
                         {onEditPlant && <EstateActionButton variant="ledger" onClick={() => onEditPlant(plant)}>Edit Plant</EstateActionButton>}
                         {onEditPlant && <EstateActionButton variant="quiet" onClick={() => onEditPlant(plant)}>Move / Reclassify</EstateActionButton>}
+                        <EstateActionButton variant="quiet" className="is-danger" onClick={() => setDeletingTree(plant)}>Delete Tree</EstateActionButton>
                       </div>
                     </div>
                   </EstateDataCard>
@@ -142,6 +145,7 @@ export default function Orchard({ onSelectPlant, onEditPlant, onAddPlant }) {
           </section>
         );
       })}
+      {deletingTree&&<PlantDeleteDialog plant={deletingTree} onCancel={()=>setDeletingTree(null)} onArchived={()=>setDeletingTree(null)} onScheduled={()=>setDeletingTree(null)}/>}
     </EstatePageShell>
   );
 }

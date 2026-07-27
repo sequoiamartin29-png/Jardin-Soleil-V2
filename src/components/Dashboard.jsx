@@ -45,7 +45,7 @@ export default function Dashboard({ onNavigate, skinId }) {
   const spotlightPlant = activePlants[spotlightIndex % Math.max(activePlants.length, 1)];
   const recentEntry = journalEntries[0];
   const recentHarvest = journalEntries.find((entry) => /harvest/i.test(`${entry.type || ""} ${entry.title || ""}`));
-  const openTasks = tasks.filter((task) => !task.completed && !task.isTemplate).slice(0, 5);
+  const openTasks = tasks.filter((task) => !task.completed && !task.isTemplate && !task.archived).slice(0, 5);
   const upcomingEvents = calendarEntries
     .filter((entry) => !entry.date || entry.date >= new Date().toISOString().slice(0, 10))
     .sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"))

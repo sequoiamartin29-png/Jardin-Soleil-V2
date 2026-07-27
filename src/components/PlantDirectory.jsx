@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useGarden } from "../context/GardenContext";
 import BotanicalIcon from "./icons/BotanicalIcon";
+import PlantDeleteDialog from "./PlantDeleteDialog";
 import { getPlantDirectoryGroup, isOrchardFruitTree, normalizePlantText, plantDirectoryGroups } from "../utils/plantClassification";
 
 const filters = [
@@ -16,6 +17,7 @@ export default function PlantDirectory({ initialSearch = "", initialFilter = "Al
   const { plants, activePlants, stats } = useGarden();
   const [search, setSearch] = useState(() => String(initialSearch || "").trim());
   const [filter, setFilter] = useState(() => filters.includes(initialFilter) ? initialFilter : "All");
+  const [deletingTree, setDeletingTree] = useState(null);
 
   const filteredPlants = useMemo(() => {
     const normalizedSearch = normalizePlantText(search);
@@ -132,7 +134,7 @@ export default function PlantDirectory({ initialSearch = "", initialFilter = "Al
 
       <p aria-live="polite" style={{ color: "#6E745F", margin: "-12px 0 28px" }}>
         Showing <strong>{filteredPlants.length}</strong> {filteredPlants.length === 1 ? "plant" : "plants"}
-        {search.trim() ? ` for “${search.trim()}”` : ""} · {plants.filter(isOrchardFruitTree).length} orchard fruit trees
+        {search.trim() ? ` for “${search.trim()}”` : ""} · {activePlants.filter(isOrchardFruitTree).length} orchard fruit trees
         <span>{` · ${stats.mintVarietyCount} mint varieties · ${stats.edibleHerbCount} edibles & herbs · ${stats.gardenZoneCount} garden zones`}</span>
       </p>
 
@@ -231,6 +233,7 @@ export default function PlantDirectory({ initialSearch = "", initialFilter = "Al
               🌿 Open Profile
             </button>
             <button type="button" onClick={() => onEditPlant?.(plant)} style={{width:"100%",marginTop:"8px",padding:"11px",borderRadius:"16px",border:"1px solid #b6955d",background:"#faf4e8",color:"#53633f",cursor:"pointer",fontWeight:"bold"}}>Edit Plant</button>
+            {isOrchardFruitTree(plant)&&<button type="button" onClick={()=>setDeletingTree(plant)} style={{width:"100%",marginTop:"16px",padding:"11px",borderRadius:"16px",border:"1px solid #934b51",background:"#fff8f2",color:"#803d43",cursor:"pointer",fontWeight:"bold"}}>Delete Tree</button>}
                 </article>
                 </React.Fragment>
               ))}
@@ -238,6 +241,7 @@ export default function PlantDirectory({ initialSearch = "", initialFilter = "Al
           </section>
         );
       })}
+      {deletingTree&&<PlantDeleteDialog plant={deletingTree} onCancel={()=>setDeletingTree(null)} onArchived={()=>setDeletingTree(null)} onScheduled={()=>setDeletingTree(null)}/>}
     </section>
   );
 }
