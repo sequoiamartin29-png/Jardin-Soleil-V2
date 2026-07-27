@@ -1,47 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { GardenProvider, useGarden } from "./context/GardenContext";
 import { EstateEnvironmentProvider } from "./context/EstateEnvironmentContext";
 
-import Dashboard from "./components/Dashboard";
-import Orchard from "./components/Orchard";
-import Garden from "./components/Garden";
-import Logbook from "./components/Logbook";
-import Gallery from "./components/Gallery";
-import Inventory from "./components/Inventory";
-import Tasks from "./components/Tasks";
-import Calendar from "./components/Calendar";
-import Weather from "./components/Weather";
-import Learning from "./components/Learning";
-import WordSearch from "./components/WordSearch";
-import TeaApothecary from "./components/TeaApothecary";
-import GardenChallenges from "./components/GardenChallenges";
-import GardenMatch from "./components/gardenMatch/GardenMatch";
-import PlantDirectory from "./components/PlantDirectory";
-import PlantProfile from "./components/PlantProfile";
-import JournalEntry from "./components/JournalEntry";
-import JournalTimeline from "./components/JournalTimeline";
-import JournalHub from "./components/JournalHub";
-import PhotoManager from "./components/PhotoManager";
-import BuddyJournal from "./components/dashboard/BuddyJournal";
-import EstateEnvironmentSettings from "./components/EstateEnvironmentSettings";
-import PlantEditor from "./components/PlantEditor";
-import Conservatory from "./components/conservatory/Conservatory";
-import ArchivedPlants from "./components/ArchivedPlants";
 import PlantDeletionSnackbar from "./components/PlantDeletionSnackbar";
 import EstateMenuDrawer from "./components/EstateMenuDrawer";
 import EstateAppShell from "./components/EstateAppShell";
-import PlantHealthCenter from "./components/plantHealth/PlantHealthCenter";
-import PlantFinder from "./components/plantFinder/PlantFinder";
-import PlantFinderHistory from "./components/plantFinder/PlantFinderHistory";
-import BuddyDailyLogger from "./components/buddy/BuddyDailyLogger";
-import BuddyGarden from "./components/BuddyGarden";
-import GardenGames from "./components/GardenGames";
-import GardenOnboarding from "./components/GardenOnboarding";
-import GardenSettings from "./components/GardenSettings";
 import DashboardSkinDialog from "./components/DashboardSkinDialog";
 import HealthCenterErrorBoundary from "./components/plantHealth/HealthCenterErrorBoundary";
+import AppErrorBoundary from "./components/AppErrorBoundary";
+import PageLoading from "./components/PageLoading";
 import { HEALTH_PAGE_KEY } from "./utils/healthCaseDraft";
+import { initializeNativeApp } from "./services/nativeApp";
 import {
   DASHBOARD_SKIN_STORAGE_KEY,
   getDashboardSkin,
@@ -58,6 +28,41 @@ import {
 import { isOrchardFruitTree } from "./utils/plantClassification";
 
 import "./styles/app.css";
+
+const Dashboard = lazy(() => import("./components/Dashboard"));
+const Orchard = lazy(() => import("./components/Orchard"));
+const Garden = lazy(() => import("./components/Garden"));
+const Logbook = lazy(() => import("./components/Logbook"));
+const Gallery = lazy(() => import("./components/Gallery"));
+const Inventory = lazy(() => import("./components/Inventory"));
+const Tasks = lazy(() => import("./components/Tasks"));
+const Calendar = lazy(() => import("./components/Calendar"));
+const Weather = lazy(() => import("./components/Weather"));
+const Learning = lazy(() => import("./components/Learning"));
+const WordSearch = lazy(() => import("./components/WordSearch"));
+const TeaApothecary = lazy(() => import("./components/TeaApothecary"));
+const GardenChallenges = lazy(() => import("./components/GardenChallenges"));
+const GardenMatch = lazy(() => import("./components/gardenMatch/GardenMatch"));
+const PlantDirectory = lazy(() => import("./components/PlantDirectory"));
+const PlantProfile = lazy(() => import("./components/PlantProfile"));
+const JournalEntry = lazy(() => import("./components/JournalEntry"));
+const JournalTimeline = lazy(() => import("./components/JournalTimeline"));
+const JournalHub = lazy(() => import("./components/JournalHub"));
+const PhotoManager = lazy(() => import("./components/PhotoManager"));
+const BuddyJournal = lazy(() => import("./components/dashboard/BuddyJournal"));
+const EstateEnvironmentSettings = lazy(() => import("./components/EstateEnvironmentSettings"));
+const PlantEditor = lazy(() => import("./components/PlantEditor"));
+const Conservatory = lazy(() => import("./components/conservatory/Conservatory"));
+const ArchivedPlants = lazy(() => import("./components/ArchivedPlants"));
+const PlantHealthCenter = lazy(() => import("./components/plantHealth/PlantHealthCenter"));
+const PlantFinder = lazy(() => import("./components/plantFinder/PlantFinder"));
+const PlantFinderHistory = lazy(() => import("./components/plantFinder/PlantFinderHistory"));
+const BuddyDailyLogger = lazy(() => import("./components/buddy/BuddyDailyLogger"));
+const BuddyGarden = lazy(() => import("./components/BuddyGarden"));
+const GardenGames = lazy(() => import("./components/GardenGames"));
+const GardenOnboarding = lazy(() => import("./components/GardenOnboarding"));
+const GardenSettings = lazy(() => import("./components/GardenSettings"));
+const Privacy = lazy(() => import("./components/Privacy"));
 
 const PLANT_HEALTH_NAVIGATION_KEY = "jardinSoleilPlantHealthNavigation";
 const emptyHealthLaunch = { plantId:"", diagnosisId:"", mode:"", finderContext:null, launchId:0 };
@@ -116,6 +121,7 @@ const estatePagePresentation = {
   "The Conservatory":{ theme:"conservatory", accent:"plum", title:"The Conservatory" },
   "Estate Environment":{ theme:"conservatory", accent:"powder-blue", title:"Estate Environment" },
   "Garden Settings":{ theme:"nursery", accent:"gold", title:"Garden Profile & Data" },
+  "Privacy & Support":{ theme:"herbarium", accent:"sage", title:"Privacy & Support" },
 };
 
 function GardenApp() {
@@ -142,11 +148,20 @@ function GardenApp() {
   const [dashboardSkinPreviewId,setDashboardSkinPreviewId]=useState(loadStoredDashboardSkinId);
   const [dashboardSkinDialogOpen,setDashboardSkinDialogOpen]=useState(false);
   const menuTriggerRef=useRef(null);
+  const nativeBackHandlerRef=useRef(() => false);
   const closeMenu=useCallback(()=>setMenuOpen(false),[]);
   useEffect(() => { try { localStorage.setItem(HEALTH_PAGE_KEY, page); } catch { /* navigation remains usable */ } }, [page]);
   useEffect(() => {
     try { localStorage.setItem(DASHBOARD_SKIN_STORAGE_KEY, dashboardSkinId); } catch { /* preview and selection still work in memory */ }
   }, [dashboardSkinId]);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const main = document.getElementById("estate-page-content");
+      main?.focus({ preventScroll:true });
+      globalThis.scrollTo?.({ top:0, behavior:"auto" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [page]);
 
   const {
     gardenProfile,
@@ -220,6 +235,31 @@ function GardenApp() {
     }
     setPage(nextPage);
   };
+  nativeBackHandlerRef.current = () => {
+    if (menuOpen) {
+      closeMenu();
+      return true;
+    }
+    if (page !== "Dashboard") {
+      navigate("Dashboard");
+      return true;
+    }
+    return false;
+  };
+  useEffect(() => {
+    let active = true;
+    let cleanup = () => {};
+    initializeNativeApp({
+      onBack:() => nativeBackHandlerRef.current(),
+    }).then((dispose) => {
+      if (active) cleanup = dispose;
+      else dispose();
+    });
+    return () => {
+      active = false;
+      cleanup();
+    };
+  }, []);
   const openDashboardSkins = () => {
     setDashboardSkinPreviewId(dashboardSkinId);
     setDashboardSkinDialogOpen(true);
@@ -372,6 +412,9 @@ function GardenApp() {
       case "Garden Settings":
         return <GardenSettings key={`garden-settings-${navigationContext.launchId}`} initialSection={navigationContext.settingsSection || "profile"} onNavigate={navigate} />;
 
+      case "Privacy & Support":
+        return <Privacy onNavigate={navigate} />;
+
       default:
         return <Dashboard skinId={dashboardSkinDialogOpen ? dashboardSkinPreviewId : dashboardSkinId} onNavigate={navigate} />;
     }
@@ -382,7 +425,9 @@ function GardenApp() {
     ? selectedPlant ? `Edit ${selectedPlant.nickname || selectedPlant.name}` : "Add New Plant"
     : presentation.title;
 
-  if (!gardenProfile.onboardingCompleted) return <GardenOnboarding onComplete={() => navigate("Dashboard")} />;
+  if (!gardenProfile.onboardingCompleted) {
+    return <Suspense fallback={<PageLoading label="Preparing your garden" />}><GardenOnboarding onComplete={() => navigate("Dashboard")} /></Suspense>;
+  }
 
   return (
     <div className="app">
@@ -397,7 +442,9 @@ function GardenApp() {
         onNavigate={navigate}
         sampleGardenEnabled={gardenProfile.sampleGardenEnabled}
       >
-        {renderPage()}
+        <Suspense fallback={<PageLoading label={`Opening ${pageTitle}`} />}>
+          {renderPage()}
+        </Suspense>
       </EstateAppShell>
       <EstateMenuDrawer open={menuOpen} onClose={closeMenu} onNavigate={navigate} onOpenAppearance={openDashboardSkins} activePage={page} activeContext={navigationContext} healthAlerts={unreadHealthAlerts} returnFocusRef={menuTriggerRef}/>
       <DashboardSkinDialog
@@ -415,10 +462,12 @@ function GardenApp() {
 
 export default function App() {
   return (
-    <EstateEnvironmentProvider>
-      <GardenProvider>
-        <GardenApp />
-      </GardenProvider>
-    </EstateEnvironmentProvider>
+    <AppErrorBoundary>
+      <EstateEnvironmentProvider>
+        <GardenProvider>
+          <GardenApp />
+        </GardenProvider>
+      </EstateEnvironmentProvider>
+    </AppErrorBoundary>
   );
 }

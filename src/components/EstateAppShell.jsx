@@ -32,6 +32,7 @@ export default function EstateAppShell({
 
   return (
     <div className={`js-estate-app-shell js-estate-app-shell--${theme}`} data-theme={theme} data-accent={accent}>
+      <a className="js-estate-app-shell__skip" href="#estate-page-content">Skip to page content</a>
       <div className="js-estate-app-shell__lighting" aria-hidden="true" />
       <div className="js-estate-app-shell__canopy" aria-hidden="true"><span /><span /><span /><span /></div>
       <div className="js-estate-app-shell__gold-frame" aria-hidden="true" />
@@ -62,7 +63,7 @@ export default function EstateAppShell({
 
       {sampleGardenEnabled && <div className="js-estate-app-shell__sample-badge" role="status">Sample Garden · Fictional records</div>}
 
-      <main className="js-estate-app-shell__main" id="estate-page-content">
+      <main className="js-estate-app-shell__main" id="estate-page-content" tabIndex="-1">
         <div className="js-estate-app-shell__content-window">
           <div className="js-estate-app-shell__page" key={page} data-page={page}>
             {children}

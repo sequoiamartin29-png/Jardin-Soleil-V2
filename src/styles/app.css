@@ -13,7 +13,7 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust:100%; }
 
 body {
   margin: 0;
@@ -59,6 +59,13 @@ body {
 .card:hover { transform: translateY(-4px); }
 button { font: inherit; transition: .25s; }
 button:hover { transform: translateY(-2px); }
+button,
+a,
+input,
+select,
+textarea { -webkit-tap-highlight-color:transparent; }
+button,
+[role="button"] { touch-action:manipulation; }
 
 input,
 select,
@@ -83,4 +90,28 @@ textarea {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   button, .card { transition: none; }
+}
+
+.js-page-loading{align-items:center;color:#526047;display:flex;gap:12px;justify-content:center;min-height:40vh;padding:48px;text-align:center}
+.js-page-loading span{animation:js-loading 1s linear infinite;border:3px solid #d8c69e;border-radius:50%;border-top-color:#6d805e;height:28px;width:28px}
+@keyframes js-loading{to{transform:rotate(1turn)}}
+.js-app-recovery{background:linear-gradient(145deg,#fffdf8,#efe4cd);border:1px solid #b88c48;border-radius:30px;box-shadow:0 20px 60px rgba(56,43,25,.18);color:#46533f;margin:10vh auto;max-width:650px;padding:clamp(28px,7vw,64px);text-align:center;width:calc(100% - 32px)}
+.js-app-recovery__crest{align-items:center;background:#536348;border:3px double #d9bd77;border-radius:50%;color:#fff8e6;display:flex;font:700 28px Georgia,serif;height:78px;justify-content:center;margin:auto;width:78px}
+.js-app-recovery h1{font:700 clamp(30px,6vw,48px)/1.05 Georgia,serif}
+.js-app-recovery button,.js-privacy__actions a,.js-privacy__actions button{background:#56684d;border:1px solid #34412f;border-radius:999px;color:#fffdf2;display:inline-flex;font-weight:750;justify-content:center;padding:12px 18px;text-decoration:none}
+.js-privacy .js-estate-panel{margin-bottom:18px}
+.js-privacy .js-estate-panel h2{font-family:Georgia,"Times New Roman",serif}
+.js-privacy .js-estate-panel li{margin:.7em 0}
+.js-privacy__inline{display:inline;padding:2px 5px!important}
+.js-privacy__actions{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}
+
+@media (max-width:760px) {
+  button,
+  a,
+  input,
+  select { min-height:44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js-page-loading span { animation:none; }
 }

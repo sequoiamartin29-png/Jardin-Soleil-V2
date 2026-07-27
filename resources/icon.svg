@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="cream" cx="42%" cy="28%" r="78%">
+      <stop offset="0" stop-color="#fffdf3"/>
+      <stop offset="1" stop-color="#eadfc6"/>
+    </radialGradient>
+    <linearGradient id="sage" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#718365"/>
+      <stop offset="1" stop-color="#42533e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="228" fill="url(#cream)"/>
+  <circle cx="512" cy="512" r="362" fill="none" stroke="#b58a43" stroke-width="24"/>
+  <circle cx="512" cy="512" r="326" fill="url(#sage)" stroke="#f4df9f" stroke-width="10"/>
+  <g fill="#dba4b5" stroke="#f7dce4" stroke-width="8">
+    <ellipse cx="287" cy="325" rx="76" ry="42" transform="rotate(-28 287 325)"/>
+    <ellipse cx="737" cy="325" rx="76" ry="42" transform="rotate(28 737 325)"/>
+    <ellipse cx="306" cy="709" rx="72" ry="39" transform="rotate(28 306 709)"/>
+    <ellipse cx="718" cy="709" rx="72" ry="39" transform="rotate(-28 718 709)"/>
+  </g>
+  <g fill="#91a67c">
+    <ellipse cx="226" cy="465" rx="34" ry="82" transform="rotate(-35 226 465)"/>
+    <ellipse cx="798" cy="465" rx="34" ry="82" transform="rotate(35 798 465)"/>
+    <ellipse cx="390" cy="195" rx="29" ry="70" transform="rotate(-62 390 195)"/>
+    <ellipse cx="634" cy="195" rx="29" ry="70" transform="rotate(62 634 195)"/>
+  </g>
+  <text x="512" y="625" fill="#fff9e9" font-family="Georgia,serif" font-size="286" font-weight="700" letter-spacing="-24" text-anchor="middle">JS</text>
+</svg>

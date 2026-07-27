@@ -1,4 +1,4 @@
-const PHOTO_ANALYSIS_ENDPOINT = "/.netlify/functions/plant-health";
+const PHOTO_ANALYSIS_ENDPOINT = "https://jardin-soleil-v2.netlify.app/.netlify/functions/plant-health";
 const externalPhotoAnalysisEnabled = import.meta.env.VITE_PLANT_HEALTH_PHOTO_ANALYSIS === "true";
 const PHOTO_ANALYSIS_TIMEOUT_MS = 15_000;
 

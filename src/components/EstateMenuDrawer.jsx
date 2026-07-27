@@ -25,6 +25,7 @@ export const estateDrawerSections = [
   { title:"Preferences", items:[
     { label:"Appearance", action:"appearance", icon:"lavender" },
     { label:"Settings", page:"Garden Settings", context:{ settingsSection:"profile" }, icon:"flower" },
+    { label:"Privacy & Support", page:"Privacy & Support", icon:"herb" },
   ] },
 ];
 

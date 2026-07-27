@@ -1,11 +1,11 @@
-import frenchChaletDesktop from "../assets/jardin-soleil-dashboard-crest-free.png";
-import frenchChaletMobile from "../assets/jardin-soleil-dashboard-french-chalet-mobile.png";
+import frenchChaletDesktop from "../assets/jardin-soleil-dashboard-crest-free.webp";
+import frenchChaletMobile from "../assets/jardin-soleil-dashboard-french-chalet-mobile.webp";
 import frenchChaletThumbnail from "../assets/jardin-soleil-dashboard-crest-free-thumbnail.webp";
-import rainKissedDesktop from "../assets/jardin-soleil-dashboard-rain-kissed.png";
-import rainKissedMobile from "../assets/jardin-soleil-dashboard-rain-kissed-mobile.png";
+import rainKissedDesktop from "../assets/jardin-soleil-dashboard-rain-kissed.webp";
+import rainKissedMobile from "../assets/jardin-soleil-dashboard-rain-kissed-mobile.webp";
 import rainKissedThumbnail from "../assets/jardin-soleil-dashboard-rain-kissed-thumbnail.webp";
-import twilightWisteriaDesktop from "../assets/jardin-soleil-dashboard-twilight-wisteria.png";
-import twilightWisteriaMobile from "../assets/jardin-soleil-dashboard-twilight-wisteria-mobile.png";
+import twilightWisteriaDesktop from "../assets/jardin-soleil-dashboard-twilight-wisteria.webp";
+import twilightWisteriaMobile from "../assets/jardin-soleil-dashboard-twilight-wisteria-mobile.webp";
 import twilightWisteriaThumbnail from "../assets/jardin-soleil-dashboard-twilight-wisteria-thumbnail.webp";
 
 export const DASHBOARD_SKIN_STORAGE_KEY = "jardinSoleilDashboardSkin";

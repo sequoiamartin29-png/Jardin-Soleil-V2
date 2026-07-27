@@ -24,5 +24,26 @@ The browser calls `/.netlify/functions/identify-plant`. A safe `GET` diagnostic 
 - Build command: `npm run build`
 - Publish directory: `dist`
 
-## Tabs
-Dashboard, Orchard, Garden, Logbook, Gallery, Inventory, Learn, Word Search.
+## Production verification
+
+```bash
+npm run verify
+```
+
+The full browser customer-flow check additionally requires a local Chrome or Edge installation:
+
+```bash
+npm run verify:customer
+```
+
+## iOS and Android
+
+The native projects use Capacitor with bundle ID `com.tierrafleur.jardinsoleil`.
+
+```bash
+npm run native:sync
+npm run native:android
+npm run native:ios
+```
+
+Android Studio is required for the Android release bundle. Xcode on macOS is required for the iOS archive. Store metadata, device coverage, and release gates are documented in `docs/store-submission.md` and `docs/device-testing.md`.

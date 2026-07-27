@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Jardin Soleil</string>
+    <string name="title_activity_main">Jardin Soleil</string>
+    <string name="package_name">com.tierrafleur.jardinsoleil</string>
+    <string name="custom_url_scheme">com.tierrafleur.jardinsoleil</string>
+</resources>

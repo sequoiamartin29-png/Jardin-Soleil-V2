@@ -1,4 +1,4 @@
-export const PHOTO_IDENTIFICATION_ENDPOINT = "/.netlify/functions/identify-plant";
+export const PHOTO_IDENTIFICATION_ENDPOINT = "https://jardin-soleil-v2.netlify.app/.netlify/functions/identify-plant";
 
 const REQUEST_TIMEOUT_MS = 32_000;
 const DIAGNOSTIC_TIMEOUT_MS = 8_000;

@@ -1,4 +1,6 @@
 export const GARDEN_STATE_KEY = "jardinSoleilGardenStateV2";
+export const GARDEN_STATE_BACKUP_KEY = "jardinSoleilGardenStateV2LastKnownGood";
+export const GARDEN_STATE_STAGED_KEY = "jardinSoleilGardenStateV2Staged";
 export const GARDEN_STATE_VERSION = 2;
 
 export const legacyGardenStorageKeys = {
@@ -126,8 +128,17 @@ const readLegacyState = () => {
 };
 
 export const loadGardenState = () => {
-  const stored = readJson(GARDEN_STATE_KEY);
-  if (stored?.profile?.id) return scopeGardenRecords(stored);
+  const candidates = [
+    readJson(GARDEN_STATE_KEY),
+    readJson(GARDEN_STATE_STAGED_KEY),
+    readJson(GARDEN_STATE_BACKUP_KEY),
+  ];
+  const stored = candidates.find((candidate) => candidate?.profile?.id);
+  if (stored) {
+    const normalized = scopeGardenRecords(stored);
+    if (stored !== candidates[0]) saveGardenState(normalized);
+    return normalized;
+  }
 
   const legacy = readLegacyState();
   if (legacy) {
@@ -141,7 +152,21 @@ export const loadGardenState = () => {
 export const saveGardenState = (state) => {
   const normalized = scopeGardenRecords(state);
   try {
-    globalThis.localStorage?.setItem(GARDEN_STATE_KEY, JSON.stringify(normalized));
+    const storage = globalThis.localStorage;
+    if (!storage) return normalized;
+    const serialized = JSON.stringify(normalized);
+    const current = storage.getItem(GARDEN_STATE_KEY);
+    if (current) {
+      try {
+        const parsed = JSON.parse(current);
+        if (parsed?.profile?.id) storage.setItem(GARDEN_STATE_BACKUP_KEY, current);
+      } catch {
+        // A malformed primary record is replaced by the newly validated state below.
+      }
+    }
+    storage.setItem(GARDEN_STATE_STAGED_KEY, serialized);
+    storage.setItem(GARDEN_STATE_KEY, serialized);
+    storage.removeItem(GARDEN_STATE_STAGED_KEY);
   } catch {
     // The in-memory garden remains usable if browser storage is unavailable or full.
   }
