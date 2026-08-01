@@ -9,9 +9,18 @@ const port = 4176;
 const debuggingPort = 9226;
 const appUrl = `http://127.0.0.1:${port}`;
 const gardenStorageKey = "jardinSoleilGardenStateV2";
-const skinStorageKey = "jardinSoleilDashboardSkin";
+const styleStorageKey = "jardinSoleilGardenStyle";
+const legacySkinStorageKey = "jardinSoleilDashboardSkin";
 const widths = [320, 375, 390, 430, 768, 1024, 1366, 1600];
-const skins = ["french-chalet", "rain-kissed-chateau", "twilight-wisteria"];
+const styles = [
+  "french-chalet",
+  "rain-kissed-chateau",
+  "twilight-wisteria",
+  "jardin-classique",
+  "woodland-estate",
+  "heritage-farm",
+  "coastal-cottage",
+];
 const screenshotArgumentIndex = process.argv.indexOf("--screenshots");
 const screenshotDirectory = screenshotArgumentIndex >= 0 ? process.argv[screenshotArgumentIndex + 1] : undefined;
 const browserCandidates = [
@@ -186,7 +195,7 @@ async function setViewport(cdp, width) {
 }
 
 async function reloadWithSkin(cdp, skin) {
-  await cdp.evaluate(`localStorage.setItem(${JSON.stringify(skinStorageKey)}, ${JSON.stringify(skin)})`);
+  await cdp.evaluate(`localStorage.setItem(${JSON.stringify(styleStorageKey)}, ${JSON.stringify(skin)})`);
   await cdp.send("Page.reload", { ignoreCache:true });
   await waitFor(
     () => cdp.evaluate(`document.querySelector(".js-dashboard")?.dataset.dashboardSkin === ${JSON.stringify(skin)}`),
@@ -197,16 +206,13 @@ async function reloadWithSkin(cdp, skin) {
 async function openSkinDialog(cdp) {
   assert.equal(await cdp.evaluate(clickByText("button", "Menu")), true);
   await waitFor(() => cdp.evaluate("Boolean(document.querySelector('.js-estate-drawer'))"), "Menu did not open.");
-  const submenuIsOpen = await cdp.evaluate("Boolean(document.querySelector('#estate-appearance-submenu'))");
-  if (!submenuIsOpen) {
-    assert.equal(await cdp.evaluate(clickByText(".js-estate-drawer button", "Appearance")), true);
-    await waitFor(
-      () => cdp.evaluate("Boolean(document.querySelector('#estate-appearance-submenu'))"),
-      "Appearance submenu did not open.",
-    );
-  }
-  assert.equal(await cdp.evaluate(clickByText("#estate-appearance-submenu button", "Dashboard Skins")), true);
-  await waitFor(() => cdp.evaluate("Boolean(document.querySelector('.js-skin-dialog'))"), "Dashboard Skins dialog did not open.");
+  assert.equal(await cdp.evaluate(clickByText(".js-estate-drawer button", "Appearance")), true);
+  await waitFor(
+    () => cdp.evaluate("Boolean(document.querySelector('#estate-appearance-submenu'))"),
+    "Appearance submenu did not open.",
+  );
+  assert.equal(await cdp.evaluate(clickByText("#estate-appearance-submenu button", "Garden Styles")), true);
+  await waitFor(() => cdp.evaluate("Boolean(document.querySelector('.js-skin-dialog'))"), "Garden Styles dialog did not open.");
 }
 
 async function run() {
@@ -256,8 +262,8 @@ async function run() {
     await cdp.send("Page.reload", { ignoreCache:true });
     await waitFor(() => cdp.evaluate("Boolean(document.querySelector('.js-dashboard'))"), "Dashboard did not open.");
 
-    for (const skin of skins) {
-      await reloadWithSkin(cdp, skin);
+    for (const style of styles) {
+      await reloadWithSkin(cdp, style);
       for (const width of widths) {
         await setViewport(cdp, width);
         await waitFor(
@@ -265,8 +271,8 @@ async function run() {
           `Artwork did not finish at ${width}px.`,
         );
         const result = await cdp.evaluate(geometryExpression);
-        assert.equal(result.skin, skin, `${skin} did not remain selected at ${width}px.`);
-        assert.equal(result.imageReady, true, `${skin} image failed at ${width}px.`);
+        assert.equal(result.skin, style, `${style} did not remain selected at ${width}px.`);
+        assert.equal(result.imageReady, true, `${style} image failed at ${width}px.`);
         assert.equal(result.inlinePicker, false, "A permanent skin picker is still in dashboard flow.");
         assert.equal(result.scrollWidth <= result.viewportWidth + 1, true, `Horizontal overflow at ${width}px.`);
         assert.deepEqual(result.overlapPairs, [], `Dashboard cards overlap at ${width}px.`);
@@ -276,35 +282,35 @@ async function run() {
         assert.equal(result.currentSrc.includes("mobile"), width <= 700, `Wrong artwork variant at ${width}px.`);
       }
     }
-    console.log("PASS artwork, grids, overflow, and hotspots at 24 skin/width combinations");
+    console.log("PASS artwork, grids, overflow, and hotspots at 56 style/width combinations");
 
     await setViewport(cdp, 1024);
     await reloadWithSkin(cdp, "french-chalet");
     await openSkinDialog(cdp);
     assert.equal(
-      await cdp.evaluate("document.activeElement?.getAttribute('aria-label') === 'Close Dashboard Skins'"),
+      await cdp.evaluate("document.activeElement?.getAttribute('aria-label') === 'Close Garden Styles'"),
       true,
       "Dialog did not receive focus.",
     );
-    assert.equal(await cdp.evaluate(clickSkinAction("Twilight Wisteria Estate", "Preview")), true);
+    assert.equal(await cdp.evaluate(clickSkinAction("Heritage Farm", "Preview")), true);
     await waitFor(
-      () => cdp.evaluate("document.querySelector('.js-dashboard')?.dataset.dashboardSkin === 'twilight-wisteria'"),
+      () => cdp.evaluate("document.querySelector('.js-dashboard')?.dataset.gardenStyle === 'heritage-farm'"),
       "Preview did not update dashboard artwork.",
     );
-    assert.equal(await cdp.evaluate(`localStorage.getItem(${JSON.stringify(skinStorageKey)})`), "french-chalet");
+    assert.equal(await cdp.evaluate(`localStorage.getItem(${JSON.stringify(styleStorageKey)})`), "french-chalet");
     assert.equal(await cdp.evaluate(clickByText(".js-skin-dialog footer button", "Cancel")), true);
     await waitFor(() => cdp.evaluate("!document.querySelector('.js-skin-dialog')"), "Cancel did not close dialog.");
-    assert.equal(await cdp.evaluate("document.querySelector('.js-dashboard')?.dataset.dashboardSkin"), "french-chalet");
+    assert.equal(await cdp.evaluate("document.querySelector('.js-dashboard')?.dataset.gardenStyle"), "french-chalet");
 
     await openSkinDialog(cdp);
-    assert.equal(await cdp.evaluate(clickSkinAction("Rain-Kissed Château Garden", "Preview")), true);
-    assert.equal(await cdp.evaluate(clickByText(".js-skin-dialog footer button", "Apply Previewed Skin")), true);
+    assert.equal(await cdp.evaluate(clickSkinAction("Woodland Estate", "Preview")), true);
+    assert.equal(await cdp.evaluate(clickByText(".js-skin-dialog footer button", "Apply Style: Woodland Estate")), true);
     await waitFor(() => cdp.evaluate("!document.querySelector('.js-skin-dialog')"), "Apply did not close dialog.");
-    assert.equal(await cdp.evaluate(`localStorage.getItem(${JSON.stringify(skinStorageKey)})`), "rain-kissed-chateau");
+    assert.equal(await cdp.evaluate(`localStorage.getItem(${JSON.stringify(styleStorageKey)})`), "woodland-estate");
     await cdp.send("Page.reload", { ignoreCache:true });
     await waitFor(
-      () => cdp.evaluate("document.querySelector('.js-dashboard')?.dataset.dashboardSkin === 'rain-kissed-chateau'"),
-      "Applied skin did not persist after refresh.",
+      () => cdp.evaluate("document.querySelector('.js-dashboard')?.dataset.gardenStyle === 'woodland-estate'"),
+      "Applied style did not persist after refresh.",
     );
 
     await setViewport(cdp, 320);
@@ -326,13 +332,27 @@ async function run() {
     await cdp.send("Input.dispatchKeyEvent", { type:"keyDown", key:"Escape", code:"Escape" });
     await cdp.send("Input.dispatchKeyEvent", { type:"keyUp", key:"Escape", code:"Escape" });
     await waitFor(() => cdp.evaluate("!document.querySelector('.js-skin-dialog')"), "Escape did not close dialog.");
-    assert.equal(await cdp.evaluate("document.querySelector('.js-dashboard')?.dataset.dashboardSkin"), "rain-kissed-chateau");
+    assert.equal(await cdp.evaluate("document.querySelector('.js-dashboard')?.dataset.gardenStyle"), "woodland-estate");
 
     await openSkinDialog(cdp);
     await cdp.evaluate(`document.querySelector(".js-skin-dialog__backdrop")
       .dispatchEvent(new MouseEvent("mousedown", { bubbles:true }))`);
     await waitFor(() => cdp.evaluate("!document.querySelector('.js-skin-dialog')"), "Backdrop did not close dialog.");
-    console.log("PASS Menu > Appearance > Dashboard Skins preview, cancel, apply, persistence, focus, Escape, and backdrop behavior");
+    await cdp.evaluate(`(() => {
+      localStorage.removeItem(${JSON.stringify(styleStorageKey)});
+      localStorage.setItem(${JSON.stringify(legacySkinStorageKey)}, "rain-kissed-chateau");
+    })()`);
+    await cdp.send("Page.reload", { ignoreCache:true });
+    await waitFor(
+      () => cdp.evaluate("document.querySelector('.js-dashboard')?.dataset.gardenStyle === 'rain-kissed-chateau'"),
+      "The legacy Dashboard Skin preference did not migrate.",
+    );
+    await waitFor(
+      () => cdp.evaluate(`localStorage.getItem(${JSON.stringify(styleStorageKey)}) === "rain-kissed-chateau"`),
+      "The migrated Garden Styles preference was not saved.",
+    );
+    assert.equal(await cdp.evaluate(`localStorage.getItem(${JSON.stringify(legacySkinStorageKey)})`), "rain-kissed-chateau");
+    console.log("PASS Menu > Appearance > Garden Styles preview, cancel, apply, persistence, migration, focus, Escape, and backdrop behavior");
 
     if (screenshotDirectory) {
       await mkdir(screenshotDirectory, { recursive:true });

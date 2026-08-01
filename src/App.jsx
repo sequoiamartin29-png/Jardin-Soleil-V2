@@ -6,17 +6,13 @@ import { EstateEnvironmentProvider } from "./context/EstateEnvironmentContext";
 import PlantDeletionSnackbar from "./components/PlantDeletionSnackbar";
 import EstateMenuDrawer from "./components/EstateMenuDrawer";
 import EstateAppShell from "./components/EstateAppShell";
-import DashboardSkinDialog from "./components/DashboardSkinDialog";
+import GardenStyleSelector from "./components/gardenStyles/GardenStyleSelector";
 import HealthCenterErrorBoundary from "./components/plantHealth/HealthCenterErrorBoundary";
 import AppErrorBoundary from "./components/AppErrorBoundary";
 import PageLoading from "./components/PageLoading";
 import { HEALTH_PAGE_KEY } from "./utils/healthCaseDraft";
 import { initializeNativeApp } from "./services/nativeApp";
-import {
-  DASHBOARD_SKIN_STORAGE_KEY,
-  getDashboardSkin,
-  loadStoredDashboardSkinId,
-} from "./data/dashboardSkins";
+import useGardenStyle from "./hooks/useGardenStyle";
 import {
   resolveCustomerCompanion,
   resolveCustomerRoute,
@@ -146,16 +142,11 @@ function GardenApp() {
       : { page:"Dashboard", launchId:0 }
   ));
   const [menuOpen,setMenuOpen]=useState(false);
-  const [dashboardSkinId,setDashboardSkinId]=useState(loadStoredDashboardSkinId);
-  const [dashboardSkinPreviewId,setDashboardSkinPreviewId]=useState(loadStoredDashboardSkinId);
-  const [dashboardSkinDialogOpen,setDashboardSkinDialogOpen]=useState(false);
+  const gardenStyle=useGardenStyle();
   const menuTriggerRef=useRef(null);
   const nativeBackHandlerRef=useRef(() => false);
   const closeMenu=useCallback(()=>setMenuOpen(false),[]);
   useEffect(() => { try { localStorage.setItem(HEALTH_PAGE_KEY, page); } catch { /* navigation remains usable */ } }, [page]);
-  useEffect(() => {
-    try { localStorage.setItem(DASHBOARD_SKIN_STORAGE_KEY, dashboardSkinId); } catch { /* preview and selection still work in memory */ }
-  }, [dashboardSkinId]);
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       const main = document.getElementById("estate-page-content");
@@ -262,25 +253,10 @@ function GardenApp() {
       cleanup();
     };
   }, []);
-  const openDashboardSkins = () => {
-    setDashboardSkinPreviewId(dashboardSkinId);
-    setDashboardSkinDialogOpen(true);
-  };
-  const closeDashboardSkins = () => {
-    setDashboardSkinPreviewId(dashboardSkinId);
-    setDashboardSkinDialogOpen(false);
-  };
-  const applyDashboardSkin = (skinId) => {
-    const nextId = getDashboardSkin(skinId).id;
-    setDashboardSkinId(nextId);
-    setDashboardSkinPreviewId(nextId);
-    setDashboardSkinDialogOpen(false);
-  };
-
   const renderPage = () => {
     switch (page) {
       case "Dashboard":
-        return <Dashboard skinId={dashboardSkinDialogOpen ? dashboardSkinPreviewId : dashboardSkinId} onNavigate={navigate} />;
+        return <Dashboard styleId={gardenStyle.displayedStyleId} onNavigate={navigate} />;
 
       case "Orchard":
         return <Orchard onSelectPlant={openPlant} onEditPlant={editPlant} onAddPlant={startAddPlant} />;
@@ -379,7 +355,7 @@ function GardenApp() {
         return <Weather />;
 
       case "Watering Wizard":
-        return <WateringWizard />;
+        return <WateringWizard gardenStyleId={gardenStyle.styleId} />;
 
       case "Learning":
         return <Learning onNavigate={navigate} />;
@@ -421,7 +397,7 @@ function GardenApp() {
         return <Privacy onNavigate={navigate} />;
 
       default:
-        return <Dashboard skinId={dashboardSkinDialogOpen ? dashboardSkinPreviewId : dashboardSkinId} onNavigate={navigate} />;
+        return <Dashboard styleId={gardenStyle.displayedStyleId} onNavigate={navigate} />;
     }
   };
 
@@ -451,14 +427,14 @@ function GardenApp() {
           {renderPage()}
         </Suspense>
       </EstateAppShell>
-      <EstateMenuDrawer open={menuOpen} onClose={closeMenu} onNavigate={navigate} onOpenAppearance={openDashboardSkins} activePage={page} activeContext={navigationContext} healthAlerts={unreadHealthAlerts} returnFocusRef={menuTriggerRef}/>
-      <DashboardSkinDialog
-        open={dashboardSkinDialogOpen}
-        activeSkinId={dashboardSkinId}
-        previewSkinId={dashboardSkinPreviewId}
-        onPreview={(skinId) => setDashboardSkinPreviewId(getDashboardSkin(skinId).id)}
-        onApply={applyDashboardSkin}
-        onClose={closeDashboardSkins}
+      <EstateMenuDrawer open={menuOpen} onClose={closeMenu} onNavigate={navigate} onOpenGardenStyles={gardenStyle.openSelector} activePage={page} activeContext={navigationContext} healthAlerts={unreadHealthAlerts} returnFocusRef={menuTriggerRef}/>
+      <GardenStyleSelector
+        open={gardenStyle.selectorOpen}
+        activeStyleId={gardenStyle.styleId}
+        previewStyleId={gardenStyle.previewStyleId}
+        onPreview={gardenStyle.previewStyle}
+        onApply={gardenStyle.applyStyle}
+        onClose={gardenStyle.closeSelector}
       />
       <PlantDeletionSnackbar />
     </div>

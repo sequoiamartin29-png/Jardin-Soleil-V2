@@ -138,18 +138,16 @@ async function reloadDashboard(cdp) {
   await waitFor(() => cdp.evaluate("Boolean(document.querySelector('.js-dashboard'))"), "Dashboard did not load.");
 }
 
-async function openAppearance(cdp) {
+async function openGardenStyles(cdp) {
   assert.equal(await cdp.evaluate(clickByText("button", "Menu")), true);
   await waitFor(() => cdp.evaluate("Boolean(document.querySelector('.js-estate-drawer'))"), "Menu did not open.");
-  if (!await cdp.evaluate("Boolean(document.querySelector('#estate-appearance-submenu'))")) {
-    assert.equal(await cdp.evaluate(clickByText(".js-estate-drawer button", "Appearance")), true);
-    await waitFor(
-      () => cdp.evaluate("Boolean(document.querySelector('#estate-appearance-submenu'))"),
-      "Appearance submenu did not open.",
-    );
-  }
-  assert.equal(await cdp.evaluate(clickByText("#estate-appearance-submenu button", "Dashboard Skins")), true);
-  await waitFor(() => cdp.evaluate("Boolean(document.querySelector('.js-skin-dialog'))"), "Appearance dialog did not open.");
+  assert.equal(await cdp.evaluate(clickByText(".js-estate-drawer button", "Appearance")), true);
+  await waitFor(
+    () => cdp.evaluate("Boolean(document.querySelector('#estate-appearance-submenu'))"),
+    "Appearance submenu did not open.",
+  );
+  assert.equal(await cdp.evaluate(clickByText("#estate-appearance-submenu button", "Garden Styles")), true);
+  await waitFor(() => cdp.evaluate("Boolean(document.querySelector('.js-skin-dialog'))"), "Garden Styles dialog did not open.");
 }
 
 async function run() {
@@ -291,7 +289,7 @@ async function run() {
     await cdp.evaluate(setEnvironmentExpression({ previewCondition:"clear", previewSeason:"summer" }));
     await reloadDashboard(cdp);
     await setViewport(cdp, 1024);
-    await openAppearance(cdp);
+    await openGardenStyles(cdp);
     assert.equal(await cdp.evaluate("Boolean(document.querySelector('.js-skin-dialog__wildlife select'))"), true);
     await cdp.evaluate(`(() => {
       const select = document.querySelector(".js-skin-dialog__wildlife select");
@@ -306,7 +304,7 @@ async function run() {
       () => cdp.evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(environmentStorageKey)})).wildlifeActivity === "Off"`),
       "Wildlife setting did not persist.",
     );
-    console.log("PASS Appearance exposes persistent Natural, Minimal, and Off wildlife activity");
+    console.log("PASS Garden Styles exposes persistent Natural, Minimal, and Off wildlife activity");
   } finally {
     cdp?.close();
     if (browser && !browser.killed) {

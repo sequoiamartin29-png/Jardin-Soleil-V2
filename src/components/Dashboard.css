@@ -154,7 +154,7 @@
 
 .js-dashboard-canvas__art img {
   object-fit: cover;
-  object-position: center;
+  object-position: var(--dashboard-art-position, center);
 }
 
 .js-dashboard-canvas__tone {
@@ -171,6 +171,18 @@
 
 .js-dashboard[data-overlay-tone="twilight"] .js-dashboard-canvas__tone {
   background: linear-gradient(180deg, rgba(91, 65, 106, .08), transparent 42% 75%, rgba(30, 24, 42, .12));
+}
+
+.js-dashboard[data-overlay-tone="woodland"] .js-dashboard-canvas__tone {
+  background: linear-gradient(180deg, rgba(25, 33, 28, .04), transparent 34% 70%, rgba(18, 25, 20, .16));
+}
+
+.js-dashboard[data-overlay-tone="heritage"] .js-dashboard-canvas__tone {
+  background: linear-gradient(180deg, rgba(255, 226, 169, .04), transparent 36% 74%, rgba(86, 49, 20, .1));
+}
+
+.js-dashboard[data-overlay-tone="coastal"] .js-dashboard-canvas__tone {
+  background: linear-gradient(180deg, rgba(223, 233, 235, .05), transparent 38% 72%, rgba(48, 65, 72, .1));
 }
 
 .js-dashboard-hotspots {
@@ -219,6 +231,18 @@
 
 .js-dashboard[data-overlay-tone="twilight"] .js-dashboard-hotspot span {
   background: rgba(58, 41, 65, .8);
+}
+
+.js-dashboard[data-overlay-tone="woodland"] .js-dashboard-hotspot span {
+  background: rgba(33, 43, 35, .88);
+}
+
+.js-dashboard[data-overlay-tone="heritage"] .js-dashboard-hotspot span {
+  background: rgba(74, 51, 31, .84);
+}
+
+.js-dashboard[data-overlay-tone="coastal"] .js-dashboard-hotspot span {
+  background: rgba(52, 66, 72, .84);
 }
 
 .js-dashboard-hotspot:hover,
@@ -589,7 +613,7 @@
   }
 
   .js-dashboard-canvas__art img {
-    object-position: center;
+    object-position: var(--dashboard-mobile-position, center);
   }
 
   .js-dashboard-hotspot {

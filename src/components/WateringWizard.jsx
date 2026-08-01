@@ -21,6 +21,7 @@ import {
 import { useGarden } from "../context/GardenContext";
 import { useEstateEnvironment } from "../context/EstateEnvironmentContext";
 import { buildWateringPlan } from "../services/watering-engine";
+import { getGardenStyle } from "../data/gardenStyles";
 import WateringWizardCharacter from "./wateringWizard/WateringWizardCharacter";
 import "./WateringWizard.css";
 
@@ -78,7 +79,7 @@ function PlantRecommendation({item,index}){
   </motion.article>;
 }
 
-export default function WateringWizard(){
+export default function WateringWizard({gardenStyleId}){
   const {gardenProfile,activePlants,gardenZones,journalEntries,photos}=useGarden();
   const environment=useEstateEnvironment();
   const {weather,status,sourceStatus,estateLocation,error,conditionLabel,refreshWeather,useMyLocation}=environment;
@@ -88,6 +89,7 @@ export default function WateringWizard(){
   const [celebrating,setCelebrating]=useState(false);
   const now=environment.now||new Date();
   const plan=useMemo(()=>buildWateringPlan({weather,plants:activePlants,zones:gardenZones,journalEntries,photos,now}),[weather,activePlants,gardenZones,journalEntries,photos,now]);
+  const gardenStyle=getGardenStyle(gardenStyleId);
   const gardenerName=gardenProfile.ownerDisplayName||gardenProfile.gardenName||"Gardener";
   const weatherReady=Boolean(weather);
   const priorityPlant=plan.plantRecommendations.find((item)=>item.urgency==="high")||plan.plantRecommendations[0];
@@ -152,7 +154,7 @@ export default function WateringWizard(){
         <div className="js-watering-hero__location"><MapPin size={14}/><span>{estateLocation.label}</span><b>{sourceStatus}</b></div>
       </div>
       <div className="js-watering-hero__character"><WateringWizardCharacter expression={expression} size="medium"/></div>
-      <div className="js-watering-hero__quote"><Droplets size={18}/><p>{plan.advice[0]}</p></div>
+      <div className="js-watering-hero__quote" aria-label={`A greeting from Sage for ${gardenStyle.name}`}><Droplets size={18}/><div><small>Sage · Watering Wizard</small><p>{gardenStyle.sageGreeting||plan.advice[0]}</p></div></div>
     </header>
 
     <section className="js-watering-weather" aria-labelledby="current-weather-title">

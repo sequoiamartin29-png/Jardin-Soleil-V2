@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useGarden } from "../context/GardenContext";
 import { useEstateEnvironment } from "../context/EstateEnvironmentContext";
-import { getDashboardHotspots, getDashboardSkin } from "../data/dashboardSkins";
+import { getGardenHotspots, getGardenStyle } from "../data/gardenStyles";
 import DashboardStatCard from "./dashboard/DashboardStatCard";
 import EstateEnvironment from "./dashboard/EstateEnvironment";
 import EstateWildlife from "./wildlife/EstateWildlife";
 import WateringWizardDashboardCard from "./wateringWizard/WateringWizardDashboardCard";
 import "./Dashboard.css";
 
-export default function Dashboard({ onNavigate, skinId }) {
+export default function Dashboard({ onNavigate, styleId }) {
   const {
     stats,
     activePlants,
@@ -23,10 +23,10 @@ export default function Dashboard({ onNavigate, skinId }) {
   const [spotlightIndex, setSpotlightIndex] = useState(0);
   const [failedSkinId, setFailedSkinId] = useState("");
 
-  const requestedSkin = getDashboardSkin(skinId);
-  const defaultSkin = getDashboardSkin();
+  const requestedSkin = getGardenStyle(styleId);
+  const defaultSkin = getGardenStyle();
   const displayedSkin = failedSkinId === requestedSkin.id ? defaultSkin : requestedSkin;
-  const hotspots = getDashboardHotspots(displayedSkin.hotspotMapId);
+  const hotspots = getGardenHotspots(displayedSkin.hotspotMapId);
   const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local time";
 
   useEffect(() => {
@@ -83,11 +83,14 @@ export default function Dashboard({ onNavigate, skinId }) {
       className="js-dashboard"
       aria-label="Jardin Soleil dashboard"
       data-dashboard-skin={requestedSkin.id}
+      data-garden-style={requestedSkin.id}
       data-overlay-tone={displayedSkin.overlayTone}
       data-text-contrast={displayedSkin.textContrast}
       style={{
         "--dashboard-skin-accent":displayedSkin.accent,
         "--dashboard-skin-glow":displayedSkin.glow,
+        "--dashboard-art-position":displayedSkin.previewPosition,
+        "--dashboard-mobile-position":displayedSkin.mobilePosition,
       }}
     >
       <p className="js-dashboard__summary" id="dashboard-garden-summary">
@@ -141,7 +144,7 @@ export default function Dashboard({ onNavigate, skinId }) {
             onError={() => {
               if (requestedSkin.id !== defaultSkin.id) setFailedSkinId(requestedSkin.id);
             }}
-            alt={`Illustrated ${displayedSkin.name} estate with château, formal garden regions, paths, and central fountain`}
+            alt={`${displayedSkin.name} estate garden with six interactive garden regions, paths, and a central water feature`}
           />
         </picture>
         <span className="js-dashboard-canvas__tone" aria-hidden="true" />

@@ -34,7 +34,7 @@ export default function EstateMenuDrawer({
   open,
   onClose,
   onNavigate,
-  onOpenAppearance,
+  onOpenGardenStyles,
   activePage,
   activeContext = {},
   healthAlerts = [],
@@ -82,6 +82,7 @@ export default function EstateMenuDrawer({
   useEffect(() => {
     if (open || !wasOpen.current) return;
     wasOpen.current = false;
+    setAppearanceOpen(false);
     requestAnimationFrame(() => returnFocusRef?.current?.focus());
   }, [open, returnFocusRef]);
 
@@ -160,9 +161,9 @@ export default function EstateMenuDrawer({
                           </button>
                           {appearanceOpen && (
                             <div id="estate-appearance-submenu">
-                              <button type="button" onClick={() => { onClose(); onOpenAppearance?.(); }}>
+                              <button type="button" onClick={() => { onClose(); onOpenGardenStyles?.(); }}>
                                 <BotanicalIcon type="flower" size="sm" decorative />
-                                <span>Dashboard Skins<small>Preview and apply</small></span>
+                                <span>Garden Styles<small>Preview and apply</small></span>
                               </button>
                             </div>
                           )}
@@ -172,7 +173,7 @@ export default function EstateMenuDrawer({
                     return (
                       <button type="button" key={item.label} className={active ? "is-active" : ""} aria-current={active ? "page" : undefined} onClick={() => choose(item)}>
                         <BotanicalIcon type={item.icon} size="sm" decorative />
-                        <span>{item.label}{active && <small>Current page</small>}</span>
+                        <span>{item.label}{active&&<small>Current page</small>}</span>
                         {item.badge === "health" && healthAlerts.length > 0 && (
                           <b className="js-estate-drawer__badge" aria-label={`${healthAlerts.length} unread plant health ${healthAlerts.length === 1 ? "alert" : "alerts"}`}>
                             {healthAlerts.length > 99 ? "99+" : healthAlerts.length}

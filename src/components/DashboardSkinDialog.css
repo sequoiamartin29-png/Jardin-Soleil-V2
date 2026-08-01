@@ -48,6 +48,13 @@
   text-transform: uppercase;
 }
 
+.js-skin-dialog__copy > span,
+.js-skin-dialog__active-preview span {
+  align-items: center;
+  display: flex;
+  gap: 5px;
+}
+
 .js-skin-dialog h2 {
   color: #50613f;
   font: italic 700 clamp(1.9rem, 4vw, 3rem)/1 Georgia, serif;
@@ -111,9 +118,13 @@
   display: block;
   height: 100%;
   inset: 0;
-  object-fit: cover;
   position: absolute;
   width: 100%;
+}
+
+.js-skin-dialog__active-preview img {
+  object-fit: cover;
+  object-position: var(--style-preview-position, center);
 }
 
 .js-skin-dialog__active-preview::after {
@@ -125,6 +136,18 @@
 
 .js-skin-dialog__active-preview[data-tone="twilight"]::after {
   background: linear-gradient(90deg, rgba(41, 28, 50, .78), transparent 70%);
+}
+
+.js-skin-dialog__active-preview[data-tone="woodland"]::after {
+  background: linear-gradient(90deg, rgba(27, 36, 29, .76), transparent 68%);
+}
+
+.js-skin-dialog__active-preview[data-tone="heritage"]::after {
+  background: linear-gradient(90deg, rgba(79, 51, 29, .64), transparent 64%);
+}
+
+.js-skin-dialog__active-preview[data-tone="coastal"]::after {
+  background: linear-gradient(90deg, rgba(42, 57, 64, .7), transparent 66%);
 }
 
 .js-skin-dialog__active-preview > div {
@@ -224,6 +247,48 @@
   overflow: hidden;
 }
 
+.js-skin-dialog button.js-skin-dialog__image-button {
+  background: #e7dfce;
+  border: 0;
+  border-radius: 11px;
+  box-shadow: none;
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  width: 100%;
+}
+
+.js-skin-dialog button.js-skin-dialog__image-button:hover,
+.js-skin-dialog button.js-skin-dialog__image-button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(167, 122, 60, .28);
+  outline: 2px solid #80612f;
+  outline-offset: 1px;
+  transform: none;
+}
+
+.js-skin-dialog__image-button picture {
+  display: block;
+}
+
+.js-skin-dialog__image-button > span {
+  align-items: center;
+  backdrop-filter: blur(5px);
+  background: rgba(38, 49, 35, .78);
+  border: 1px solid rgba(255, 247, 224, .62);
+  border-radius: 999px;
+  bottom: 8px;
+  color: #fffdf3;
+  display: flex;
+  font: 800 9px/1 Arial, sans-serif;
+  gap: 5px;
+  padding: 6px 8px;
+  position: absolute;
+  right: 8px;
+  text-transform: uppercase;
+}
+
 .js-skin-dialog__options img {
   display: block;
   height: 100%;
@@ -257,8 +322,20 @@
 }
 
 .js-skin-dialog__actions button {
+  align-items: center;
+  display: inline-flex;
+  gap: 5px;
+  justify-content: center;
   min-width: 0;
   padding-inline: 8px;
+}
+
+.js-skin-dialog .js-visually-hidden {
+  clip: rect(1px, 1px, 1px, 1px) !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  width: 1px !important;
 }
 
 .js-skin-dialog > footer {
@@ -293,6 +370,10 @@
     min-height: 150px;
   }
 
+  .js-skin-dialog__active-preview img {
+    object-position: var(--style-mobile-position, center);
+  }
+
   .js-skin-dialog__options {
     grid-template-columns: 1fr;
   }
@@ -306,9 +387,12 @@
     grid-template-columns: minmax(105px, 35%) 1fr;
   }
 
+  .js-skin-dialog__options .js-skin-dialog__image-button {
+    grid-row: 1 / span 2;
+  }
+
   .js-skin-dialog__options picture {
     aspect-ratio: 4 / 5;
-    grid-row: 1 / span 2;
   }
 
   .js-skin-dialog__actions {
