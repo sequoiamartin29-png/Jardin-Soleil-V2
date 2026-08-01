@@ -5,14 +5,15 @@ import {
   customerFeatures,
 } from "../data/customerFeatures";
 import { determineDayPhase, determineSeason } from "../utils/determineSeason";
-import { normalizeOpenMeteoWeather, weatherConditionLabels } from "../utils/normalizeWeather";
+import { weatherConditionLabels } from "../utils/normalizeWeather";
+import { fetchEstateWeather } from "../services/weatherProvider";
 
 const EnvironmentContext=createContext(null);
 const CACHE_MS=20*60*1000;
 const defaultSettings={liveWeather:true,seasonalEffects:true,dayNight:true,wildlife:false,wildlifeActivity:customerFeatures.wildlifeDefault,buddy:false,quality:window.matchMedia?.("(max-width: 760px)").matches?"Balanced":"Full",reducedMotion:window.matchMedia?.("(prefers-reduced-motion: reduce)").matches||false,sound:false,previewCondition:"",previewSeason:"",customerDefaultsVersion:CUSTOMER_ENVIRONMENT_DEFAULTS_VERSION};
 const defaultLocation={label:"Choose a location",latitude:null,longitude:null,source:"unset"};
 const loadJson=(key,fallback)=>{try{const value=localStorage.getItem(key);return value?JSON.parse(value):fallback;}catch{return fallback;}};
-const migrateCachedWeather=(cached)=>!cached?null:cached.temperatureF!==undefined?cached:{...cached,temperatureF:cached.temperature??null,apparentTemperatureF:cached.apparentTemperature??null,windSpeedMph:cached.wind||0,windGustMph:cached.windGust||0,condition:cached.condition||"clear",source:cached.source||"Open-Meteo",fetchedAt:cached.fetchedAt||cached.observedAt||new Date(0).toISOString(),isLive:false,isStale:true};
+const migrateCachedWeather=(cached)=>!cached?null:cached.temperatureF!==undefined?{...cached,humidity:cached.humidity??null,forecast:Array.isArray(cached.forecast)?cached.forecast:[]}:{...cached,temperatureF:cached.temperature??null,apparentTemperatureF:cached.apparentTemperature??null,humidity:null,windSpeedMph:cached.wind||0,windGustMph:cached.windGust||0,condition:cached.condition||"clear",source:cached.source||"Open-Meteo",fetchedAt:cached.fetchedAt||cached.observedAt||new Date(0).toISOString(),isLive:false,isStale:true,forecast:[]};
 
 export function EstateEnvironmentProvider({children}){
   const [settings,setSettings]=useState(()=>{
@@ -50,10 +51,7 @@ export function EstateEnvironmentProvider({children}){
     const controller=new AbortController(); const timeout=window.setTimeout(()=>controller.abort(),10000);
     setStatus("loading");setError("");
     const promise=(async()=>{try{
-      const fields="temperature_2m,apparent_temperature,precipitation,precipitation_probability,weather_code,cloud_cover,wind_speed_10m,wind_gusts_10m";
-      const url=`https://api.open-meteo.com/v1/forecast?latitude=${estateLocation.latitude}&longitude=${estateLocation.longitude}&current=${fields}&daily=sunrise,sunset&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=auto&forecast_days=1`;
-      const response=await fetch(url,{signal:controller.signal});if(!response.ok)throw new Error("Weather service unavailable");
-      const next=normalizeOpenMeteoWeather(await response.json(),estateLocation);
+      const next=await fetchEstateWeather({location:estateLocation,signal:controller.signal});
       setWeather(next);setStatus("ready");localStorage.setItem("jardinSoleilWeatherCache",JSON.stringify(next));return next;
     }catch(err){if(err.name!=="AbortError"||controller.signal.aborted){setStatus(weather?"cached":"error");setError(weather?"Live weather is temporarily unavailable. Showing the last known estate conditions.":"Live weather is temporarily unavailable.");setWeather((current)=>current?{...current,isStale:true}:current);}return null;
     }finally{window.clearTimeout(timeout);requestRef.current=null;}})();

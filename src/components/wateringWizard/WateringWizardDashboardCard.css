@@ -1,0 +1,11 @@
+.js-wizard-dashboard-card{align-items:center;background:linear-gradient(118deg,rgba(252,248,233,.99),rgba(229,238,218,.97) 53%,rgba(221,236,237,.96));display:grid;gap:clamp(16px,3vw,34px);grid-template-columns:minmax(130px,190px) 1fr;isolation:isolate;min-height:210px;overflow:hidden;padding:0 clamp(20px,4vw,48px) 0 clamp(8px,2vw,22px);position:relative}
+.js-wizard-dashboard-card::before{background:radial-gradient(circle,rgba(255,255,255,.92) 0 2px,transparent 3px);background-size:28px 28px;content:"";inset:0;opacity:.22;pointer-events:none;position:absolute}
+.js-wizard-dashboard-card__art{align-self:end;height:210px;overflow:hidden;position:relative;z-index:1}.js-wizard-dashboard-card__art .js-wizard-character{margin:auto;transform:translateY(5px)}
+.js-wizard-dashboard-card__copy{display:grid;gap:9px;max-width:760px;padding:22px 0;position:relative;z-index:2}
+.js-wizard-dashboard-card__copy p{align-items:center;color:#7b7652;display:flex;font:800 10px/1 Arial,sans-serif;gap:7px;letter-spacing:.14em;margin:0;text-transform:uppercase}
+.js-wizard-dashboard-card__copy h2{color:#4f6244;font:italic 700 clamp(1.5rem,3vw,2.35rem)/1.08 Georgia,serif;margin:0}
+.js-wizard-dashboard-card__copy>span{color:#6f6a5d;font:italic clamp(.92rem,1.5vw,1.06rem)/1.5 Georgia,serif;max-width:680px}
+.js-wizard-dashboard-card .js-wizard-dashboard-card__copy button{align-items:center;align-self:start;background:#5c765a;border:1px solid #3f5b42;color:#fffdf4;display:inline-flex;gap:9px;justify-content:center;margin-top:3px;width:max-content}
+.js-wizard-dashboard-card__sparkle{color:#b58e48;position:absolute;right:28px;top:25px}
+@media(max-width:650px){.js-wizard-dashboard-card{gap:8px;grid-template-columns:112px 1fr;min-height:196px;padding:0 14px 0 2px}.js-wizard-dashboard-card__art{height:196px}.js-wizard-dashboard-card__copy{padding:18px 0}.js-wizard-dashboard-card__copy>span{font-size:.84rem}.js-wizard-dashboard-card .js-wizard-dashboard-card__copy button{font-size:11px;line-height:1.2;white-space:normal}.js-wizard-dashboard-card__sparkle{display:none}}
+@media(max-width:430px){.js-wizard-dashboard-card{align-items:end;grid-template-columns:94px 1fr}.js-wizard-dashboard-card__art{height:173px}.js-wizard-dashboard-card__copy{gap:7px}.js-wizard-dashboard-card__copy h2{font-size:1.3rem}.js-wizard-dashboard-card__copy p{font-size:8px}}

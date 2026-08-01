@@ -41,6 +41,7 @@ body { background:#ded5bd; margin:0; overflow-x:hidden; }
 .js-estate-app-shell[data-theme="plant-health"] { --estate-app-accent:#76505a;--estate-app-atmosphere:#e7ddd0;--estate-app-bloom:rgba(132,68,82,.2);--estate-app-leaf:rgba(88,120,76,.24); }
 .js-estate-app-shell[data-theme="nursery"] { --estate-app-accent:#69684c;--estate-app-atmosphere:#e4ddc7;--estate-app-bloom:rgba(183,136,111,.18);--estate-app-leaf:rgba(100,125,74,.3); }
 .js-estate-app-shell[data-theme="learning"] { --estate-app-accent:#867043;--estate-app-atmosphere:#e8e1cb;--estate-app-bloom:rgba(147,118,165,.2);--estate-app-leaf:rgba(105,137,83,.22); }
+.js-estate-app-shell[data-theme="watering-wizard"] { --estate-app-accent:#5f8090;--estate-app-atmosphere:#e1e5d5;--estate-app-bloom:rgba(105,156,173,.2);--estate-app-leaf:rgba(91,126,78,.25); }
 
 .js-estate-app-shell__lighting,
 .js-estate-app-shell__canopy,

@@ -38,6 +38,7 @@ const Inventory = lazy(() => import("./components/Inventory"));
 const Tasks = lazy(() => import("./components/Tasks"));
 const Calendar = lazy(() => import("./components/Calendar"));
 const Weather = lazy(() => import("./components/Weather"));
+const WateringWizard = lazy(() => import("./components/WateringWizard"));
 const Learning = lazy(() => import("./components/Learning"));
 const WordSearch = lazy(() => import("./components/WordSearch"));
 const TeaApothecary = lazy(() => import("./components/TeaApothecary"));
@@ -109,6 +110,7 @@ const estatePagePresentation = {
   Gallery:{ theme:"journal", accent:"lavender", title:"Garden Gallery" },
   Inventory:{ theme:"nursery", accent:"gold", title:"Garden Inventory" },
   Weather:{ theme:"calendar", accent:"powder-blue", title:"Estate Weather" },
+  "Watering Wizard":{ theme:"watering-wizard", accent:"powder-blue", title:"Watering Wizard" },
   Learning:{ theme:"learning", accent:"sage", title:"Learning Center" },
   "Tea Apothecary":{ theme:"apothecary", accent:"lavender", title:"Tea Apothecary" },
   "Garden Challenges":{ theme:"learning", accent:"gold", title:"Garden Challenges" },
@@ -375,6 +377,9 @@ function GardenApp() {
 
       case "Weather":
         return <Weather />;
+
+      case "Watering Wizard":
+        return <WateringWizard />;
 
       case "Learning":
         return <Learning onNavigate={navigate} />;

@@ -5,6 +5,7 @@ import { getDashboardHotspots, getDashboardSkin } from "../data/dashboardSkins";
 import DashboardStatCard from "./dashboard/DashboardStatCard";
 import EstateEnvironment from "./dashboard/EstateEnvironment";
 import EstateWildlife from "./wildlife/EstateWildlife";
+import WateringWizardDashboardCard from "./wateringWizard/WateringWizardDashboardCard";
 import "./Dashboard.css";
 
 export default function Dashboard({ onNavigate, skinId }) {
@@ -129,6 +130,8 @@ export default function Dashboard({ onNavigate, skinId }) {
         <DashboardStatCard icon="zones" value={stats.gardenZoneCount} label="Garden Zones" accessibleName={`Open Garden Collections — ${stats.gardenZoneCount} zones`} onClick={() => onNavigate?.("Garden Collections")} />
         <DashboardStatCard icon="photos" value={stats.photoCount} label="Photos Logged" accessibleName={`Open Garden Gallery — ${stats.photoCount} photos`} onClick={() => onNavigate?.("Gallery")} />
       </section>
+
+      <WateringWizardDashboardCard onOpen={() => onNavigate?.("Watering Wizard")} />
 
       <div className="js-dashboard-canvas" aria-describedby="dashboard-garden-summary">
         <picture className="js-dashboard-canvas__art">

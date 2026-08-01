@@ -13,6 +13,7 @@ const themeIcons = {
   "plant-health":"herb",
   nursery:"container-plant",
   learning:"generic-plant",
+  "watering-wizard":"lavender",
 };
 
 export default function EstateAppShell({

@@ -10,6 +10,7 @@ export const estateDrawerSections = [
     { label:"Garden Zones", page:"Garden Settings", context:{ settingsSection:"manage" }, icon:"container-plant" },
   ] },
   { title:"Care & Records", items:[
+    { label:"Watering Wizard", page:"Watering Wizard", icon:"lavender" },
     { label:"Tasks", page:"Tasks", icon:"vegetable" },
     { label:"Journal", page:"Journal", icon:"herb" },
     { label:"Plant Health", page:"Plant Health Center", icon:"shrub", badge:"health" },
