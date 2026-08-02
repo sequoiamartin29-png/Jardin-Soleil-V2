@@ -1,0 +1,38 @@
+.js-animated-weather{contain:layout paint;inset:0;overflow:hidden;pointer-events:none;position:absolute;z-index:2}
+.js-animated-weather *{pointer-events:none;position:absolute;will-change:opacity,transform}
+.js-weather-atmosphere{inset:0;transition:background 1.2s ease,opacity 1.2s ease}
+.js-weather-atmosphere.is-neutral{background:transparent}
+.js-weather-atmosphere.is-sunny{background:linear-gradient(125deg,rgba(255,237,186,.12),transparent 48%)}
+.js-weather-atmosphere.is-night{background:linear-gradient(180deg,rgba(24,45,69,.25),rgba(46,60,82,.12) 58%,transparent)}
+.js-weather-atmosphere.is-soft{background:rgba(174,187,188,.055)}
+.js-weather-atmosphere.is-clouded{background:rgba(109,121,125,.1)}
+.js-weather-atmosphere.is-wet{background:linear-gradient(180deg,rgba(74,95,108,.14),rgba(81,105,111,.05))}
+.js-weather-atmosphere.is-stormy{background:linear-gradient(180deg,rgba(45,58,72,.22),rgba(61,77,84,.1))}
+.js-weather-atmosphere.is-mist{background:rgba(218,225,220,.1)}
+.js-weather-atmosphere.is-warm{background:radial-gradient(circle at 78% 18%,rgba(238,177,95,.18),transparent 36%)}
+.js-weather-atmosphere.is-cold{background:linear-gradient(180deg,rgba(211,228,231,.14),rgba(227,235,230,.06))}
+.js-weather-sunlight{animation:weather-sunlight 12s ease-in-out infinite;background:radial-gradient(circle at 77% 16%,rgba(255,239,184,.2),transparent 35%);inset:0}
+.js-weather-night{inset:0}.js-weather-stars{background-image:radial-gradient(circle,#fff7ce 0 1px,transparent 1.4px);background-size:62px 53px;height:22%;left:12%;opacity:.28;top:4%;width:72%}.js-weather-moon{background:radial-gradient(circle at 38% 35%,#fff9dd 0 18%,#e6d5a6 49%,rgba(220,208,170,.45) 69%,transparent 72%);border-radius:50%;box-shadow:0 0 18px rgba(255,244,196,.18);height:6%;min-height:18px;right:13%;top:7%;width:4%}
+.js-weather-clouds{inset:0}.js-weather-clouds span{animation:weather-cloud 42s linear infinite;animation-delay:var(--weather-delay);background:radial-gradient(ellipse,rgba(246,243,234,.46),rgba(193,203,202,.17) 64%,transparent 70%);filter:blur(4px);height:14%;left:-34%;opacity:.62;top:var(--weather-top);transform:scale(var(--weather-scale));width:32%}
+.js-weather-rain,.js-weather-snow,.js-weather-wind{inset:4% 3% 3%}.js-weather-rain i{animation:weather-rain 1.45s linear infinite;animation-delay:var(--weather-delay);background:linear-gradient(transparent,rgba(214,235,241,.67));height:10%;left:var(--weather-left);top:-12%;transform:rotate(8deg);width:1px}.js-weather-rain.is-heavy i{animation-duration:.92s;background:linear-gradient(transparent,rgba(219,237,241,.78));opacity:.88}
+.js-weather-snow i{animation:weather-snow 10s linear infinite;animation-delay:var(--weather-delay);background:rgba(251,253,249,.82);border-radius:50%;height:5px;left:var(--weather-left);top:-5%;transform:scale(var(--weather-scale));width:5px}
+.js-weather-mist{inset:0}.js-weather-mist span{animation:weather-mist 30s ease-in-out infinite;background:linear-gradient(90deg,transparent,rgba(232,236,229,.38),transparent);filter:blur(11px);height:36%;left:-35%;top:32%;width:135%}.js-weather-mist span+span{animation-delay:-15s;opacity:.62;top:51%}
+.js-weather-wind i{animation:weather-leaf 12s linear infinite;animation-delay:var(--weather-delay);background:#9a7a46;border-radius:90% 10%;height:7px;left:var(--weather-left);opacity:.62;top:-5%;width:5px}.js-weather-wind i:nth-child(2n){background:#71805a}.js-weather-wind.is-ambient i{animation-duration:22s;opacity:.34}
+.js-weather-lightning{animation:weather-lightning 16s ease-in-out infinite;background:linear-gradient(115deg,transparent 40%,rgba(255,250,225,.2),transparent 61%);inset:0;opacity:0}
+.js-weather-heat{animation:weather-heat 9s ease-in-out infinite;background:linear-gradient(108deg,transparent 25%,rgba(247,204,135,.13) 48%,transparent 70%);inset:45% 2% 0;transform-origin:bottom}
+.js-weather-frost{background:linear-gradient(130deg,rgba(238,248,247,.25),transparent 13% 84%,rgba(223,239,241,.2)),linear-gradient(0deg,rgba(223,239,241,.17),transparent 18%);inset:0}
+.weather-state-light-rain::after,.weather-state-heavy-rain::after,.weather-state-thunderstorm::after{background:radial-gradient(ellipse at 50% 72%,rgba(196,221,224,.12),transparent 42%);content:"";inset:0;position:absolute}
+.js-animated-weather--header,.js-animated-weather--recommendation{border-radius:inherit;opacity:.68}
+.js-animated-weather--recommendation{z-index:0}.js-animated-weather--recommendation .js-weather-rain,.js-animated-weather--recommendation .js-weather-snow{inset:0 3%}.js-animated-weather--recommendation .js-weather-clouds{opacity:.52}
+.js-animated-weather.is-paused *{animation-play-state:paused!important}
+.js-animated-weather.quality-minimal{opacity:.55}.js-animated-weather.quality-minimal .js-weather-rain i:nth-child(n+9),.js-animated-weather.quality-minimal .js-weather-snow i:nth-child(n+9),.js-animated-weather.quality-balanced .js-weather-rain i:nth-child(n+16),.js-animated-weather.quality-balanced .js-weather-snow i:nth-child(n+13){display:none}
+.js-animated-weather.is-reduced-motion .js-weather-clouds,.js-animated-weather.is-reduced-motion .js-weather-rain,.js-animated-weather.is-reduced-motion .js-weather-snow,.js-animated-weather.is-reduced-motion .js-weather-mist,.js-animated-weather.is-reduced-motion .js-weather-wind,.js-animated-weather.is-reduced-motion .js-weather-lightning,.js-animated-weather.is-reduced-motion .js-weather-sunlight,.js-animated-weather.is-reduced-motion .js-weather-heat{display:none!important}
+@keyframes weather-sunlight{50%{opacity:.72;transform:translate3d(-1.5%,1%,0)}}
+@keyframes weather-cloud{to{transform:translateX(440%) scale(var(--weather-scale))}}
+@keyframes weather-rain{to{transform:translate(20px,1050%) rotate(8deg)}}
+@keyframes weather-snow{to{transform:translate(32px,1500%) rotate(210deg)}}
+@keyframes weather-mist{50%{transform:translateX(24%)}}
+@keyframes weather-leaf{to{transform:translate(70px,1250%) rotate(400deg)}}
+@keyframes weather-lightning{0%,91%,94%,100%{opacity:0}92%{opacity:.42}93%{opacity:.12}}
+@keyframes weather-heat{50%{opacity:.58;transform:scaleY(1.025) translateX(1%)}}
+@media(prefers-reduced-motion:reduce){.js-animated-weather .js-weather-clouds,.js-animated-weather .js-weather-rain,.js-animated-weather .js-weather-snow,.js-animated-weather .js-weather-mist,.js-animated-weather .js-weather-wind,.js-animated-weather .js-weather-lightning,.js-animated-weather .js-weather-sunlight,.js-animated-weather .js-weather-heat{display:none!important}.js-animated-weather *{animation:none!important;will-change:auto}}

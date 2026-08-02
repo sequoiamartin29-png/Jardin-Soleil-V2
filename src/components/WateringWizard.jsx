@@ -23,6 +23,7 @@ import { useEstateEnvironment } from "../context/EstateEnvironmentContext";
 import { buildWateringPlan } from "../services/watering-engine";
 import { getGardenStyle } from "../data/gardenStyles";
 import WateringWizardCharacter from "./wateringWizard/WateringWizardCharacter";
+import AnimatedWeather from "./weather/AnimatedWeather";
 import "./WateringWizard.css";
 
 const NOTIFICATION_KEY="jardinSoleilWateringNotifications";
@@ -173,6 +174,7 @@ export default function WateringWizard({gardenStyleId}){
     </section>
 
     <motion.section className={`js-watering-primary is-${primary.tone}`} aria-labelledby="watering-recommendation-title" layout transition={{type:"spring",stiffness:150,damping:22}}>
+      <AnimatedWeather surface="recommendation"/>
       <div className="js-watering-primary__seal" aria-hidden="true">{primary.icon}</div>
       <div className="js-watering-primary__message"><p>Today’s best next step</p><h2 id="watering-recommendation-title">{primary.title}</h2><span>{primary.reason}</span></div>
       <div className="js-watering-primary__facts">

@@ -17,6 +17,7 @@
     "verify:wildlife": "node scripts/verify-wildlife.mjs",
     "verify:health-alerts": "node scripts/verify-plant-health-alerts.mjs",
     "verify:watering": "node scripts/verify-watering-wizard.mjs",
+    "verify:weather-animation": "node scripts/verify-weather-animation.mjs",
     "verify:fruit-tree-delete": "node scripts/verify-fruit-tree-deletion.mjs",
     "verify:learning": "node scripts/verify-learning-center.mjs",
     "verify:storage": "node scripts/verify-storage-recovery.mjs",

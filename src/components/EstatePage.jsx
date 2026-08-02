@@ -9,15 +9,17 @@ export default function EstatePage({
   description,
   icon = "generic-plant",
   actions,
+  heroOverlay,
   className = "",
   children,
 }) {
   return (
     <section className={`js-estate-page ${className}`.trim()} aria-labelledby={id}>
       <header className="js-estate-page__hero">
+        {heroOverlay}
         <span className="js-estate-page__botanical js-estate-page__botanical--left" aria-hidden="true" />
         <BotanicalIcon type={icon} size="xl" decorative />
-        <div>
+        <div className="js-estate-page__hero-copy">
           <p>{eyebrow}</p>
           <h1 id={id}>{title}</h1>
           {description && <span>{description}</span>}
